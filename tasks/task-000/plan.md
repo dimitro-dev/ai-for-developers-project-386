@@ -13,10 +13,10 @@ status: согласовано
 | P03 | Нет локального TypeSpec/codegen toolchain | devDependencies: `typescript`, `@typespec/compiler`, `@typespec/http`, `@typespec/openapi3`, `@hey-api/openapi-ts`, `zod`; корневые scripts `contracts:format`, `contracts:format:check`, `contracts:build`, `generate`, `generate:check` | завершено |
 | P04 | Нет согласованной структуры каталогов | Создать `apps/*`, `packages/*`, `infra` по `docs/architecture.md`; пустые точки расширения сохранить через `.gitkeep`; проверить ссылки документации | завершено |
 | P05 | Генерационная цепочка не проверена | Smoke `.tsp` (health-операция, без домена) → OpenAPI 3.1 в `packages/contracts/generated` → SDK в `packages/api-client/src/generated` → types + Zod в `packages/backend-contract/src/generated` | завершено |
-| P06 | Нет клиентского scaffold | `apps/client`: Expo + TypeScript + `react-native-web`, без продуктовых экранов; web-сборка через `expo export`; Android debug-сборка через `expo prebuild` + Gradle на host Android SDK | выполняется |
+| P06 | Нет клиентского scaffold | `apps/client`: Expo + TypeScript + `react-native-web`, без продуктовых экранов; web-сборка через `expo export`; Android debug-сборка через `expo prebuild` + Gradle на host Android SDK | завершено |
 | P07 | Нет API smoke-пакета | `apps/api`: минимальный сервер на `node:http` + TypeScript с health-endpoint по smoke-контракту; build/typecheck проходят | завершено |
 | P08 | Нет защиты от generated drift | Проверить: повторный `npm run generate` не создаёт diff; `generate:check` падает при ручной правке generated; format-check проходит | завершено |
-| P09 | Команды bootstrap не документированы | README с точными командами установки, генерации, проверок и запуска; финализация `result.md` | выполняется |
+| P09 | Команды bootstrap не документированы | README с точными командами установки, генерации, проверок и запуска; финализация `result.md` | завершено |
 
 ## Порядок и зависимости
 

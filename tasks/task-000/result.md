@@ -6,7 +6,7 @@ status: черновик
 
 ## Итог
 
-Каркас monorepo подготовлен: npm workspaces, локальный TypeSpec/codegen toolchain, проверенная генерационная цепочка, Expo-клиент (web-сборка проходит), smoke API-сервер, защита от generated drift и README с командами bootstrap. Android debug-сборка — в процессе (Gradle), результат будет дополнен.
+Каркас monorepo подготовлен полностью: npm workspaces, локальный TypeSpec/codegen toolchain, проверенная генерационная цепочка, Expo-клиент (web-сборка и Android debug APK проходят), smoke API-сервер, защита от generated drift и README с командами bootstrap. Все пункты плана завершены.
 
 ## Что изменено
 
@@ -71,7 +71,7 @@ Docker/Compose-контур вынесен в отдельную инфраст�
 | Сборка API | `npm run build -w @minical/api` | OK |
 | Работа API | `curl http://localhost:3001/health` | `{"status":"ok","uptimeSeconds":0.942}` |
 | Web-сборка клиента | `npx expo export --platform web` | OK, bundle 332KB в `apps/client/dist` |
-| Android debug-сборка | `expo prebuild` + `gradlew assembleDebug` | prebuild OK; Gradle — выполняется, результат будет дополнен |
+| Android debug-сборка | `expo prebuild` + `gradlew assembleDebug` (JDK 17, host Android SDK) | OK, exit 0; `apps/client/android/app/build/outputs/apk/debug/app-debug.apk` (130MB) |
 
 ## Отклонения от brief / ADR / plan
 
