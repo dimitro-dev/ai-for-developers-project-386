@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.99.0",
+    "@types/node": "^26.1.2",
     "@typespec/compiler": "^1.14.0",
     "@typespec/http": "^1.14.0",
     "@typespec/openapi3": "^1.14.0",
