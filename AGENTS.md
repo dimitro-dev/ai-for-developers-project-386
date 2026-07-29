@@ -48,18 +48,17 @@ MiniCal — учебный сервис бронирования без реги
 | [`docs/contract-pipeline.md`](docs/contract-pipeline.md) | При любом изменении TypeSpec, API или generated packages |
 | `docs/domain-model.md` | После создания задачей `001`; читать при API, backend, database и QA design |
 | [`tasks/_template/`](tasks/_template/) | Только при создании новой task-директории |
-| [`agents/`](agents/) | Перед выполнением работы конкретной специализированной роли |
 
 ## Специализированные агенты
 
 | Роль | Задача в проекте | Инструкция |
 |---|---|---|
-| Contract Agent | TypeSpec-контракт и generation pipeline | [`agents/contract-agent.md`](agents/contract-agent.md) |
-| Frontend Agent | React Native / Web UI по generated SDK | [`agents/frontend-agent.md`](agents/frontend-agent.md) |
-| Backend Agent | REST, application logic и Slot Engine | [`agents/backend-agent.md`](agents/backend-agent.md) |
-| Database Agent | PostgreSQL schema, migrations и constraints | [`agents/database-agent.md`](agents/database-agent.md) |
-| QA Agent | Контрактные, доменные, интеграционные и E2E-проверки | [`agents/qa-agent.md`](agents/qa-agent.md) |
-| Infrastructure Agent | Toolchain, Docker, Compose, CI и Android builder | [`agents/infrastructure-agent.md`](agents/infrastructure-agent.md) |
+| Contract Agent | TypeSpec-контракт и generation pipeline | [`/contract-agent.md`](/contract-agent.md) |
+| Frontend Agent | React Native / Web UI по generated SDK | [`/frontend-agent.md`](/frontend-agent.md) |
+| Backend Agent | REST, application logic и Slot Engine | [`/backend-agent.md`](/backend-agent.md) |
+| Database Agent | PostgreSQL schema, migrations и constraints | [`/database-agent.md`](/database-agent.md) |
+| QA Agent | Контрактные, доменные, интеграционные и E2E-проверки | [`/qa-agent.md`](/qa-agent.md) |
+| Infrastructure Agent | Toolchain, Docker, Compose, CI и Android builder | [`/infrastructure-agent.md`](/infrastructure-agent.md) |
 
 Harness не имеет отдельного role-файла: он следует `AGENTS.md`, lifecycle активной задачи и подключает специализированные роли по необходимости.
 
