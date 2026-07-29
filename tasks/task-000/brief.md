@@ -22,7 +22,7 @@ status: согласовано
 
 - агент из чистого checkout выполняет документированную последовательность (`npm ci` → `npm run generate` → smoke checks) и получает работающее окружение без ручной донастройки;
 - Contract Agent начинает task-002 без установки глобального TypeSpec CLI;
-- Infrastructure Agent расширяет готовый Compose-контур, не пересобирая его с нуля.
+- Infrastructure Agent в отдельной Docker-задаче опирается на готовый workspace и документированные команды bootstrap.
 
 ## Функциональные требования
 
@@ -68,7 +68,7 @@ TypeSpec → OpenAPI 3.1 → frontend generated types/SDK → backend generated 
 
 8. Подготовить корневые команды сборки и проверки generated drift.
 9. Развернуть в `apps/client` полноценный React Native / React Web scaffold (Android и web; iOS проверяется локально при доступном toolchain) без продуктовых экранов; для `apps/api` подготовить минимальный smoke-пакет с build/typecheck. Бизнес-endpoints не реализовывать.
-10. Подготовить базовый Docker/Compose-контур и проверить валидность конфигурации. Runtime-сервисы могут оставаться smoke-заглушками, пока нет прикладной реализации.
+10. Docker/Compose-контур в рамках task-000 не готовится: решением пользователя он вынесен в отдельную инфраструктурную задачу. Smoke-компоненты задачи запускаются напрямую через Node/npm.
 11. Описать в README точные команды установки, генерации, проверки и локального запуска.
 
 ## Нефункциональные требования
@@ -92,9 +92,8 @@ TypeSpec → OpenAPI 3.1 → frontend generated types/SDK → backend generated 
 5. TypeScript typecheck smoke-пакетов проходит.
 6. Клиентский scaffold собирается: web-сборка проходит; Android debug-сборка выполняется при доступном host Android toolchain, результат фиксируется в `result.md`.
 7. TypeSpec formatter/compile проходят.
-8. `docker compose config` проходит; если созданы smoke-сервисы, их healthcheck также проходит.
-9. Проверки окружения и все выполненные команды зафиксированы в `result.md`.
-10. Следующая задача может начать работу без установки глобального TypeSpec CLI.
+8. Проверки окружения и все выполненные команды зафиксированы в `result.md`.
+9. Следующая задача может начать работу без установки глобального TypeSpec CLI.
 
 ## Non-goals
 
@@ -104,6 +103,7 @@ TypeSpec → OpenAPI 3.1 → frontend generated types/SDK → backend generated 
 - PostgreSQL schema продукта и миграции;
 - полноценные owner/guest UI;
 - реализация бронирования;
+- Docker/Compose runtime-контур (web, api, postgres) — отдельная инфраструктурная задача;
 - Docker-образ android-builder и автоматизированная сборка APK — отдельная инфраструктурная задача;
 - production deployment.
 

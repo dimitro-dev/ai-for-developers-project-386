@@ -19,7 +19,7 @@ status: согласовано
 5. `apps/client` — Expo (актуальный стабильный SDK) + TypeScript + `react-native-web`: один кодовый контур для Android и web без продуктовых экранов; iOS проверяется локально при доступном toolchain. Android debug-сборка — `expo prebuild` + Gradle с host Android SDK; web-сборка — `expo export`.
 6. `apps/api` — минимальный smoke HTTP-сервер на `node:http` + TypeScript, без фреймворка. Выбор backend-фреймворка — прикладное решение будущей backend implementation task; bootstrap его не предрешает.
 7. Node.js: поддерживаемая major-версия — 26 (реально установлена и проверяется на хосте); фиксируется файлом `.nvmrc`, в `engines` допускается `>=24` (Active LTS) для совместимости с CI. Точные версии зависимостей фиксирует `package-lock.json`.
-8. Docker Compose — интерфейс локального runtime (web, api, postgres). На текущем хосте Docker отсутствует; по решению пользователя провайдер пока не устанавливается. В task-000 Compose-файлы и Dockerfile-контур готовятся, а их валидация (`docker compose config`, healthcheck) фиксируется как заблокированная в `plan.md` и известное ограничение в `result.md`. Кандидат на установку при разблокировке — colima + docker CLI + compose plugin (свободная лицензия); повторное предложение — по fallback-правилу brief.
+8. Docker Compose остаётся целевым интерфейсом локального runtime по `docs/architecture.md`, но подготовка Dockerfile/Compose целиком вынесена из task-000 в отдельную инфраструктурную задачу (решение пользователя; Docker на хосте отсутствует). Smoke-компоненты task-000 запускаются напрямую через Node/npm. Кандидат-провайдер для будущей Docker-задачи — colima + docker CLI + compose plugin (свободная лицензия); предложение установки — по fallback-правилу brief.
 9. Образ android-builder и сборка APK в Docker — вне scope task-000 (non-goal brief); отдельная инфраструктурная задача.
 10. Структура каталогов создаётся заранее по `docs/architecture.md`; пустые каталоги сохраняются через `.gitkeep`; placeholder-код не смешивается с будущей доменной реализацией.
 
@@ -52,7 +52,7 @@ README.md
 
 - Expo-scaffold заметно увеличивает объём task-000 и время сборки;
 - smoke-сервер на `node:http` будет заменён при выборе backend-фреймворка;
-- Docker-часть заблокирована до установки провайдера, подтверждённой пользователем;
+- Docker-контур отложен в отдельную задачу: локальный runtime через Compose появится только после неё, до тех пор запуск — напрямую через Node/npm;
 - Node 26 — Current, а не LTS: отдельные пакеты могут предупреждать про `engines`; допускается переход на LTS 24 без пересмотра ADR (`engines >=24`);
 - bootstrap не доказывает корректность будущей бизнес-логики.
 
