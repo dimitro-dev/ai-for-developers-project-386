@@ -1,7 +1,7 @@
 # Внутренние документы AI-процесса
 /tasks/
 /docs/
-/agents/
+.opencode
 
 # OS
 .DS_Store
