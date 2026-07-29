@@ -1,0 +1,27 @@
+# Внутренние документы AI-процесса
+/tasks/
+/docs/
+/agents/
+
+# OS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+
+# Expo / React Native (continuous native generation)
+.expo/
+apps/client/android/
+apps/client/ios/
+*.tsbuildinfo
+
+# Logs and env
+*.log
+.env
+.env.*
+!.env.example

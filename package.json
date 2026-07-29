@@ -1,0 +1,31 @@
+{
+  "name": "minical",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "contracts:format": "tsp format \"packages/contracts/src/**/*.tsp\"",
+    "contracts:format:check": "tsp format --check \"packages/contracts/src/**/*.tsp\"",
+    "contracts:build": "tsp compile packages/contracts/src/main.tsp --config packages/contracts/tspconfig.yaml",
+    "generate": "npm run contracts:build && npm run generate:client && npm run generate:backend",
+    "generate:client": "openapi-ts -f packages/api-client/openapi-ts.config.ts",
+    "generate:backend": "openapi-ts -f packages/backend-contract/openapi-ts.config.ts",
+    "generate:check": "npm run generate && git diff --exit-code -- packages/contracts/generated packages/api-client/src/generated packages/backend-contract/src/generated",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.99.0",
+    "@types/node": "^26.1.2",
+    "@typespec/compiler": "^1.14.0",
+    "@typespec/http": "^1.14.0",
+    "@typespec/openapi3": "^1.14.0",
+    "typescript": "^5.9.3"
+  }
+}
