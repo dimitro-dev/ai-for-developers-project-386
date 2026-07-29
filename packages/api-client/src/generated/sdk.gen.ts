@@ -2,7 +2,7 @@
 
 import { client } from './client.gen.js';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client/index.js';
-import type { GetHealthData, GetHealthResponses } from './types.gen.js';
+import type { CompleteAdminSetupData, CompleteAdminSetupErrors, CompleteAdminSetupResponses, CreateAdminEventTypeData, CreateAdminEventTypeErrors, CreateAdminEventTypeResponses, CreatePublicBookingData, CreatePublicBookingErrors, CreatePublicBookingResponses, GetAdminEventTypesData, GetAdminEventTypesResponses, GetAdminSettingsData, GetAdminSettingsErrors, GetAdminSettingsResponses, GetAdminSetupData, GetAdminSetupResponses, GetAdminUpcomingBookingsData, GetAdminUpcomingBookingsResponses, GetHealthData, GetHealthResponses, GetPublicEventTypesData, GetPublicEventTypesErrors, GetPublicEventTypesResponses, GetPublicSlotsData, GetPublicSlotsErrors, GetPublicSlotsResponses, UpdateAdminSettingsData, UpdateAdminSettingsErrors, UpdateAdminSettingsResponses } from './types.gen.js';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,4 +18,92 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
+/**
+ * Get all upcoming bookings for all event types.
+ */
+export const getAdminUpcomingBookings = <ThrowOnError extends boolean = false>(options?: Options<GetAdminUpcomingBookingsData, ThrowOnError>): RequestResult<GetAdminUpcomingBookingsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminUpcomingBookingsResponses, unknown, ThrowOnError>({ url: '/admin/bookings', ...options });
+
+/**
+ * Get all event types owned by the calendar owner.
+ */
+export const getAdminEventTypes = <ThrowOnError extends boolean = false>(options?: Options<GetAdminEventTypesData, ThrowOnError>): RequestResult<GetAdminEventTypesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminEventTypesResponses, unknown, ThrowOnError>({ url: '/admin/event-types', ...options });
+
+/**
+ * Create a new event type.
+ * Fails with DUPLICATE_EVENT_TYPE_ID if an event type with the same id exists.
+ */
+export const createAdminEventType = <ThrowOnError extends boolean = false>(options: Options<CreateAdminEventTypeData, ThrowOnError>): RequestResult<CreateAdminEventTypeResponses, CreateAdminEventTypeErrors, ThrowOnError> => (options.client ?? client).post<CreateAdminEventTypeResponses, CreateAdminEventTypeErrors, ThrowOnError>({
+    url: '/admin/event-types',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get current calendar settings. Requires onboarding to be completed.
+ */
+export const getAdminSettings = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSettingsData, ThrowOnError>): RequestResult<GetAdminSettingsResponses, GetAdminSettingsErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminSettingsResponses, GetAdminSettingsErrors, ThrowOnError>({ url: '/admin/settings', ...options });
+
+/**
+ * Fully replace calendar settings. Requires onboarding to be completed.
+ */
+export const updateAdminSettings = <ThrowOnError extends boolean = false>(options: Options<UpdateAdminSettingsData, ThrowOnError>): RequestResult<UpdateAdminSettingsResponses, UpdateAdminSettingsErrors, ThrowOnError> => (options.client ?? client).put<UpdateAdminSettingsResponses, UpdateAdminSettingsErrors, ThrowOnError>({
+    url: '/admin/settings',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get current onboarding setup state of the calendar owner.
+ */
+export const getAdminSetup = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSetupData, ThrowOnError>): RequestResult<GetAdminSetupResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminSetupResponses, unknown, ThrowOnError>({ url: '/admin/setup', ...options });
+
+/**
+ * Complete initial owner onboarding.
+ * Fails with ONBOARDING_ALREADY_COMPLETED if setup has already been done.
+ */
+export const completeAdminSetup = <ThrowOnError extends boolean = false>(options: Options<CompleteAdminSetupData, ThrowOnError>): RequestResult<CompleteAdminSetupResponses, CompleteAdminSetupErrors, ThrowOnError> => (options.client ?? client).put<CompleteAdminSetupResponses, CompleteAdminSetupErrors, ThrowOnError>({
+    url: '/admin/setup',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create a new booking.
+ * Server validates the slot, computes endAtUtc from event type duration,
+ * and checks for conflicts.
+ */
+export const createPublicBooking = <ThrowOnError extends boolean = false>(options: Options<CreatePublicBookingData, ThrowOnError>): RequestResult<CreatePublicBookingResponses, CreatePublicBookingErrors, ThrowOnError> => (options.client ?? client).post<CreatePublicBookingResponses, CreatePublicBookingErrors, ThrowOnError>({
+    url: '/bookings',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List all event types available for public booking.
+ * Requires calendar owner to have completed onboarding.
+ */
+export const getPublicEventTypes = <ThrowOnError extends boolean = false>(options?: Options<GetPublicEventTypesData, ThrowOnError>): RequestResult<GetPublicEventTypesResponses, GetPublicEventTypesErrors, ThrowOnError> => (options?.client ?? client).get<GetPublicEventTypesResponses, GetPublicEventTypesErrors, ThrowOnError>({ url: '/event-types', ...options });
+
+/**
+ * Server health check.
+ */
 export const getHealth = <ThrowOnError extends boolean = false>(options?: Options<GetHealthData, ThrowOnError>): RequestResult<GetHealthResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetHealthResponses, unknown, ThrowOnError>({ url: '/health', ...options });
+
+/**
+ * Get available slots for a given event type.
+ * Server computes a 14-day booking window in the owner's timezone.
+ * Slots that are already booked or in the past are excluded.
+ */
+export const getPublicSlots = <ThrowOnError extends boolean = false>(options: Options<GetPublicSlotsData, ThrowOnError>): RequestResult<GetPublicSlotsResponses, GetPublicSlotsErrors, ThrowOnError> => (options.client ?? client).get<GetPublicSlotsResponses, GetPublicSlotsErrors, ThrowOnError>({ url: '/slots', ...options });

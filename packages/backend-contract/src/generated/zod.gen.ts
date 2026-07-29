@@ -3,14 +3,295 @@
 import * as z from 'zod';
 
 /**
- * Ответ health-проверки smoke-сервера.
+ * A confirmed booking that locks a time interval for a guest.
  */
-export const zHealthResponse = z.object({
-    status: z.enum(['ok']),
-    uptimeSeconds: z.number()
+export const zBooking = z.object({
+    id: z.string(),
+    eventTypeId: z.string(),
+    startAtUtc: z.iso.datetime(),
+    endAtUtc: z.iso.datetime(),
+    guestName: z.string(),
+    guestEmail: z.string(),
+    guestNote: z.string().optional(),
+    createdAtUtc: z.iso.datetime()
 });
+
+/**
+ * Request payload to create a new event type.
+ */
+export const zCreateEventTypeRequest = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+/**
+ * Day of the week.
+ */
+export const zDayOfWeek = z.enum([
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+]);
+
+/**
+ * Base error response with machine-readable code and human-readable message.
+ */
+export const zErrorResponse = z.object({
+    code: z.string(),
+    message: z.string()
+});
+
+/**
+ * Calendar owner has not completed onboarding setup yet.
+ */
+export const zCalendarNotConfigured = zErrorResponse.and(z.object({
+    code: z.enum(['CALENDAR_NOT_CONFIGURED'])
+}));
+
+/**
+ * A booking with the provided id already exists (idempotency conflict).
+ */
+export const zDuplicateBookingId = zErrorResponse.and(z.object({
+    code: z.enum(['DUPLICATE_BOOKING_ID'])
+}));
+
+/**
+ * EventType with the given id already exists.
+ */
+export const zDuplicateEventTypeId = zErrorResponse.and(z.object({
+    code: z.enum(['DUPLICATE_EVENT_TYPE_ID'])
+}));
+
+/**
+ * An event type representing a kind of meeting that guests can book.
+ */
+export const zEventType = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+/**
+ * Referenced EventType does not exist.
+ */
+export const zEventTypeNotFound = zErrorResponse.and(z.object({
+    code: z.enum(['EVENT_TYPE_NOT_FOUND'])
+}));
+
+/**
+ * Guest contact details stored as a snapshot within each Booking.
+ */
+export const zGuestDetails = z.object({
+    name: z.string(),
+    email: z.string(),
+    note: z.string().optional()
+});
+
+/**
+ * Guest email was not provided or is invalid.
+ */
+export const zGuestEmailRequired = zErrorResponse.and(z.object({
+    code: z.enum(['GUEST_EMAIL_REQUIRED'])
+}));
+
+/**
+ * Guest name was not provided.
+ */
+export const zGuestNameRequired = zErrorResponse.and(z.object({
+    code: z.enum(['GUEST_NAME_REQUIRED'])
+}));
+
+export const zHealthResponse = z.object({
+    status: z.enum(['ok'])
+});
+
+/**
+ * IANA timezone identifier.
+ */
+export const zIanaTimeZone = z.string().regex(/^[A-Za-z]+\/[A-Za-z_]+(\/[A-Za-z_]+)?$/);
+
+/**
+ * Local time in HH:mm format (24-hour).
+ */
+export const zLocalTime = z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/);
+
+/**
+ * One availability rule: days of the week and a local time interval.
+ */
+export const zAvailabilityRule = z.object({
+    daysOfWeek: z.array(zDayOfWeek),
+    startLocal: zLocalTime,
+    endLocal: zLocalTime
+});
+
+/**
+ * Calendar settings that control slot generation.
+ */
+export const zCalendarSettings = z.object({
+    timeZone: zIanaTimeZone,
+    availabilityRules: z.array(zAvailabilityRule),
+    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+/**
+ * Full calendar settings response including owner display name.
+ */
+export const zCalendarSettingsResponse = z.object({
+    displayName: z.string(),
+    timeZone: zIanaTimeZone,
+    availabilityRules: z.array(zAvailabilityRule),
+    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+/**
+ * Calendar owner has already completed onboarding; cannot set up again.
+ */
+export const zOnboardingAlreadyCompleted = zErrorResponse.and(z.object({
+    code: z.enum(['ONBOARDING_ALREADY_COMPLETED'])
+}));
+
+/**
+ * Request payload to complete initial owner setup or update settings.
+ */
+export const zSetupRequest = z.object({
+    displayName: z.string(),
+    timeZone: zIanaTimeZone,
+    availabilityRules: z.array(zAvailabilityRule),
+    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+/**
+ * Response returned for setup state query (GET /admin/setup).
+ */
+export const zSetupStateResponse = z.object({
+    onboardingCompleted: z.boolean(),
+    displayName: z.string().optional()
+});
+
+/**
+ * A computed available time slot for a given event type.
+ * Slots are not persisted; they are computed on the fly by the server
+ * based on owner settings, event type duration, and existing bookings.
+ */
+export const zSlot = z.object({
+    startAtUtc: z.iso.datetime(),
+    endAtUtc: z.iso.datetime(),
+    eventTypeId: z.string()
+});
+
+/**
+ * Requested slot start does not align with the slot interval grid.
+ */
+export const zSlotNotAligned = zErrorResponse.and(z.object({
+    code: z.enum(['SLOT_NOT_ALIGNED'])
+}));
+
+/**
+ * Requested slot start is outside the 14-day booking window.
+ */
+export const zSlotOutsideWindow = zErrorResponse.and(z.object({
+    code: z.enum(['SLOT_OUTSIDE_WINDOW'])
+}));
+
+/**
+ * Requested slot is already booked or conflicts with an existing booking.
+ */
+export const zSlotUnavailable = zErrorResponse.and(z.object({
+    code: z.enum(['SLOT_UNAVAILABLE'])
+}));
+
+/**
+ * Universally unique identifier (UUID v4).
+ */
+export const zUuid = z.uuid();
+
+/**
+ * Request payload to create a new booking.
+ */
+export const zCreateBookingRequest = z.object({
+    eventTypeId: z.string(),
+    startAtUtc: z.iso.datetime(),
+    id: zUuid.optional(),
+    guest: zGuestDetails
+});
+
+/**
+ * Generic validation error — input does not satisfy transport constraints.
+ */
+export const zValidationError = zErrorResponse.and(z.object({
+    code: z.enum(['VALIDATION_ERROR'])
+}));
+
+/**
+ * The request has succeeded.
+ */
+export const zGetAdminUpcomingBookingsResponse = z.array(zBooking);
+
+/**
+ * The request has succeeded.
+ */
+export const zGetAdminEventTypesResponse = z.array(zEventType);
+
+export const zCreateAdminEventTypeBody = zCreateEventTypeRequest;
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zCreateAdminEventTypeResponse = zEventType;
+
+/**
+ * The request has succeeded.
+ */
+export const zGetAdminSettingsResponse = zCalendarSettingsResponse;
+
+export const zUpdateAdminSettingsBody = zSetupRequest;
+
+/**
+ * The request has succeeded.
+ */
+export const zUpdateAdminSettingsResponse = zCalendarSettingsResponse;
+
+/**
+ * The request has succeeded.
+ */
+export const zGetAdminSetupResponse = zSetupStateResponse;
+
+export const zCompleteAdminSetupBody = zSetupRequest;
+
+/**
+ * The request has succeeded.
+ */
+export const zCompleteAdminSetupResponse = zCalendarSettingsResponse;
+
+export const zCreatePublicBookingBody = zCreateBookingRequest;
+
+/**
+ * The request has succeeded and a new resource has been created as a result.
+ */
+export const zCreatePublicBookingResponse = zBooking;
+
+/**
+ * The request has succeeded.
+ */
+export const zGetPublicEventTypesResponse = z.array(zEventType);
 
 /**
  * The request has succeeded.
  */
 export const zGetHealthResponse = zHealthResponse;
+
+export const zGetPublicSlotsQuery = z.object({
+    eventTypeId: z.string()
+});
+
+/**
+ * The request has succeeded.
+ */
+export const zGetPublicSlotsResponse = z.array(zSlot);

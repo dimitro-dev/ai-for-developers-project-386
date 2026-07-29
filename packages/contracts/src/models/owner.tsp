@@ -1,0 +1,64 @@
+namespace MiniCal;
+
+/** One availability rule: days of the week and a local time interval. */
+model AvailabilityRule {
+  /** Days of the week this rule applies to. */
+  daysOfWeek: DayOfWeek[];
+
+  /** Start of the working interval (local time, inclusive). */
+  startLocal: LocalTime;
+
+  /** End of the working interval (local time, exclusive). */
+  endLocal: LocalTime;
+}
+
+/** Calendar settings that control slot generation. */
+model CalendarSettings {
+  /** IANA timezone for the calendar. */
+  timeZone: IanaTimeZone;
+
+  /** Rules defining working hours. At least one rule is required. */
+  availabilityRules: AvailabilityRule[];
+
+  /** Slot grid interval in minutes (must be a divisor of 60, >= 15). */
+  slotIntervalMinutes: int32;
+}
+
+/** Request payload to complete initial owner setup or update settings. */
+model SetupRequest {
+  /** Owner display name. */
+  displayName: string;
+
+  /** IANA timezone for the calendar. */
+  timeZone: IanaTimeZone;
+
+  /** Rules defining working hours. */
+  availabilityRules: AvailabilityRule[];
+
+  /** Slot grid interval in minutes. */
+  slotIntervalMinutes: int32;
+}
+
+/** Response returned for setup state query (GET /admin/setup). */
+model SetupStateResponse {
+  /** Whether onboarding has been completed. */
+  onboardingCompleted: boolean;
+
+  /** Owner display name. Present only if onboarding is completed. */
+  displayName?: string;
+}
+
+/** Full calendar settings response including owner display name. */
+model CalendarSettingsResponse {
+  /** Owner display name. */
+  displayName: string;
+
+  /** IANA timezone for the calendar. */
+  timeZone: IanaTimeZone;
+
+  /** Rules defining working hours. */
+  availabilityRules: AvailabilityRule[];
+
+  /** Slot grid interval in minutes. */
+  slotIntervalMinutes: int32;
+}

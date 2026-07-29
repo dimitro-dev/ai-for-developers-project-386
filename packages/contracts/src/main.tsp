@@ -1,20 +1,14 @@
 import "@typespec/http";
+import "./models/common.tsp";
+import "./models/errors.tsp";
+import "./models/owner.tsp";
+import "./models/event-type.tsp";
+import "./models/booking.tsp";
+import "./operations/health.tsp";
+import "./operations/admin.tsp";
+import "./operations/public.tsp";
 
 using Http;
 
-/**
- * Smoke-контракт для проверки generation pipeline (task-000).
- * Не содержит доменной спецификации MiniCal: продуктовый API описывает task-002.
- */
-@service(#{ title: "MiniCal Smoke API" })
-namespace MiniCalSmoke;
-
-/** Ответ health-проверки smoke-сервера. */
-model HealthResponse {
-  status: "ok";
-  uptimeSeconds: float64;
-}
-
-@route("/health")
-@get
-op getHealth(): HealthResponse;
+@service(#{ title: "MiniCal API" })
+namespace MiniCal;
