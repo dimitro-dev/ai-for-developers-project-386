@@ -8,8 +8,8 @@ status: согласовано
 
 | ID | Цель / проблема | Решение | Состояние |
 |---|---|---|---|
-| P01 | Зафиксировать фактическое состояние host-инструментов | Задокументировать в `result.md` проверенные версии: Node 26.0.0, npm 11.12.1, Git 2.50.1, Android SDK + Java 17; Docker/Compose отсутствуют — Docker-контур вынесен в отдельную задачу | в плане |
-| P02 | Нет корневого workspace-контура | Корневой `package.json` с `workspaces: ["apps/*", "packages/*"]`, `.nvmrc` = 26, `engines >=24`, полный `.gitignore`, `package-lock.json` | в плане |
+| P01 | Зафиксировать фактическое состояние host-инструментов | Задокументировать в `result.md` проверенные версии: Node 26.0.0, npm 11.12.1, Git 2.50.1, Android SDK + Java 17; Docker/Compose отсутствуют — Docker-контур вынесен в отдельную задачу | выполняется |
+| P02 | Нет корневого workspace-контура | Корневой `package.json` с `workspaces: ["apps/*", "packages/*"]`, `.nvmrc` = 26, `engines >=24`, полный `.gitignore`, `package-lock.json` | выполняется |
 | P03 | Нет локального TypeSpec/codegen toolchain | devDependencies: `typescript`, `@typespec/compiler`, `@typespec/http`, `@typespec/openapi3`, `@hey-api/openapi-ts`, `zod`; корневые scripts `contracts:format`, `contracts:format:check`, `contracts:build`, `generate`, `generate:check` | в плане |
 | P04 | Нет согласованной структуры каталогов | Создать `apps/*`, `packages/*`, `infra` по `docs/architecture.md`; пустые точки расширения сохранить через `.gitkeep`; проверить ссылки документации | в плане |
 | P05 | Генерационная цепочка не проверена | Smoke `.tsp` (health-операция, без домена) → OpenAPI 3.1 в `packages/contracts/generated` → SDK в `packages/api-client/src/generated` → types + Zod в `packages/backend-contract/src/generated` | в плане |
