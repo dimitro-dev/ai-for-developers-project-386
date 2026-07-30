@@ -18,9 +18,12 @@ model CalendarSettings {
   timeZone: IanaTimeZone;
 
   /** Rules defining working hours. At least one rule is required. */
+  @minItems(1)
   availabilityRules: AvailabilityRule[];
 
   /** Slot grid interval in minutes (must be a divisor of 60, >= 15). */
+  @minValue(15)
+  @maxValue(60)
   slotIntervalMinutes: int32;
 }
 
@@ -35,9 +38,12 @@ model SetupRequest {
   timeZone: IanaTimeZone;
 
   /** Rules defining working hours. */
+  @minItems(1)
   availabilityRules: AvailabilityRule[];
 
   /** Slot grid interval in minutes. */
+  @minValue(15)
+  @maxValue(60)
   slotIntervalMinutes: int32;
 }
 
@@ -61,8 +67,11 @@ model CalendarSettingsResponse {
   timeZone: IanaTimeZone;
 
   /** Rules defining working hours. */
+  @minItems(1)
   availabilityRules: AvailabilityRule[];
 
   /** Slot grid interval in minutes. */
+  @minValue(15)
+  @maxValue(60)
   slotIntervalMinutes: int32;
 }

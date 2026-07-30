@@ -7,7 +7,7 @@
 
 ## Требования к окружению
 
-- Node.js 26 (файл [`.nvmrc`](.nvmrc); поддерживается `>=24`) и npm 10+
+- Node.js 26 (файл [`.nvmrc`](.nvmrc); поддерживается `>=24`) и npm 11+
 - Git
 - Для Android debug-сборки клиента: Android SDK и JDK 17 на хосте
 - Docker для текущего этапа **не требуется**: Docker/Compose-контур вынесен в отдельную задачу
@@ -27,7 +27,7 @@ npm ci
 | `npm run contracts:format` | Форматирование TypeSpec-исходников контракта |
 | `npm run contracts:format:check` | Проверка форматирования без изменения файлов |
 | `npm run contracts:build` | Компиляция TypeSpec → `packages/contracts/generated/openapi.yaml` |
-| `npm run generate` | Полная цепочка: TypeSpec → OpenAPI 3.1 → frontend SDK → backend types + Zod |
+| `npm run generate` | Полная цепочка: TypeSpec → OpenAPI 3.0 → frontend SDK → backend types + Zod |
 | `npm run generate:check` | Перегенерация + падение при diff в generated-файлах (защита от drift) |
 | `npm run typecheck` | TypeScript typecheck всех workspaces |
 | `npm run build` | Сборка всех workspaces (API → `dist/`, клиент → web-экспорт) |
@@ -36,7 +36,7 @@ Generated-каталоги (`packages/contracts/generated`, `packages/api-client
 
 ## Запуск
 
-Smoke API (`http://localhost:3001/health`):
+Smoke API (`http://localhost:3001/health`); endpoint соответствует контрактному `GET /health` и возвращает `{"status":"ok"}`:
 
 ```bash
 npm run dev -w @minical/api        # из исходников, с watch
@@ -75,3 +75,7 @@ infra                     Docker/Compose (отдельная задача)
 ```
 
 Рабочий процесс задач описан в [`tasks/README.md`](tasks/README.md).
+
+## Внутренние документы
+
+Каталоги `docs/`, `tasks/` и `.opencode/` — локальные артефакты AI-процесса разработки; они намеренно не публикуются в репозитории (см. [`.gitignore`](.gitignore)). Ссылки на них в этом README (например, `docs/architecture.md`, `tasks/README.md`) работают только в локальной рабочей копии, где эти каталоги присутствуют.

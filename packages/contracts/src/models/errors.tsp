@@ -3,6 +3,7 @@ namespace MiniCal;
 /** Base error response with machine-readable code and human-readable message. */
 model ErrorResponse {
   /** Machine-readable error code. */
+  @maxLength(100)
   code: string;
 
   /** Human-readable error description. */

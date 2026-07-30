@@ -10,10 +10,13 @@ function loadOpenAPI() {
   return parse(yaml);
 }
 
+const failures: string[] = [];
+
 function assert(condition: boolean, message: string) {
   if (!condition) {
     console.error(`FAIL: ${message}`);
-    process.exit(1);
+    failures.push(message);
+    return;
   }
   console.log(`PASS: ${message}`);
 }
@@ -55,7 +58,7 @@ assert(actualCount === expectedRoutes.length, `Route count: ${actualCount} === $
 
 console.log('\n=== 2. Operation IDs ===');
 const actualOps = new Set<string>();
-for (const [path, methods] of Object.entries(paths)) {
+for (const [, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
     if (op.operationId) actualOps.add(op.operationId);
   }
@@ -78,18 +81,48 @@ assert(spec.components?.securitySchemes == null, 'No security schemes defined');
 assert(spec.security == null, 'No top-level security');
 
 console.log('\n=== 5. ownerId absent in all request bodies ===');
-function checkOwnerId(schema: any, path: string): boolean {
+// Request bodies are emitted as `{ $ref: '#/components/schemas/Name' }`. To actually verify
+// anything, $refs must be resolved against components.schemas and walked recursively —
+// including into nested properties, array items, and allOf/anyOf/oneOf branches — while
+// guarding against cyclic schema references via the `seen` set of already-visited schema names.
+function checkOwnerId(schema: any, path: string, seen: Set<string> = new Set()): boolean {
   if (schema == null || typeof schema !== 'object') return true;
+
+  if (schema.$ref) {
+    const refName = schema.$ref.replace(/^#\/components\/schemas\//, '');
+    if (seen.has(refName)) return true; // cyclic reference already checked on this path
+    const target = schemas[refName];
+    if (target == null) return true;
+    return checkOwnerId(target, `${path} -> ${refName}`, new Set(seen).add(refName));
+  }
+
+  let ok = true;
+
   if (schema.properties && 'ownerId' in schema.properties) {
     console.error(`FAIL: ownerId found in schema at ${path}`);
-    return false;
+    ok = false;
   }
-  if (schema.$ref) return true;
-  return Object.keys(schema).every(key => {
-    if (['required', 'description', 'enum', 'format', 'pattern', 'title', 'type', 'default', 'example', 'deprecated', 'readOnly', 'writeOnly', 'nullable', 'discriminator', 'xml', 'externalDocs'].includes(key)) return true;
-    if (typeof schema[key] === 'object' && schema[key] !== null) return checkOwnerId(schema[key], `${path}.${key}`);
-    return true;
-  });
+
+  if (schema.properties) {
+    for (const [key, value] of Object.entries(schema.properties)) {
+      if (!checkOwnerId(value, `${path}.properties.${key}`, seen)) ok = false;
+    }
+  }
+
+  if (schema.items) {
+    if (!checkOwnerId(schema.items, `${path}.items`, seen)) ok = false;
+  }
+
+  for (const combinator of ['allOf', 'anyOf', 'oneOf'] as const) {
+    const list = schema[combinator];
+    if (Array.isArray(list)) {
+      list.forEach((sub: any, i: number) => {
+        if (!checkOwnerId(sub, `${path}.${combinator}[${i}]`, seen)) ok = false;
+      });
+    }
+  }
+
+  return ok;
 }
 for (const [route, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
@@ -115,9 +148,9 @@ const expectedErrorCodes = [
   'GUEST_EMAIL_REQUIRED',
 ];
 const foundInResponses = new Set<string>();
-for (const [route, methods] of Object.entries(paths)) {
+for (const [, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
-    for (const [status, resp] of Object.entries(op.responses ?? {})) {
+    for (const [, resp] of Object.entries(op.responses ?? {}) as [string, any][]) {
       const schema = resp.content?.['application/json']?.schema;
       if (!schema) continue;
       const refs: string[] = [];
@@ -154,22 +187,44 @@ for (const [route, methods] of Object.entries(paths)) {
   }
 }
 
-console.log('\n=== 8. 428 status code not present (onboarding check via 400) ===');
+console.log('\n=== 8. No 428 status codes (onboarding check uses 400 CALENDAR_NOT_CONFIGURED) ===');
 for (const [route, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
-    for (const status of Object.keys(op.responses ?? {})) {
-      if (status === '428') {
-        console.warn(`WARN: 428 found in ${route} — check if intentional (owner-not-onboarded pattern)`);
-      }
-    }
+    const statuses = Object.keys(op.responses ?? {});
+    assert(!statuses.includes('428'),
+      `${route} ${op.operationId} does not use 428 — the contract intentionally signals ` +
+      `owner-not-onboarded via 400 CALENDAR_NOT_CONFIGURED instead of 428 Precondition Required`);
   }
 }
 
 console.log('\n=== 9. Prohibited: no API surface beyond MVP ===');
-const mvpRoutes = ['/health', '/admin/setup', '/admin/settings', '/admin/event-types', '/admin/bookings', '/event-types', '/slots', '/bookings'];
 for (const route of Object.keys(paths)) {
-  assert(mvpRoutes.includes(route), `Route ${route} is within MVP scope`);
+  assert(expectedRoutes.includes(route), `Route ${route} is within MVP scope`);
 }
+
+console.log('\n=== 10. Field constraints added in contract hardening ===');
+for (const modelName of ['EventType', 'CreateEventTypeRequest']) {
+  const durationProp = schemas[modelName]?.properties?.durationMinutes;
+  assert(durationProp?.minimum === 1, `${modelName}.durationMinutes minimum === 1`);
+  assert(durationProp?.maximum === 1440, `${modelName}.durationMinutes maximum === 1440`);
+}
+
+for (const modelName of ['CalendarSettings', 'SetupRequest', 'CalendarSettingsResponse']) {
+  const model = schemas[modelName];
+  const slotIntervalProp = model?.properties?.slotIntervalMinutes;
+  assert(slotIntervalProp?.minimum === 15, `${modelName}.slotIntervalMinutes minimum === 15`);
+  assert(slotIntervalProp?.maximum === 60, `${modelName}.slotIntervalMinutes maximum === 60`);
+
+  const availabilityRulesProp = model?.properties?.availabilityRules;
+  assert(availabilityRulesProp?.minItems === 1, `${modelName}.availabilityRules minItems === 1`);
+}
+
+const eventTypeIdParam = (paths['/slots']?.get?.parameters ?? []).find((p: any) => p.name === 'eventTypeId');
+assert(eventTypeIdParam?.schema?.maxLength === 100, `getPublicSlots query param eventTypeId has schema.maxLength === 100`);
+
+assert(schemas['ErrorResponse']?.properties?.code?.maxLength === 100, 'ErrorResponse.code has maxLength === 100');
+
+assert(spec.info?.version !== '0.0.0', `info.version is not the placeholder '0.0.0' (got ${spec.info?.version})`);
 
 console.log('\n=== SECURITY: String length constraints on user-input fields ===');
 const userInputFields: Record<string, string[]> = {
@@ -190,6 +245,16 @@ for (const [modelName, fields] of Object.entries(userInputFields)) {
     }
   }
 }
+for (const [route, methods] of Object.entries(paths)) {
+  for (const [, op] of Object.entries(methods as Record<string, any>)) {
+    const params = op.parameters ?? [];
+    for (const p of params) {
+      if (p.in === 'query' && p.schema?.type === 'string') {
+        assert(p.schema.maxLength != null, `Query param '${p.name}' in ${route} (${op.operationId}) has maxLength`);
+      }
+    }
+  }
+}
 
 console.log('\n=== SECURITY: Email validation on GuestDetails.email ===');
 const emailProp = schemas['GuestDetails']?.properties?.email;
@@ -199,14 +264,14 @@ assert(emailProp.pattern.includes('@'), 'Email pattern contains @');
 assert(emailProp.minLength === 1, 'GuestDetails.email minLength=1');
 assert(emailProp.maxLength === 320, 'GuestDetails.email maxLength=320');
 
-console.log('\n=== SECURITY: Unbounded arrays (pagination) ===');
+console.log('\n=== INFO: Unbounded arrays (pagination) ===');
 for (const [route, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
     const responses = op.responses ?? {};
-    for (const [status, resp] of Object.entries(responses)) {
+    for (const [, resp] of Object.entries(responses) as [string, any][]) {
       const schema = resp.content?.['application/json']?.schema;
       if (schema?.type === 'array') {
-        console.warn(`WARN: ${route} ${op.operationId} returns unbounded array (no pagination) — MVP scope`);
+        console.log(`INFO: ${route} ${op.operationId} returns an unbounded array (no pagination) — accepted MVP limitation, not a check`);
       }
     }
   }
@@ -236,6 +301,14 @@ if (healthResp?.$ref) {
            healthModel.properties.status.enum[0] === 'ok',
            'Health response only returns {"status":"ok"}');
   }
+}
+
+if (failures.length > 0) {
+  console.error(`\n❌ ${failures.length} contract validation check(s) failed:`);
+  for (const message of failures) {
+    console.error(`  - ${message}`);
+  }
+  process.exit(1);
 }
 
 console.log('\n✅ All contract validation checks passed');

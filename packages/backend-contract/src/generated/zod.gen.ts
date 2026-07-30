@@ -9,7 +9,7 @@ export const zCreateEventTypeRequest = z.object({
     id: z.string().min(1).max(100),
     name: z.string().min(1).max(200),
     description: z.string().max(2000).optional(),
-    durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    durationMinutes: z.int().gte(1).lte(1440)
 });
 
 /**
@@ -29,7 +29,7 @@ export const zDayOfWeek = z.enum([
  * Base error response with machine-readable code and human-readable message.
  */
 export const zErrorResponse = z.object({
-    code: z.string(),
+    code: z.string().max(100),
     message: z.string().max(2000)
 });
 
@@ -61,7 +61,7 @@ export const zEventType = z.object({
     id: z.string().max(100),
     name: z.string().max(200),
     description: z.string().max(2000).optional(),
-    durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    durationMinutes: z.int().gte(1).lte(1440)
 });
 
 /**
@@ -94,6 +94,9 @@ export const zGuestNameRequired = zErrorResponse.and(z.object({
     code: z.enum(['GUEST_NAME_REQUIRED'])
 }));
 
+/**
+ * Health check response.
+ */
 export const zHealthResponse = z.object({
     status: z.enum(['ok'])
 });
@@ -101,7 +104,7 @@ export const zHealthResponse = z.object({
 /**
  * IANA timezone identifier.
  */
-export const zIanaTimeZone = z.string().regex(/^[A-Za-z]+\/[A-Za-z_]+(\/[A-Za-z_]+)?$/);
+export const zIanaTimeZone = z.string().regex(/^[A-Za-z0-9+_-]+(\/[A-Za-z0-9+_-]+){0,2}$/);
 
 /**
  * Local time in HH:mm format (24-hour).
@@ -122,8 +125,8 @@ export const zAvailabilityRule = z.object({
  */
 export const zCalendarSettings = z.object({
     timeZone: zIanaTimeZone,
-    availabilityRules: z.array(zAvailabilityRule),
-    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    availabilityRules: z.array(zAvailabilityRule).min(1),
+    slotIntervalMinutes: z.int().gte(15).lte(60)
 });
 
 /**
@@ -132,8 +135,8 @@ export const zCalendarSettings = z.object({
 export const zCalendarSettingsResponse = z.object({
     displayName: z.string().max(200),
     timeZone: zIanaTimeZone,
-    availabilityRules: z.array(zAvailabilityRule),
-    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    availabilityRules: z.array(zAvailabilityRule).min(1),
+    slotIntervalMinutes: z.int().gte(15).lte(60)
 });
 
 /**
@@ -149,8 +152,8 @@ export const zOnboardingAlreadyCompleted = zErrorResponse.and(z.object({
 export const zSetupRequest = z.object({
     displayName: z.string().min(1).max(200),
     timeZone: zIanaTimeZone,
-    availabilityRules: z.array(zAvailabilityRule),
-    slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    availabilityRules: z.array(zAvailabilityRule).min(1),
+    slotIntervalMinutes: z.int().gte(15).lte(60)
 });
 
 /**
@@ -288,7 +291,7 @@ export const zGetPublicEventTypesResponse = z.array(zEventType);
 export const zGetHealthResponse = zHealthResponse;
 
 export const zGetPublicSlotsQuery = z.object({
-    eventTypeId: z.string()
+    eventTypeId: z.string().max(100)
 });
 
 /**

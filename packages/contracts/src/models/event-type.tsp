@@ -15,6 +15,8 @@ model EventType {
   description?: string;
 
   /** Meeting duration in minutes. */
+  @minValue(1)
+  @maxValue(1440)
   durationMinutes: int32;
 }
 
@@ -35,5 +37,7 @@ model CreateEventTypeRequest {
   description?: string;
 
   /** Meeting duration in minutes. */
+  @minValue(1)
+  @maxValue(1440)
   durationMinutes: int32;
 }

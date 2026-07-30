@@ -2,11 +2,12 @@ namespace MiniCal;
 
 /**
  * IANA timezone identifier.
+ * @example "UTC"
  * @example "Europe/London"
  * @example "America/New_York"
  * @example "Asia/Tokyo"
  */
-@pattern("^[A-Za-z]+/[A-Za-z_]+(/[A-Za-z_]+)?$")
+@pattern("^[A-Za-z0-9+_-]+(/[A-Za-z0-9+_-]+){0,2}$")
 scalar IanaTimeZone extends string;
 
 /**
@@ -31,3 +32,8 @@ enum DayOfWeek {
 /** Universally unique identifier (UUID v4). */
 @format("uuid")
 scalar Uuid extends string;
+
+/** Health check response. */
+model HealthResponse {
+  status: "ok";
+}

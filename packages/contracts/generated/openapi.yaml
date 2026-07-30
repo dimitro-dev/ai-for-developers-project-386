@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: MiniCal API
-  version: 0.0.0
+  version: 0.1.0
 tags: []
 paths:
   /admin/bookings:
@@ -236,6 +236,7 @@ paths:
           description: The event type id to get slots for.
           schema:
             type: string
+            maxLength: 100
           explode: false
       responses:
         '200':
@@ -251,7 +252,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CalendarNotConfigured'
+                anyOf:
+                  - $ref: '#/components/schemas/ValidationError'
+                  - $ref: '#/components/schemas/CalendarNotConfigured'
         '404':
           description: The server cannot find the requested resource.
           content:
@@ -354,10 +357,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AvailabilityRule'
+          minItems: 1
           description: Rules defining working hours. At least one rule is required.
         slotIntervalMinutes:
           type: integer
           format: int32
+          minimum: 15
+          maximum: 60
           description: Slot grid interval in minutes (must be a divisor of 60, >= 15).
       description: Calendar settings that control slot generation.
     CalendarSettingsResponse:
@@ -380,10 +386,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AvailabilityRule'
+          minItems: 1
           description: Rules defining working hours.
         slotIntervalMinutes:
           type: integer
           format: int32
+          minimum: 15
+          maximum: 60
           description: Slot grid interval in minutes.
       description: Full calendar settings response including owner display name.
     CreateBookingRequest:
@@ -437,6 +446,8 @@ components:
         durationMinutes:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1440
           description: Meeting duration in minutes.
       description: Request payload to create a new event type.
     DayOfWeek:
@@ -482,6 +493,7 @@ components:
       properties:
         code:
           type: string
+          maxLength: 100
           description: Machine-readable error code.
         message:
           type: string
@@ -510,6 +522,8 @@ components:
         durationMinutes:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 1440
           description: Meeting duration in minutes.
       description: An event type representing a kind of meeting that guests can book.
     EventTypeNotFound:
@@ -579,9 +593,10 @@ components:
           type: string
           enum:
             - ok
+      description: Health check response.
     IanaTimeZone:
       type: string
-      pattern: ^[A-Za-z]+/[A-Za-z_]+(/[A-Za-z_]+)?$
+      pattern: ^[A-Za-z0-9+_-]+(/[A-Za-z0-9+_-]+){0,2}$
       description: IANA timezone identifier.
     LocalTime:
       type: string
@@ -620,10 +635,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AvailabilityRule'
+          minItems: 1
           description: Rules defining working hours.
         slotIntervalMinutes:
           type: integer
           format: int32
+          minimum: 15
+          maximum: 60
           description: Slot grid interval in minutes.
       description: Request payload to complete initial owner setup or update settings.
     SetupStateResponse:

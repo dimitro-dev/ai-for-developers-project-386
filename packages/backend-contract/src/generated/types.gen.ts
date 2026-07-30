@@ -247,6 +247,9 @@ export type GuestNameRequired = ErrorResponse & {
     code: 'GUEST_NAME_REQUIRED';
 };
 
+/**
+ * Health check response.
+ */
 export type HealthResponse = {
     status: 'ok';
 };
@@ -599,7 +602,7 @@ export type GetPublicSlotsErrors = {
     /**
      * The server could not understand the request due to invalid syntax.
      */
-    400: CalendarNotConfigured;
+    400: ValidationError | CalendarNotConfigured;
     /**
      * The server cannot find the requested resource.
      */

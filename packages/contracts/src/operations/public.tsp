@@ -26,11 +26,17 @@ op getPublicEventTypes():
 @get
 op getPublicSlots(
   /** The event type id to get slots for. */
-  @query eventTypeId: string,
+  @query
+  @maxLength(100)
+  eventTypeId: string,
 ):
   | {
       @statusCode _: 200;
       @body body: Slot[];
+    }
+  | {
+      @statusCode _: 400;
+      @body body: ValidationError;
     }
   | {
       @statusCode _: 400;
