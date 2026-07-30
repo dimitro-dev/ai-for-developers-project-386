@@ -6,6 +6,7 @@ model ErrorResponse {
   code: string;
 
   /** Human-readable error description. */
+  @maxLength(2000)
   message: string;
 }
 

@@ -27,6 +27,8 @@ model CalendarSettings {
 /** Request payload to complete initial owner setup or update settings. */
 model SetupRequest {
   /** Owner display name. */
+  @minLength(1)
+  @maxLength(200)
   displayName: string;
 
   /** IANA timezone for the calendar. */
@@ -45,12 +47,14 @@ model SetupStateResponse {
   onboardingCompleted: boolean;
 
   /** Owner display name. Present only if onboarding is completed. */
+  @maxLength(200)
   displayName?: string;
 }
 
 /** Full calendar settings response including owner display name. */
 model CalendarSettingsResponse {
   /** Owner display name. */
+  @maxLength(200)
   displayName: string;
 
   /** IANA timezone for the calendar. */

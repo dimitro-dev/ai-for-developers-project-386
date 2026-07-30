@@ -29,7 +29,7 @@ export type Booking = {
     /**
      * Unique booking identifier (UUID).
      */
-    id: string;
+    id: Uuid;
     /**
      * Reference to the event type.
      */

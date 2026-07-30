@@ -293,10 +293,12 @@ components:
         - createdAtUtc
       properties:
         id:
-          type: string
+          allOf:
+            - $ref: '#/components/schemas/Uuid'
           description: Unique booking identifier (UUID).
         eventTypeId:
           type: string
+          maxLength: 100
           description: Reference to the event type.
         startAtUtc:
           type: string
@@ -308,12 +310,17 @@ components:
           description: Booking end instant in UTC (computed by the server).
         guestName:
           type: string
+          minLength: 1
+          maxLength: 200
           description: Guest name at time of booking.
         guestEmail:
           type: string
+          minLength: 1
+          maxLength: 320
           description: Guest email at time of booking.
         guestNote:
           type: string
+          maxLength: 5000
           description: Optional note left by the guest.
         createdAtUtc:
           type: string
@@ -363,6 +370,7 @@ components:
       properties:
         displayName:
           type: string
+          maxLength: 200
           description: Owner display name.
         timeZone:
           allOf:
@@ -387,6 +395,7 @@ components:
       properties:
         eventTypeId:
           type: string
+          maxLength: 100
           description: Reference to the event type to book.
         startAtUtc:
           type: string
@@ -413,12 +422,17 @@ components:
       properties:
         id:
           type: string
+          minLength: 1
+          maxLength: 100
           description: Unique, stable identifier chosen by the owner.
         name:
           type: string
+          minLength: 1
+          maxLength: 200
           description: Display name of the event type.
         description:
           type: string
+          maxLength: 2000
           description: Optional description of what this event type is for.
         durationMinutes:
           type: integer
@@ -471,6 +485,7 @@ components:
           description: Machine-readable error code.
         message:
           type: string
+          maxLength: 2000
           description: Human-readable error description.
       description: Base error response with machine-readable code and human-readable message.
     EventType:
@@ -482,12 +497,15 @@ components:
       properties:
         id:
           type: string
+          maxLength: 100
           description: Unique, stable identifier chosen by the owner.
         name:
           type: string
+          maxLength: 200
           description: Display name of the event type.
         description:
           type: string
+          maxLength: 2000
           description: Optional description of what this event type is for.
         durationMinutes:
           type: integer
@@ -514,12 +532,18 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 200
           description: Guest name (required).
         email:
           type: string
+          minLength: 1
+          maxLength: 320
+          pattern: ^[^@\s]+@[^@\s]+\.[^@\s]+$
           description: Guest email (required).
         note:
           type: string
+          maxLength: 5000
           description: Optional note from the guest.
       description: Guest contact details stored as a snapshot within each Booking.
     GuestEmailRequired:
@@ -585,6 +609,8 @@ components:
       properties:
         displayName:
           type: string
+          minLength: 1
+          maxLength: 200
           description: Owner display name.
         timeZone:
           allOf:
@@ -610,6 +636,7 @@ components:
           description: Whether onboarding has been completed.
         displayName:
           type: string
+          maxLength: 200
           description: Owner display name. Present only if onboarding is completed.
       description: Response returned for setup state query (GET /admin/setup).
     Slot:
@@ -629,6 +656,7 @@ components:
           description: Slot end instant in UTC (startAtUtc + eventType.durationMinutes).
         eventTypeId:
           type: string
+          maxLength: 100
           description: The event type id this slot is computed for.
       description: |-
         A computed available time slot for a given event type.

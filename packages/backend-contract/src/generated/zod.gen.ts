@@ -3,26 +3,12 @@
 import * as z from 'zod';
 
 /**
- * A confirmed booking that locks a time interval for a guest.
- */
-export const zBooking = z.object({
-    id: z.string(),
-    eventTypeId: z.string(),
-    startAtUtc: z.iso.datetime(),
-    endAtUtc: z.iso.datetime(),
-    guestName: z.string(),
-    guestEmail: z.string(),
-    guestNote: z.string().optional(),
-    createdAtUtc: z.iso.datetime()
-});
-
-/**
  * Request payload to create a new event type.
  */
 export const zCreateEventTypeRequest = z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().optional(),
+    id: z.string().min(1).max(100),
+    name: z.string().min(1).max(200),
+    description: z.string().max(2000).optional(),
     durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
@@ -44,7 +30,7 @@ export const zDayOfWeek = z.enum([
  */
 export const zErrorResponse = z.object({
     code: z.string(),
-    message: z.string()
+    message: z.string().max(2000)
 });
 
 /**
@@ -72,9 +58,9 @@ export const zDuplicateEventTypeId = zErrorResponse.and(z.object({
  * An event type representing a kind of meeting that guests can book.
  */
 export const zEventType = z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().optional(),
+    id: z.string().max(100),
+    name: z.string().max(200),
+    description: z.string().max(2000).optional(),
     durationMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
@@ -89,9 +75,9 @@ export const zEventTypeNotFound = zErrorResponse.and(z.object({
  * Guest contact details stored as a snapshot within each Booking.
  */
 export const zGuestDetails = z.object({
-    name: z.string(),
-    email: z.string(),
-    note: z.string().optional()
+    name: z.string().min(1).max(200),
+    email: z.string().min(1).max(320).regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/),
+    note: z.string().max(5000).optional()
 });
 
 /**
@@ -144,7 +130,7 @@ export const zCalendarSettings = z.object({
  * Full calendar settings response including owner display name.
  */
 export const zCalendarSettingsResponse = z.object({
-    displayName: z.string(),
+    displayName: z.string().max(200),
     timeZone: zIanaTimeZone,
     availabilityRules: z.array(zAvailabilityRule),
     slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
@@ -161,7 +147,7 @@ export const zOnboardingAlreadyCompleted = zErrorResponse.and(z.object({
  * Request payload to complete initial owner setup or update settings.
  */
 export const zSetupRequest = z.object({
-    displayName: z.string(),
+    displayName: z.string().min(1).max(200),
     timeZone: zIanaTimeZone,
     availabilityRules: z.array(zAvailabilityRule),
     slotIntervalMinutes: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
@@ -172,7 +158,7 @@ export const zSetupRequest = z.object({
  */
 export const zSetupStateResponse = z.object({
     onboardingCompleted: z.boolean(),
-    displayName: z.string().optional()
+    displayName: z.string().max(200).optional()
 });
 
 /**
@@ -183,7 +169,7 @@ export const zSetupStateResponse = z.object({
 export const zSlot = z.object({
     startAtUtc: z.iso.datetime(),
     endAtUtc: z.iso.datetime(),
-    eventTypeId: z.string()
+    eventTypeId: z.string().max(100)
 });
 
 /**
@@ -213,10 +199,24 @@ export const zSlotUnavailable = zErrorResponse.and(z.object({
 export const zUuid = z.uuid();
 
 /**
+ * A confirmed booking that locks a time interval for a guest.
+ */
+export const zBooking = z.object({
+    id: zUuid,
+    eventTypeId: z.string().max(100),
+    startAtUtc: z.iso.datetime(),
+    endAtUtc: z.iso.datetime(),
+    guestName: z.string().min(1).max(200),
+    guestEmail: z.string().min(1).max(320),
+    guestNote: z.string().max(5000).optional(),
+    createdAtUtc: z.iso.datetime()
+});
+
+/**
  * Request payload to create a new booking.
  */
 export const zCreateBookingRequest = z.object({
-    eventTypeId: z.string(),
+    eventTypeId: z.string().max(100),
     startAtUtc: z.iso.datetime(),
     id: zUuid.optional(),
     guest: zGuestDetails
