@@ -9,7 +9,7 @@ MiniCal — учебный сервис бронирования без реги
 - единый React Native / React Web клиент (`apps/client/`): Android и web обязательны, iOS проверяется локально на macOS при доступном toolchain;
 - REST backend (`apps/api/`) — источник истины для настроек календаря, слотов и бронирований;
 - PostgreSQL — постоянное состояние и защита бизнес-инвариантов;
-- Docker Compose — локальный runtime (`task-004`); отдельный Docker builder собирает Android APK (`task-005`).
+- Docker Compose — локальный runtime (`task-infra-001`); отдельный Docker builder собирает Android APK (`task-infra-002`).
 
 ## Правила проекта
 
