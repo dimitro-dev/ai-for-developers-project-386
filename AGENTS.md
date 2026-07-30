@@ -6,10 +6,10 @@
 
 MiniCal — учебный сервис бронирования без регистрации и авторизации:
 
-- единый React Native / React Web клиент: Android и web обязательны, iOS проверяется локально на macOS при доступном toolchain;
-- REST backend — источник истины для настроек календаря, слотов и бронирований;
+- единый React Native / React Web клиент (`apps/client/`): Android и web обязательны, iOS проверяется локально на macOS при доступном toolchain;
+- REST backend (`apps/api/`) — источник истины для настроек календаря, слотов и бронирований;
 - PostgreSQL — постоянное состояние и защита бизнес-инвариантов;
-- Docker Compose — локальный runtime; отдельный Docker builder собирает Android APK.
+- Docker Compose — локальный runtime (`task-004`); отдельный Docker builder собирает Android APK (`task-005`).
 
 ## Правила проекта
 
@@ -46,19 +46,21 @@ MiniCal — учебный сервис бронирования без реги
 | [`docs/architecture.md`](docs/architecture.md) | При работе со структурой репозитория, границами компонентов, Docker или build/runtime |
 | [`docs/sources-of-truth.md`](docs/sources-of-truth.md) | При конфликте задачи, глобальных правил, TypeSpec и реализации |
 | [`docs/contract-pipeline.md`](docs/contract-pipeline.md) | При любом изменении TypeSpec, API или generated packages |
-| `docs/domain-model.md` | После создания задачей `001`; читать при API, backend, database и QA design |
+| `docs/domain-model.md` | Читать при API, backend, database и QA design |
+| [`apps/client/AGENTS.md`](apps/client/AGENTS.md) | Перед работой с React Native / Web клиентом |
+| [`apps/api/AGENTS.md`](apps/api/AGENTS.md) | Перед работой над backend — фреймворк, middleware, структура |
 | [`tasks/_template/`](tasks/_template/) | Только при создании новой task-директории |
 
 ## Специализированные агенты
 
 | Роль | Задача в проекте | Инструкция |
 |---|---|---|
-| Contract Agent | TypeSpec-контракт и generation pipeline | [`/contract-agent.md`](/contract-agent.md) |
-| Frontend Agent | React Native / Web UI по generated SDK | [`/frontend-agent.md`](/frontend-agent.md) |
-| Backend Agent | REST, application logic и Slot Engine | [`/backend-agent.md`](/backend-agent.md) |
-| Database Agent | PostgreSQL schema, migrations и constraints | [`/database-agent.md`](/database-agent.md) |
-| QA Agent | Контрактные, доменные, интеграционные и E2E-проверки | [`/qa-agent.md`](/qa-agent.md) |
-| Infrastructure Agent | Toolchain, Docker, Compose, CI и Android builder | [`/infrastructure-agent.md`](/infrastructure-agent.md) |
+| Contract Agent | TypeSpec-контракт и generation pipeline | [`contract-agent.md`](.opencode/agents/contract-agent.md) |
+| Frontend Agent | React Native / Web UI по generated SDK | [`frontend-agent.md`](.opencode/agents/frontend-agent.md) |
+| Backend Agent | REST, application logic и Slot Engine | [`backend-agent.md`](.opencode/agents/backend-agent.md) |
+| Database Agent | PostgreSQL schema, migrations и constraints | [`database-agent.md`](.opencode/agents/database-agent.md) |
+| QA Agent | Контрактные, доменные, интеграционные и E2E-проверки | [`qa-agent.md`](.opencode/agents/qa-agent.md) |
+| Infrastructure Agent | Toolchain, Docker, Compose, CI и Android builder | [`infrastructure-agent.md`](.opencode/agents/infrastructure-agent.md) |
 
 Harness не имеет отдельного role-файла: он следует `AGENTS.md`, lifecycle активной задачи и подключает специализированные роли по необходимости.
 
