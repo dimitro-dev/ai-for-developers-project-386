@@ -30,6 +30,7 @@ npm ci
 | `npm run generate` | Полная цепочка: TypeSpec → OpenAPI 3.0 → frontend SDK → backend types + Zod |
 | `npm run generate:check` | Перегенерация + падение при diff в generated-файлах (защита от drift) |
 | `npm run typecheck` | TypeScript typecheck всех workspaces |
+| `npm test` | Контрактный gate: сверяет `generated/openapi.yaml` с границами контракта |
 | `npm run build` | Сборка всех workspaces (API → `dist/`, клиент → web-экспорт) |
 
 Generated-каталоги (`packages/contracts/generated`, `packages/api-client/src/generated`, `packages/backend-contract/src/generated`) вручную не редактируются.

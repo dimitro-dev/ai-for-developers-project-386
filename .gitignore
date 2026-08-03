@@ -1,4 +1,6 @@
 # Внутренние документы AI-процесса
+/CLAUDE.md
+/.claude/
 /tasks/
 /docs/
 .opencode

@@ -43,28 +43,150 @@ MiniCal — учебный сервис бронирования без реги
 
 | Файл | Когда читать |
 |---|---|
-| [`tasks/README.md`](tasks/README.md) | При каждом новом `task-id`; содержит lifecycle, статусы, зависимости и начальный каталог задач |
+| [`tasks/README.md`](tasks/README.md) | При каждом новом `task-id`; содержит lifecycle, статусы, зависимости, реестр задач и план разработки |
 | [`docs/domain-rules.md`](docs/domain-rules.md) | При изменении onboarding, расписания, Event Type, Slot или Booking |
+| [`docs/domain-model.md`](docs/domain-model.md) | При API, backend, database и QA design — сущности, VO, кардинальности, инварианты |
 | [`docs/architecture.md`](docs/architecture.md) | При работе со структурой репозитория, границами компонентов, Docker или build/runtime |
 | [`docs/sources-of-truth.md`](docs/sources-of-truth.md) | При конфликте задачи, глобальных правил, TypeSpec и реализации |
 | [`docs/contract-pipeline.md`](docs/contract-pipeline.md) | При любом изменении TypeSpec, API или generated packages |
-| `docs/domain-model.md` | Читать при API, backend, database и QA design |
+| [`docs/ui-spec-kit/README.md`](docs/ui-spec-kit/README.md) и [`MANUAL.md`](docs/ui-spec-kit/MANUAL.md) | Перед реализацией любого экрана owner-flow — UISpec является источником истины по внешнему виду, состояниям и токенам |
+| [`README.md`](README.md) | Требования к окружению, установка, полный список команд и способы запуска |
+| [`tests/contract-validation.test.ts`](tests/contract-validation.test.ts) | Перед изменением набора routes/операций контракта: gate сверяет их точный список |
 | [`apps/client/AGENTS.md`](apps/client/AGENTS.md) | Перед работой с React Native / Web клиентом |
 | [`apps/api/AGENTS.md`](apps/api/AGENTS.md) | Перед работой над backend — фреймворк, middleware, структура |
 | [`tasks/_template/`](tasks/_template/) | Только при создании новой task-директории |
+
+## Структура репозитория
+
+Фактическое состояние. Целевой контур и правила его изменения — в [`docs/architecture.md`](docs/architecture.md).
+
+```text
+minical/
+├── AGENTS.md                  этот файл — точка входа сессии
+├── CLAUDE.md                  только ссылка на AGENTS.md (локальный, в .gitignore)
+├── README.md                  окружение, установка, команды, запуск
+├── package.json               корневые скрипты, npm workspaces: apps/*, packages/*
+├── tsconfig.base.json         общая TS-база: ES2022, NodeNext, strict
+├── .nvmrc                     Node 26 (engines: >=24)
+├── apps/
+│   ├── api/                   @minical/api — пока только smoke GET /health на node:http, порт 3001
+│   │   ├── AGENTS.md
+│   │   ├── package.json / tsconfig.json
+│   │   └── src/server.ts
+│   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web
+│       ├── AGENTS.md          требование читать версионированные docs Expo v57
+│       ├── CLAUDE.md          @AGENTS.md
+│       ├── package.json / app.json / App.tsx / index.ts / assets/
+│       ├── .claude/settings.json    включённый плагин expo
+│       └── tsconfig.json      наследует expo/tsconfig.base, а не корневую базу; свой TypeScript ~6.0.3
+├── packages/
+│   ├── contracts/             @minical/contracts — единственный ручной источник HTTP-контракта
+│   │   ├── src/main.tsp                @service, @info(version), импорты
+│   │   ├── src/models/                 common, errors, owner, event-type, booking
+│   │   ├── src/operations/             health, admin, public
+│   │   ├── tspconfig.yaml              эмиттер @typespec/openapi3 → generated/openapi.yaml
+│   │   └── generated/openapi.yaml      фактически OpenAPI 3.0.0 (версия в конфиге не зафиксирована)
+│   ├── api-client/            @minical/api-client — generated frontend SDK (@hey-api/client-fetch)
+│   ├── backend-contract/      @minical/backend-contract — generated types + Zod schemas
+│   ├── slot-engine/           .gitkeep — появится в отдельной задаче
+│   └── database/              .gitkeep — schema и миграции, отдельная задача
+├── tests/
+│   └── contract-validation.test.ts   контрактный gate, запускается через `npm test`
+├── infra/                     .gitkeep — Docker/Compose (`task-infra-001`)
+├── docs/                      локальные документы AI-процесса, не в git
+├── tasks/                     задачи AI-процесса, не в git
+└── .opencode/                 роли и скиллы AI-процесса, не в git
+```
+
+`packages/slot-engine`, `packages/database` и `infra` — заявленные, но пустые каталоги. Не наполняй их код без задачи, которая это предусматривает.
+
+### Пакеты и границы
+
+| Пакет | Роль | Кто меняет |
+|---|---|---|
+| `@minical/contracts` | Ручной TypeSpec и производный OpenAPI | Contract Agent |
+| `@minical/api-client` | Generated frontend SDK | никто вручную — только `npm run generate` |
+| `@minical/backend-contract` | Generated transport types и runtime Zod-схемы | никто вручную — только `npm run generate` |
+| `@minical/api` | REST, application logic, mapping transport ↔ domain ↔ persistence | Backend Agent |
+| `@minical/client` | UI, навигация, состояния экранов по generated SDK | Frontend Agent |
+
+Backend валидирует входящий transport-запрос generated Zod-схемами: generated TypeScript-типы не заменяют runtime-валидацию.
+
+### Локальные каталоги AI-процесса
+
+```text
+docs/
+├── domain-rules.md            поведение onboarding, расписания, слотов, Booking
+├── domain-model.md            сущности, VO, кардинальности, инварианты
+├── architecture.md            архитектурный стиль, компоненты, целевая структура, runtime
+├── sources-of-truth.md        владение источниками правды и иерархия при конфликте
+├── contract-pipeline.md       порядок изменения контракта и генерации
+└── ui-spec-kit/               декларативная UISpec owner-flow
+    ├── README.md / MANUAL.md / uispec.config.json
+    ├── specs/ui/screens/          11 экранов owner-flow + FRAME_MAP.md
+    ├── specs/ui/components/       15 компонентов
+    ├── specs/ui/tokens/           colors, typography, spacing, radii, sizes, motion
+    ├── specs/ui/navigation/ registry/ bindings/ schema/ assets/
+    ├── tools/uispec/              валидатор и генератор каркасов
+    └── ui-screen-mockups/
+
+tasks/
+├── README.md                  lifecycle, статусы, реестр задач, план разработки
+├── _template/                 brief.md, adr.md, plan.md, result.md
+├── task-000/ … task-003/, task-006/     базовые задачи, старые id сохранены
+├── task-infra-001/ … task-infra-004/
+├── task-back-001/
+└── task-front-001/
+
+.opencode/
+├── agents/                    роль-инструкции специализированных агентов
+└── skills/                    brainstorming, decomposition, grill-me, grilling, lean-code,
+                               uispec-generator, verification-before-completion,
+                               worktree-isolated-agent
+```
+
+## Обязательные проверки
+
+Перед переводом пункта `plan.md` в `завершено` и перед фиксацией результата в `result.md`:
+
+```bash
+npm run contracts:format:check   # форматирование .tsp
+npm run generate:check           # перегенерация + падение при diff в generated (защита от drift)
+npm run typecheck                # tsc --noEmit по всем workspaces
+npm test                         # контрактный gate
+```
+
+Тестового фреймворка нет: `npm test` — один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Полный список команд — в [`README.md`](README.md).
 
 ## Специализированные агенты
 
 | Роль | Задача в проекте | Инструкция |
 |---|---|---|
 | Contract Agent | TypeSpec-контракт и generation pipeline | [`contract-agent.md`](.opencode/agents/contract-agent.md) |
-| Frontend Agent | React Native / Web UI по generated SDK | [`frontend-agent.md`](.opencode/agents/frontend-agent.md) |
+| Frontend Agent | React Native / Web UI по generated SDK и UISpec | [`frontend-agent.md`](.opencode/agents/frontend-agent.md) |
 | Backend Agent | REST, application logic и Slot Engine | [`backend-agent.md`](.opencode/agents/backend-agent.md) |
 | Database Agent | PostgreSQL schema, migrations и constraints | [`database-agent.md`](.opencode/agents/database-agent.md) |
 | QA Agent | Контрактные, доменные, интеграционные и E2E-проверки | [`qa-agent.md`](.opencode/agents/qa-agent.md) |
 | Infrastructure Agent | Toolchain, Docker, Compose, CI и Android builder | [`infrastructure-agent.md`](.opencode/agents/infrastructure-agent.md) |
 
 Harness не имеет отдельного role-файла: он следует `AGENTS.md`, lifecycle активной задачи и подключает специализированные роли по необходимости.
+
+### Как роли и скиллы попадают в сессию
+
+Проектные инструкции физически лежат в `.opencode/`, и разные харнессы видят их по-разному. Не рассчитывай на автоподхват — проверяй по этой таблице:
+
+| Артефакт | OpenCode | Claude Code |
+|---|---|---|
+| `.opencode/agents/*.md` — 6 ролей | автоматически как agents | **не подхватываются**: нет frontmatter и нет `.claude/agents/`. Читать как обычный Markdown по путям из таблицы выше |
+| `.opencode/skills/*/SKILL.md` — 8 скиллов | автоматически как skills | подхватываются через симлинк `.claude/skills → ../.opencode/skills` — проверено на живой сессии. Без симлинка `SKILL.md` читается как Markdown |
+
+Практические следствия:
+
+- вызов роли — это «прочитай `.opencode/agents/<role>.md` и работай в его границах», а не переключение агента;
+- «обязательный скилл» в role-файле означает обязательный *процесс* из `SKILL.md`; выполнить его вручную по шагам — полноценное соблюдение правила;
+- `grill-me` помечен `disable-model-invocation: true`, поэтому в модельном списке скиллов его нет и агент сам его не вызовет — он запускается только пользователем через `/grill-me`. Остальные семь доступны агенту;
+- `.claude/` и `.opencode/` не хранятся в git, поэтому в свежем клоне нет ни ролей, ни скиллов, ни симлинка — их восстанавливает владелец рабочей копии;
+- при добавлении новой роли или скилла обнови таблицы в этом файле: манифеста, который бы их перечислял, нет — единственный реестр здесь.
 
 ## Generated: read-only
 
