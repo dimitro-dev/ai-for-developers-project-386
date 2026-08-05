@@ -136,7 +136,8 @@ export const zCalendarSettingsResponse = z.object({
     displayName: z.string().max(200),
     timeZone: zIanaTimeZone,
     availabilityRules: z.array(zAvailabilityRule).min(1),
-    slotIntervalMinutes: z.int().gte(15).lte(60)
+    slotIntervalMinutes: z.int().gte(15).lte(60),
+    publicUrl: z.url()
 });
 
 /**

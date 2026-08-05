@@ -74,4 +74,7 @@ model CalendarSettingsResponse {
   @minValue(15)
   @maxValue(60)
   slotIntervalMinutes: int32;
+
+  /** Canonical public URL of the guest calendar (web client). Value comes from deployment env (PUBLIC_WEB_URL). */
+  publicUrl: url;
 }

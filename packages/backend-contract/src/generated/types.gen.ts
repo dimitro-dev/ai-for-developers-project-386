@@ -105,6 +105,10 @@ export type CalendarSettingsResponse = {
      * Slot grid interval in minutes.
      */
     slotIntervalMinutes: number;
+    /**
+     * Canonical public URL of the guest calendar (web client). Value comes from deployment env (PUBLIC_WEB_URL).
+     */
+    publicUrl: string;
 };
 
 /**

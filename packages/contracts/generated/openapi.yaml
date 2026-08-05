@@ -373,6 +373,7 @@ components:
         - timeZone
         - availabilityRules
         - slotIntervalMinutes
+        - publicUrl
       properties:
         displayName:
           type: string
@@ -394,6 +395,10 @@ components:
           minimum: 15
           maximum: 60
           description: Slot grid interval in minutes.
+        publicUrl:
+          type: string
+          format: uri
+          description: Canonical public URL of the guest calendar (web client). Value comes from deployment env (PUBLIC_WEB_URL).
       description: Full calendar settings response including owner display name.
     CreateBookingRequest:
       type: object

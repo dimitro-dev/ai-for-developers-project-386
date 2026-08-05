@@ -49,7 +49,7 @@ MiniCal — учебный сервис бронирования без реги
 | [`docs/architecture.md`](docs/architecture.md) | При работе со структурой репозитория, границами компонентов, Docker или build/runtime |
 | [`docs/sources-of-truth.md`](docs/sources-of-truth.md) | При конфликте задачи, глобальных правил, TypeSpec и реализации |
 | [`docs/contract-pipeline.md`](docs/contract-pipeline.md) | При любом изменении TypeSpec, API или generated packages |
-| [`docs/ui-spec-kit/README.md`](docs/ui-spec-kit/README.md) и [`MANUAL.md`](docs/ui-spec-kit/MANUAL.md) | Перед реализацией любого экрана owner-flow — UISpec является источником истины по внешнему виду, состояниям и токенам |
+| [`docs/ui-spec-kit/README.md`](docs/ui-spec-kit/README.md) и [`MANUAL.md`](docs/ui-spec-kit/MANUAL.md) | Перед реализацией любого экрана owner-flow или guest-flow — UISpec является источником истины по внешнему виду, состояниям и токенам |
 | [`README.md`](README.md) | Требования к окружению, установка, полный список команд и способы запуска |
 | [`tests/contract-validation.test.ts`](tests/contract-validation.test.ts) | Перед изменением набора routes/операций контракта: gate сверяет их точный список |
 | [`apps/client/AGENTS.md`](apps/client/AGENTS.md) | Перед работой с React Native / Web клиентом |
@@ -121,14 +121,17 @@ docs/
 ├── architecture.md            архитектурный стиль, компоненты, целевая структура, runtime
 ├── sources-of-truth.md        владение источниками правды и иерархия при конфликте
 ├── contract-pipeline.md       порядок изменения контракта и генерации
-└── ui-spec-kit/               декларативная UISpec owner-flow
+└── ui-spec-kit/               декларативная UISpec owner-flow и guest-flow
     ├── README.md / MANUAL.md / uispec.config.json
-    ├── specs/ui/screens/          11 экранов owner-flow + FRAME_MAP.md
-    ├── specs/ui/components/       15 компонентов
+    ├── AUDIT.md / ROADMAP.md      аудит кита 2026-08-05 и исполненный план исправлений R1–R6
+    ├── specs/ui/screens/          экраны owner-flow и guest-flow (*.screen.md) + FRAME_MAP.md
+    ├── specs/ui/components/       компоненты (*.component.md)
     ├── specs/ui/tokens/           colors, typography, spacing, radii, sizes, motion
     ├── specs/ui/navigation/ registry/ bindings/ schema/ assets/
-    ├── tools/uispec/              валидатор и генератор каркасов
-    └── ui-screen-mockups/
+    │                              (bindings: api-bindings.xml — единственная связь action→operationId,
+    │                               contract-gaps.xml — реестр расхождений с контрактом)
+    └── tools/uispec/              валидатор (V1–V11, --config/--strict/--lint), генератор каркасов,
+                                   tests/ — негативные фикстуры валидатора
 
 tasks/
 ├── README.md                  lifecycle, статусы, реестр задач, план разработки
@@ -136,7 +139,9 @@ tasks/
 ├── task-000/ … task-003/, task-006/     базовые задачи, старые id сохранены
 ├── task-infra-001/ … task-infra-004/
 ├── task-back-001/
-└── task-front-001/
+├── task-front-ui-001/
+├── task-front-guest-001/ … 006/
+└── task-front-owner-001/
 
 .opencode/
 ├── agents/                    роль-инструкции специализированных агентов
@@ -154,9 +159,10 @@ npm run contracts:format:check   # форматирование .tsp
 npm run generate:check           # перегенерация + падение при diff в generated (защита от drift)
 npm run typecheck                # tsc --noEmit по всем workspaces
 npm test                         # контрактный gate
+npm run uispec:validate          # валидация UISpec; обязательна при изменениях в docs/ui-spec-kit/ или UI-коде apps/client/, в клоне без docs/ шаг скипается
 ```
 
-Тестового фреймворка нет: `npm test` — один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Полный список команд — в [`README.md`](README.md).
+Тестового фреймворка нет: `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Полный список команд — в [`README.md`](README.md).
 
 ## Специализированные агенты
 
@@ -178,14 +184,14 @@ Harness не имеет отдельного role-файла: он следуе�
 | Артефакт | OpenCode | Claude Code |
 |---|---|---|
 | `.opencode/agents/*.md` — 6 ролей | автоматически как agents | **не подхватываются**: нет frontmatter и нет `.claude/agents/`. Читать как обычный Markdown по путям из таблицы выше |
-| `.opencode/skills/*/SKILL.md` — 8 скиллов | автоматически как skills | подхватываются через симлинк `.claude/skills → ../.opencode/skills` — проверено на живой сессии. Без симлинка `SKILL.md` читается как Markdown |
+| `.opencode/skills/*/SKILL.md` — 8 скиллов; `scripts/` у `uispec-generator` — симлинк на `docs/ui-spec-kit/tools/uispec` (канон скриптов один, копии нет) | автоматически как skills | подхватываются через симлинк `.claude/skills → ../.opencode/skills` — проверено на живой сессии. Без симлинка `SKILL.md` читается как Markdown |
 
 Практические следствия:
 
 - вызов роли — это «прочитай `.opencode/agents/<role>.md` и работай в его границах», а не переключение агента;
 - «обязательный скилл» в role-файле означает обязательный *процесс* из `SKILL.md`; выполнить его вручную по шагам — полноценное соблюдение правила;
 - `grill-me` помечен `disable-model-invocation: true`, поэтому в модельном списке скиллов его нет и агент сам его не вызовет — он запускается только пользователем через `/grill-me`. Остальные семь доступны агенту;
-- `.claude/` и `.opencode/` не хранятся в git, поэтому в свежем клоне нет ни ролей, ни скиллов, ни симлинка — их восстанавливает владелец рабочей копии;
+- `.claude/` и `.opencode/` не хранятся в git, поэтому в свежем клоне нет ни ролей, ни скиллов, ни симлинков — их восстанавливает владелец рабочей копии;
 - при добавлении новой роли или скилла обнови таблицы в этом файле: манифеста, который бы их перечислял, нет — единственный реестр здесь.
 
 ## Generated: read-only
