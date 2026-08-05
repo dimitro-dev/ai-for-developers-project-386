@@ -31,6 +31,7 @@ npm ci
 | `npm run generate:check` | Перегенерация + падение при diff в generated-файлах (защита от drift) |
 | `npm run typecheck` | TypeScript typecheck всех workspaces |
 | `npm test` | Контрактный gate: сверяет `generated/openapi.yaml` с границами контракта |
+| `npm run mock:prism` | Mock-сервер контракта (Prism) на порту `4010` по `packages/contracts/generated/openapi.yaml` |
 | `npm run build` | Сборка всех workspaces (API → `dist/`, клиент → web-экспорт) |
 
 Generated-каталоги (`packages/contracts/generated`, `packages/api-client/src/generated`, `packages/backend-contract/src/generated`) вручную не редактируются.
@@ -44,6 +45,18 @@ npm run dev -w @minical/api        # из исходников, с watch
 # или
 npm run build -w @minical/api && npm run start -w @minical/api
 ```
+
+Mock-сервер контракта (`http://localhost:4010`); отвечает на все 11 операций контракта по `packages/contracts/generated/openapi.yaml` и не требует backend, PostgreSQL или Docker:
+
+```bash
+npm run mock:prism
+```
+
+- **Режим валидации:** запрос, не соответствующий контракту (пропущенное обязательное поле, нарушение `pattern`, типа и т. п.), отклоняется: если операция документирует 4xx-ответ — им (для `POST /bookings` фактически `400`), иначе — сгенерированным `422`; детализация — в заголовке `sl-violations`. Конкретный не-2xx ответ можно запросить штатным механизмом Prism: `curl -X POST http://localhost:4010/bookings -H "Prefer: code=404" ...`.
+- **Ограничение:** error-тела отдаются сгенерированным примером `{"code":"string","message":"string"}`, не соответствующим enum-схемам ошибок; статус выбирается верно, точная форма ошибки — нет.
+- **Переключение клиента:** generated SDK (`@minical/api-client`) настраивается на мок через `client.setConfig({ baseUrl: 'http://localhost:4010' })`; при готовности backend — `baseUrl: 'http://localhost:3001'`. Никаких изменений кода кроме конфигурации base URL не требуется.
+
+Порты: `3001` — smoke API, `4010` — mock-сервер, `8081` — Metro/`expo start`.
 
 Клиент:
 
