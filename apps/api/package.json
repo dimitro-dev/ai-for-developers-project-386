@@ -2,13 +2,22 @@
   "name": "@minical/api",
   "version": "0.1.0",
   "private": true,
-  "description": "Smoke HTTP-сервер MiniCal (task-000); прикладной backend появится в отдельной задаче",
+  "description": "REST API MiniCal: 12 операций контракта на Express 5 поверх in-memory хранилища",
   "type": "module",
-  "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/server.js",
-    "dev": "node --watch src/server.ts"
+    "start": "node src/server.ts",
+    "dev": "node --watch src/server.ts",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@minical/backend-contract": "*",
+    "express": "^5.2.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.2",
+    "yaml": "^2.9.0"
   }
 }

@@ -1,29 +1,22 @@
-import { createServer } from 'node:http';
+// Точка входа: запускается прямо из исходников (`node src/server.ts`), сборки нет (Р11).
 
-// Сервер реализует только GET /health из общего контракта MiniCal
-// (packages/contracts/src/operations/health.tsp). Прикладной backend
-// (Event Type, Slot, Booking) будет реализован отдельной задачей и обязан
-// валидировать transport input generated-схемами из @minical/backend-contract.
+import { createApp } from './app.ts';
+import { loadConfig } from './config.ts';
+import type { AppConfig } from './config.ts';
+import { createMemoryStore } from './store/memory.ts';
 
-interface HealthResponse {
-  status: 'ok';
+let config: AppConfig;
+try {
+  config = loadConfig();
+} catch (error) {
+  // Ошибка конфигурации дешевле всего на старте: тихого отката к дефолту нет (Р10).
+  const reason = error instanceof Error ? error.message : String(error);
+  console.error(`MiniCal API: invalid configuration — ${reason}`);
+  process.exit(1);
 }
 
-const server = createServer((req, res) => {
-  if (req.method === 'GET' && req.url === '/health') {
-    const body: HealthResponse = {
-      status: 'ok',
-    };
-    res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify(body));
-    return;
-  }
+const app = createApp({ config, store: createMemoryStore() });
 
-  res.writeHead(404, { 'content-type': 'application/json' });
-  res.end(JSON.stringify({ code: 'NOT_FOUND', message: 'Route not found' }));
-});
-
-const port = Number(process.env.PORT ?? 3001);
-server.listen(port, () => {
-  console.log(`MiniCal smoke API: http://localhost:${port}/health`);
+app.listen(config.port, () => {
+  console.log(`MiniCal API: http://localhost:${config.port}/health`);
 });

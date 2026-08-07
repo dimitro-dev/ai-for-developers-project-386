@@ -69,10 +69,17 @@ minical/
 ├── tsconfig.base.json         общая TS-база: ES2022, NodeNext, strict
 ├── .nvmrc                     Node 26 (engines: >=24)
 ├── apps/
-│   ├── api/                   @minical/api — пока только smoke GET /health на node:http, порт 3001
-│   │   ├── AGENTS.md
-│   │   ├── package.json / tsconfig.json
-│   │   └── src/server.ts
+│   ├── api/                   @minical/api — REST API: 12 операций контракта на Express 5
+│   │   │                       поверх in-memory хранилища, порт 3001; запускается из
+│   │   │                       исходников (`node src/server.ts`), сборки в dist нет
+│   │   ├── AGENTS.md           слои, точка валидации, таблица статусов, ограничения strip-only
+│   │   ├── package.json / tsconfig.json    noEmit + allowImportingTsExtensions
+│   │   └── src/                server.ts, config.ts, app.ts,
+│   │                           http/ (routes, handlers, parse, present, errors),
+│   │                           usecases/ (owner, booking),
+│   │                           domain/ (model, errors, slots, timezone),
+│   │                           store/ (repositories, memory),
+│   │                           тесты рядом с кодом: *.test.ts (`node --test`)
 │   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web
 │       ├── AGENTS.md          требование читать версионированные docs Expo v57
 │       ├── CLAUDE.md          @AGENTS.md
@@ -160,9 +167,10 @@ npm run generate:check           # перегенерация + падение �
 npm run typecheck                # tsc --noEmit по всем workspaces
 npm test                         # контрактный gate
 npm run uispec:validate          # валидация UISpec; обязательна при изменениях в docs/ui-spec-kit/ или UI-коде apps/client/, в клоне без docs/ шаг скипается
+npm test -w @minical/api         # backend-гейт (node --test); обязателен при изменениях в apps/api/
 ```
 
-Тестового фреймворка нет: `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Полный список команд — в [`README.md`](README.md).
+Корневой `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Backend-тесты в него не входят и запускаются своей командой (`node --test` по `apps/api/src/**/*.test.ts`; там же можно выбрать файл — `node --test src/domain/slots.test.ts`). Полный список команд — в [`README.md`](README.md).
 
 ## Специализированные агенты
 

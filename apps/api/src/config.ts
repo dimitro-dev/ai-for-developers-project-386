@@ -1,0 +1,46 @@
+// Конфигурация из окружения (FR8, Р10). process.env читается только здесь и только в
+// момент вызова: обработчики env не читают, иначе тесты зависели бы от окружения.
+
+export interface AppConfig {
+  port: number;
+  /** Канонический публичный адрес гостевого web-клиента → `publicUrl` в ответах настроек. */
+  publicWebUrl: string;
+}
+
+const DEFAULT_PORT = 3001;
+const DEFAULT_PUBLIC_WEB_URL = 'http://localhost:8081';
+
+/**
+ * Мусорное значение — отказ старта, а не тихий откат к дефолту: `publicUrl` уходит
+ * гостю в ответах `CalendarSettingsResponse`, и подмена обнаружилась бы только у него.
+ * Бросает `Error`; `server.ts` печатает сообщение и завершает процесс.
+ */
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  return {
+    port: parsePort(env.PORT),
+    publicWebUrl: parsePublicWebUrl(env.PUBLIC_WEB_URL),
+  };
+}
+
+function parsePort(raw: string | undefined): number {
+  if (raw === undefined || raw === '') return DEFAULT_PORT;
+  const port = Number(raw);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`PORT must be an integer in 1..65535, got "${raw}"`);
+  }
+  return port;
+}
+
+function parsePublicWebUrl(raw: string | undefined): string {
+  if (raw === undefined || raw === '') return DEFAULT_PUBLIC_WEB_URL;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error(`PUBLIC_WEB_URL must be an absolute http(s) URL, got "${raw}"`);
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error(`PUBLIC_WEB_URL must use http or https, got "${raw}"`);
+  }
+  return raw;
+}

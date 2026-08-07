@@ -31,19 +31,27 @@ npm ci
 | `npm run generate:check` | Перегенерация + падение при diff в generated-файлах (защита от drift) |
 | `npm run typecheck` | TypeScript typecheck всех workspaces |
 | `npm test` | Контрактный gate: сверяет `generated/openapi.yaml` с границами контракта |
+| `npm test -w @minical/api` | Backend-гейт: `node --test` по `apps/api/src/**/*.test.ts` (покрытие контракта, домен, хранилище, HTTP-сценарии) |
 | `npm run mock:prism` | Mock-сервер контракта (Prism) на порту `4010` по `packages/contracts/generated/openapi.yaml` |
-| `npm run build` | Сборка всех workspaces (API → `dist/`, клиент → web-экспорт) |
+| `npm run build` | Сборка workspaces, у которых есть скрипт `build` (клиент → web-экспорт). `apps/api` в ней не участвует: backend запускается прямо из исходников |
 
 Generated-каталоги (`packages/contracts/generated`, `packages/api-client/src/generated`, `packages/backend-contract/src/generated`) вручную не редактируются.
 
 ## Запуск
 
-Smoke API (`http://localhost:3001/health`); endpoint соответствует контрактному `GET /health` и возвращает `{"status":"ok"}`:
+Backend API (`http://localhost:3001`): все 12 операций контракта поверх in-memory хранилища, предварительная сборка не нужна — сервер исполняет TypeScript-исходники напрямую.
 
 ```bash
-npm run dev -w @minical/api        # из исходников, с watch
+npm start -w @minical/api          # node src/server.ts
 # или
-npm run build -w @minical/api && npm run start -w @minical/api
+npm run dev -w @minical/api        # то же, с watch
+```
+
+- **Конфигурация:** `PORT` (по умолчанию `3001`) и `PUBLIC_WEB_URL` (по умолчанию `http://localhost:8081`) — канонический адрес гостевого web-клиента, который backend отдаёт в поле `publicUrl` ответов настроек. Неверное значение любой из переменных завершает старт с сообщением, а не откатывается к дефолту.
+- **Состояние живёт в процессе:** после перезапуска onboarding нужно проходить заново (`PUT /admin/setup`), сидов нет.
+
+```bash
+curl http://localhost:3001/health   # {"status":"ok"}
 ```
 
 Mock-сервер контракта (`http://localhost:4010`); отвечает на все 12 операций контракта по `packages/contracts/generated/openapi.yaml` и не требует backend, PostgreSQL или Docker:
@@ -57,7 +65,7 @@ npm run mock:prism
 - **Ограничение:** error-тела отдаются сгенерированным примером `{"code":"string","message":"string"}`, не соответствующим enum-схемам ошибок; статус выбирается верно, точная форма ошибки — нет.
 - **Переключение клиента:** generated SDK (`@minical/api-client`) настраивается на мок через `client.setConfig({ baseUrl: 'http://localhost:4010' })`; при готовности backend — `baseUrl: 'http://localhost:3001'`. Никаких изменений кода кроме конфигурации base URL не требуется.
 
-Порты: `3001` — smoke API, `4010` — mock-сервер, `8081` — Metro/`expo start`.
+Порты: `3001` — backend API, `4010` — mock-сервер, `8081` — Metro/`expo start`.
 
 Клиент:
 
@@ -80,7 +88,7 @@ cd android && ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew assembleDebug
 
 ```text
 apps/client               React Native / React Web клиент (Expo)
-apps/api                  Smoke HTTP-сервер (прикладной backend — отдельная задача)
+apps/api                  REST API: 12 операций контракта на Express 5, in-memory хранилище
 packages/contracts        Ручной TypeSpec-контракт + generated OpenAPI
 packages/api-client       Generated frontend SDK
 packages/backend-contract Generated backend types + Zod schemas
