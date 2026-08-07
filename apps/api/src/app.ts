@@ -5,16 +5,20 @@ import type { Deps } from './http/handlers.ts';
 import { handlers } from './http/handlers.ts';
 import { errorMiddleware, notFoundHandler } from './http/errors.ts';
 import { ROUTES } from './http/routes.ts';
+import { BODY_LIMIT_BYTES, cors, securityHeaders } from './http/security.ts';
 
 /**
  * Единственное место, где монтируются маршруты, и единственная точка вставки
- * middleware. CORS, helmet и лимит тела запроса — работа `task-infra-003`; их место —
- * начало этой функции, до цикла монтирования (Р8).
+ * middleware (Р8 back-001). Порядок цепочки значим: security-заголовки и CORS стоят до
+ * парсера тела, иначе ответ `413` уйдёт без `Access-Control-Allow-Origin` и браузер не
+ * даст клиенту прочитать даже код ошибки (task-infra-003, Р2).
  */
 export function createApp(deps: Deps): Express {
   const app = express();
 
-  app.use(express.json());
+  app.use(securityHeaders);
+  app.use(cors);
+  app.use(express.json({ limit: BODY_LIMIT_BYTES }));
 
   for (const route of ROUTES) {
     const handler = handlers[route.operationId](deps);

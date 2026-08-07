@@ -1,8 +1,9 @@
 # MiniCal API Server
 
 REST-backend MiniCal: все 12 операций контракта поверх in-memory хранилища, порт `3001` по
-умолчанию. Реализовано задачей `task-back-001`; PostgreSQL, миграции и exclusion constraint —
-отдельная задача Database Agent, security middleware (CORS, helmet, лимит тела) — `task-infra-003`.
+умолчанию. Реализовано задачей `task-back-001`, middleware-цепочка (CORS, security-заголовки, лимит
+тела) — `task-infra-003`; PostgreSQL, миграции и exclusion constraint — отдельная задача
+Database Agent.
 
 Роль и её границы — в [`backend-agent.md`](../../.opencode/agents/backend-agent.md) (файл доступен
 только локально, не хранится в git).
@@ -75,26 +76,52 @@ keyword'ами OpenAPI 3.0 не выражаются, без них мусорн
 `ErrorResponse`. Express 5 сам доводит отказ промиса async-обработчика до error-middleware, обёрток
 вида `asyncHandler` нет.
 
-Вне контракта отдаются только `404 NOT_FOUND` (неизвестный URL или метод) и `500 INTERNAL_ERROR` —
-ситуации, которых контракт не описывает; форма `ErrorResponse` соблюдена.
+Вне контракта отдаются только `404 NOT_FOUND` (неизвестный URL или метод), `500 INTERNAL_ERROR` и
+`413 PAYLOAD_TOO_LARGE` (превышение лимита тела, `task-infra-003`) — ситуации, которых контракт не
+описывает; форма `ErrorResponse` соблюдена. Статус этих трёх ответов берётся не из `ERROR_STATUS`:
+их коды не входят в `DomainErrorCode`, потому что домен об ограничениях транспорта не знает.
 
-## Middleware и место для `task-infra-003`
+## Middleware-цепочка
 
-Единственная точка вставки — начало `createApp`, до цикла монтирования маршрутов. `express.json()`
-взят с дефолтами (в т. ч. лимит 100kb): это не решение о лимите, а его отсутствие.
+Единственная точка вставки — начало `createApp`, до цикла монтирования маршрутов. Порядок значим:
+
+```text
+securityHeaders                            X-Content-Type-Options: nosniff, X-Frame-Options: DENY
+cors                                       Access-Control-Allow-Origin: * на всех ответах;
+                                           OPTIONS → 204 + Allow-Methods (выводятся из ROUTES)
+                                           + Allow-Headers: Content-Type
+express.json({ limit: BODY_LIMIT_BYTES })  64KB; превышение → 413 PAYLOAD_TOO_LARGE
+цикл по ROUTES → notFoundHandler → errorMiddleware
+```
+
+Заголовки стоят до парсера тела не случайно: иначе ответ `413` уйдёт без
+`Access-Control-Allow-Origin` и браузер не даст клиенту прочитать даже код ошибки.
+
+CORS и security-заголовки живут в `http/security.ts` и реализованы без пакетов `cors` и `helmet`:
+при статическом `*` из них не используется ничего, кроме трёх константных заголовков.
+`Access-Control-Allow-Origin: *` допустимо только для локальной учебной среды. Список методов
+preflight выводится из реестра `ROUTES`, поэтому не может отстать от контракта; `OPTIONS` замыкается
+в middleware, из-за чего `Allow` не отдаётся, а `OPTIONS` на неизвестный URL отвечает `204` (сам
+запрос по тому же URL по-прежнему получает `404`).
+
+Лимит тела объявлен один раз — `BODY_LIMIT_BYTES` в `http/security.ts` — и действует на тела с
+`Content-Type: application/json`, единственный тип запросов в контракте. Тело другого типа
+`express.json()` не читает вовсе: оно не попадает в память приложения, но и `413` не получает —
+обработчик увидит пустое тело и вернёт `400 VALIDATION_ERROR`.
 
 ## Команды
 
 ```bash
 npm run dev -w @minical/api        # node --watch src/server.ts
 npm start -w @minical/api          # node src/server.ts, без предварительной сборки
-npm test -w @minical/api           # node --test: 64 теста, 4 файла
+npm test -w @minical/api           # node --test: 71 тест, 5 файлов
 npm run typecheck -w @minical/api  # tsc --noEmit — единственный типовой гейт
 ```
 
 Тесты: `src/http/routes.contract.test.ts` (покрытие контракта 12/12), `src/domain/slots.test.ts`
 (таймзоны, окно, сетка, пересечения), `src/store/memory.test.ts` (атомарность `create`, копии
-записей), `src/api.test.ts` (HTTP-сценарии, тела ответов сверяются generated response-схемами).
+записей), `src/api.test.ts` (HTTP-сценарии, тела ответов сверяются generated response-схемами),
+`src/http/security.test.ts` (CORS, preflight, security-заголовки, лимит тела).
 Раннер — встроенный `node:test`, HTTP-тесты поднимают `createApp(deps)` на `listen(0)` и обращаются
 глобальным `fetch`: ни `supertest`, ни внешнего раннера в зависимостях нет.
 

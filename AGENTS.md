@@ -75,7 +75,7 @@ minical/
 │   │   ├── AGENTS.md           слои, точка валидации, таблица статусов, ограничения strip-only
 │   │   ├── package.json / tsconfig.json    noEmit + allowImportingTsExtensions
 │   │   └── src/                server.ts, config.ts, app.ts,
-│   │                           http/ (routes, handlers, parse, present, errors),
+│   │                           http/ (routes, handlers, parse, present, errors, security),
 │   │                           usecases/ (owner, booking),
 │   │                           domain/ (model, errors, slots, timezone),
 │   │                           store/ (repositories, memory),
