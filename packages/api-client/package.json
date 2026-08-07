@@ -4,6 +4,9 @@
   "private": true,
   "description": "Generated frontend SDK по OpenAPI-контракту MiniCal",
   "type": "module",
+  "exports": {
+    ".": "./src/generated/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit"
   }
