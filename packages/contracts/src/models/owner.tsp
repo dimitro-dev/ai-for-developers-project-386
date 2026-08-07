@@ -3,6 +3,7 @@ namespace MiniCal;
 /** One availability rule: days of the week and a local time interval. */
 model AvailabilityRule {
   /** Days of the week this rule applies to. */
+  @minItems(1)
   daysOfWeek: DayOfWeek[];
 
   /** Start of the working interval (local time, inclusive). */
@@ -77,4 +78,15 @@ model CalendarSettingsResponse {
 
   /** Canonical public URL of the guest calendar (web client). Value comes from deployment env (PUBLIC_WEB_URL). */
   publicUrl: url;
+}
+
+/**
+ * Publicly visible projection of the owner profile.
+ * Carries the display name only: calendar settings (availabilityRules,
+ * slotIntervalMinutes, publicUrl) are never disclosed to guests.
+ */
+model PublicCalendarResponse {
+  /** Owner display name. */
+  @maxLength(200)
+  displayName: string;
 }

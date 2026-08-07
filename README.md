@@ -46,13 +46,14 @@ npm run dev -w @minical/api        # из исходников, с watch
 npm run build -w @minical/api && npm run start -w @minical/api
 ```
 
-Mock-сервер контракта (`http://localhost:4010`); отвечает на все 11 операций контракта по `packages/contracts/generated/openapi.yaml` и не требует backend, PostgreSQL или Docker:
+Mock-сервер контракта (`http://localhost:4010`); отвечает на все 12 операций контракта по `packages/contracts/generated/openapi.yaml` и не требует backend, PostgreSQL или Docker:
 
 ```bash
 npm run mock:prism
 ```
 
 - **Режим валидации:** запрос, не соответствующий контракту (пропущенное обязательное поле, нарушение `pattern`, типа и т. п.), отклоняется: если операция документирует 4xx-ответ — им (для `POST /bookings` фактически `400`), иначе — сгенерированным `422`; детализация — в заголовке `sl-violations`. Конкретный не-2xx ответ можно запросить штатным механизмом Prism: `curl -X POST http://localhost:4010/bookings -H "Prefer: code=404" ...`.
+- **Дефолтный успешный ответ `POST /bookings` — `200`, а не `201`:** контракт документирует у этой операции два успешных статуса (`201` — бронь создана, `200` — идемпотентный повтор), а Prism выбирает наименьший 2xx. `201` запрашивается тем же механизмом: `curl -X POST http://localhost:4010/bookings -H "Prefer: code=201" ...`. Клиент обязан трактовать любой 2xx как успех.
 - **Ограничение:** error-тела отдаются сгенерированным примером `{"code":"string","message":"string"}`, не соответствующим enum-схемам ошибок; статус выбирается верно, точная форма ошибки — нет.
 - **Переключение клиента:** generated SDK (`@minical/api-client`) настраивается на мок через `client.setConfig({ baseUrl: 'http://localhost:4010' })`; при готовности backend — `baseUrl: 'http://localhost:3001'`. Никаких изменений кода кроме конфигурации base URL не требуется.
 

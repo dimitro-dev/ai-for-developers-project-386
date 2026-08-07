@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CompleteAdminSetupData, CompleteAdminSetupErrors, CompleteAdminSetupResponses, CreateAdminEventTypeData, CreateAdminEventTypeErrors, CreateAdminEventTypeResponses, CreatePublicBookingData, CreatePublicBookingErrors, CreatePublicBookingResponses, GetAdminEventTypesData, GetAdminEventTypesResponses, GetAdminSettingsData, GetAdminSettingsErrors, GetAdminSettingsResponses, GetAdminSetupData, GetAdminSetupResponses, GetAdminUpcomingBookingsData, GetAdminUpcomingBookingsResponses, GetHealthData, GetHealthResponses, GetPublicEventTypesData, GetPublicEventTypesErrors, GetPublicEventTypesResponses, GetPublicSlotsData, GetPublicSlotsErrors, GetPublicSlotsResponses, UpdateAdminSettingsData, UpdateAdminSettingsErrors, UpdateAdminSettingsResponses } from './types.gen';
+import type { CompleteAdminSetupData, CompleteAdminSetupErrors, CompleteAdminSetupResponses, CreateAdminEventTypeData, CreateAdminEventTypeErrors, CreateAdminEventTypeResponses, CreatePublicBookingData, CreatePublicBookingErrors, CreatePublicBookingResponses, GetAdminEventTypesData, GetAdminEventTypesResponses, GetAdminSettingsData, GetAdminSettingsErrors, GetAdminSettingsResponses, GetAdminSetupData, GetAdminSetupResponses, GetAdminUpcomingBookingsData, GetAdminUpcomingBookingsResponses, GetHealthData, GetHealthResponses, GetPublicCalendarData, GetPublicCalendarErrors, GetPublicCalendarResponses, GetPublicEventTypesData, GetPublicEventTypesErrors, GetPublicEventTypesResponses, GetPublicSlotsData, GetPublicSlotsErrors, GetPublicSlotsResponses, UpdateAdminSettingsData, UpdateAdminSettingsErrors, UpdateAdminSettingsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -80,6 +80,21 @@ export const completeAdminSetup = <ThrowOnError extends boolean = false>(options
  * Create a new booking.
  * Server validates the slot, computes endAtUtc from event type duration,
  * and checks for conflicts.
+ *
+ * Idempotency. The optional `id` of the request body is the idempotency key.
+ * 201 means the booking was created by this request; 200 means the request was
+ * an idempotent repeat and the body carries the booking created by an earlier
+ * attempt — nothing was created. A request counts as a repeat when its key
+ * matches an existing booking and its payload is equivalent: `eventTypeId`,
+ * `startAtUtc` and every field of `guest` are equal as parsed values, not as
+ * raw strings (the same instant written `...Z` and `....000Z` is the same
+ * payload). The key `id` itself takes no part in the comparison. The same key
+ * with a payload that is not equivalent fails with DUPLICATE_BOOKING_ID.
+ * The comparison by key runs before the availability check and only for the key
+ * that arrived in the request, so a slot taken by a different key still fails
+ * with SLOT_UNAVAILABLE — idempotency never masks a real conflict.
+ * Because `id` is optional, a client that needs a safe retry has to generate the
+ * key before its first attempt: without a key a repeat cannot be recognised.
  */
 export const createPublicBooking = <ThrowOnError extends boolean = false>(options: Options<CreatePublicBookingData, ThrowOnError>): RequestResult<CreatePublicBookingResponses, CreatePublicBookingErrors, ThrowOnError> => (options.client ?? client).post<CreatePublicBookingResponses, CreatePublicBookingErrors, ThrowOnError>({
     url: '/bookings',
@@ -89,6 +104,14 @@ export const createPublicBooking = <ThrowOnError extends boolean = false>(option
         ...options.headers
     }
 });
+
+/**
+ * Get the publicly visible identity of the calendar: the owner display name.
+ * Requires calendar owner to have completed onboarding — until then the
+ * operation answers 400 CALENDAR_NOT_CONFIGURED, which is how onboarding state
+ * is expressed publicly.
+ */
+export const getPublicCalendar = <ThrowOnError extends boolean = false>(options?: Options<GetPublicCalendarData, ThrowOnError>): RequestResult<GetPublicCalendarResponses, GetPublicCalendarErrors, ThrowOnError> => (options?.client ?? client).get<GetPublicCalendarResponses, GetPublicCalendarErrors, ThrowOnError>({ url: '/calendar', ...options });
 
 /**
  * List all event types available for public booking.

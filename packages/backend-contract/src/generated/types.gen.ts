@@ -35,6 +35,12 @@ export type Booking = {
      */
     eventTypeId: string;
     /**
+     * Event type name captured at booking time.
+     * Snapshot: later renames of the event type do not change bookings already made,
+     * and the value survives deletion of the event type.
+     */
+    eventTypeName: string;
+    /**
      * Booking start instant in UTC.
      */
     startAtUtc: string;
@@ -124,9 +130,11 @@ export type CreateBookingRequest = {
      */
     startAtUtc: string;
     /**
-     * Optional idempotency key (UUID).
-     * If provided and a booking with this id already exists,
-     * the request fails with DUPLICATE_BOOKING_ID.
+     * Optional idempotency key (UUID). Stays optional: without it the server
+     * generates the booking id, so a repeat has nothing to be deduplicated by.
+     * A repeat with the same key and an equivalent payload returns 200 with the
+     * booking created earlier; a repeat with the same key and a different payload
+     * fails with DUPLICATE_BOOKING_ID.
      */
     id?: Uuid;
     /**
@@ -163,7 +171,8 @@ export type CreateEventTypeRequest = {
 export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
 /**
- * A booking with the provided id already exists (idempotency conflict).
+ * The provided id key belongs to an existing booking whose payload differs from the request.
+ * A repeat with an equivalent payload is not an error: it returns 200 with the existing booking.
  */
 export type DuplicateBookingId = ErrorResponse & {
     code: 'DUPLICATE_BOOKING_ID';
@@ -273,6 +282,18 @@ export type LocalTime = string;
  */
 export type OnboardingAlreadyCompleted = ErrorResponse & {
     code: 'ONBOARDING_ALREADY_COMPLETED';
+};
+
+/**
+ * Publicly visible projection of the owner profile.
+ * Carries the display name only: calendar settings (availabilityRules,
+ * slotIntervalMinutes, publicUrl) are never disclosed to guests.
+ */
+export type PublicCalendarResponse = {
+    /**
+     * Owner display name.
+     */
+    displayName: string;
 };
 
 /**
@@ -461,7 +482,7 @@ export type UpdateAdminSettingsErrors = {
     /**
      * The server could not understand the request due to invalid syntax.
      */
-    400: CalendarNotConfigured;
+    400: ValidationError | CalendarNotConfigured;
 };
 
 export type UpdateAdminSettingsError = UpdateAdminSettingsErrors[keyof UpdateAdminSettingsErrors];
@@ -499,6 +520,10 @@ export type CompleteAdminSetupData = {
 };
 
 export type CompleteAdminSetupErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: ValidationError;
     /**
      * The request conflicts with the current state of the server.
      */
@@ -542,12 +567,41 @@ export type CreatePublicBookingError = CreatePublicBookingErrors[keyof CreatePub
 
 export type CreatePublicBookingResponses = {
     /**
+     * The request has succeeded.
+     */
+    200: Booking;
+    /**
      * The request has succeeded and a new resource has been created as a result.
      */
     201: Booking;
 };
 
 export type CreatePublicBookingResponse = CreatePublicBookingResponses[keyof CreatePublicBookingResponses];
+
+export type GetPublicCalendarData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendar';
+};
+
+export type GetPublicCalendarErrors = {
+    /**
+     * The server could not understand the request due to invalid syntax.
+     */
+    400: CalendarNotConfigured;
+};
+
+export type GetPublicCalendarError = GetPublicCalendarErrors[keyof GetPublicCalendarErrors];
+
+export type GetPublicCalendarResponses = {
+    /**
+     * The request has succeeded.
+     */
+    200: PublicCalendarResponse;
+};
+
+export type GetPublicCalendarResponse = GetPublicCalendarResponses[keyof GetPublicCalendarResponses];
 
 export type GetPublicEventTypesData = {
     body?: never;

@@ -41,7 +41,8 @@ export const zCalendarNotConfigured = zErrorResponse.and(z.object({
 }));
 
 /**
- * A booking with the provided id already exists (idempotency conflict).
+ * The provided id key belongs to an existing booking whose payload differs from the request.
+ * A repeat with an equivalent payload is not an error: it returns 200 with the existing booking.
  */
 export const zDuplicateBookingId = zErrorResponse.and(z.object({
     code: z.enum(['DUPLICATE_BOOKING_ID'])
@@ -115,7 +116,7 @@ export const zLocalTime = z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/);
  * One availability rule: days of the week and a local time interval.
  */
 export const zAvailabilityRule = z.object({
-    daysOfWeek: z.array(zDayOfWeek),
+    daysOfWeek: z.array(zDayOfWeek).min(1),
     startLocal: zLocalTime,
     endLocal: zLocalTime
 });
@@ -146,6 +147,15 @@ export const zCalendarSettingsResponse = z.object({
 export const zOnboardingAlreadyCompleted = zErrorResponse.and(z.object({
     code: z.enum(['ONBOARDING_ALREADY_COMPLETED'])
 }));
+
+/**
+ * Publicly visible projection of the owner profile.
+ * Carries the display name only: calendar settings (availabilityRules,
+ * slotIntervalMinutes, publicUrl) are never disclosed to guests.
+ */
+export const zPublicCalendarResponse = z.object({
+    displayName: z.string().max(200)
+});
 
 /**
  * Request payload to complete initial owner setup or update settings.
@@ -208,6 +218,7 @@ export const zUuid = z.uuid();
 export const zBooking = z.object({
     id: zUuid,
     eventTypeId: z.string().max(100),
+    eventTypeName: z.string().min(1).max(200),
     startAtUtc: z.iso.datetime(),
     endAtUtc: z.iso.datetime(),
     guestName: z.string().min(1).max(200),
@@ -220,7 +231,7 @@ export const zBooking = z.object({
  * Request payload to create a new booking.
  */
 export const zCreateBookingRequest = z.object({
-    eventTypeId: z.string().max(100),
+    eventTypeId: z.string().min(1).max(100),
     startAtUtc: z.iso.datetime(),
     id: zUuid.optional(),
     guest: zGuestDetails
@@ -277,9 +288,14 @@ export const zCompleteAdminSetupResponse = zCalendarSettingsResponse;
 export const zCreatePublicBookingBody = zCreateBookingRequest;
 
 /**
- * The request has succeeded and a new resource has been created as a result.
+ * The request has succeeded.
  */
 export const zCreatePublicBookingResponse = zBooking;
+
+/**
+ * The request has succeeded.
+ */
+export const zGetPublicCalendarResponse = zPublicCalendarResponse;
 
 /**
  * The request has succeeded.
@@ -292,7 +308,7 @@ export const zGetPublicEventTypesResponse = z.array(zEventType);
 export const zGetHealthResponse = zHealthResponse;
 
 export const zGetPublicSlotsQuery = z.object({
-    eventTypeId: z.string().max(100)
+    eventTypeId: z.string().min(1).max(100)
 });
 
 /**

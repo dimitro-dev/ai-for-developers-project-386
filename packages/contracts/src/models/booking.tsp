@@ -44,6 +44,15 @@ model Booking {
   @maxLength(100)
   eventTypeId: string;
 
+  /**
+   * Event type name captured at booking time.
+   * Snapshot: later renames of the event type do not change bookings already made,
+   * and the value survives deletion of the event type.
+   */
+  @minLength(1)
+  @maxLength(200)
+  eventTypeName: string;
+
   /** Booking start instant in UTC. */
   startAtUtc: utcDateTime;
 
@@ -71,6 +80,7 @@ model Booking {
 /** Request payload to create a new booking. */
 model CreateBookingRequest {
   /** Reference to the event type to book. */
+  @minLength(1)
   @maxLength(100)
   eventTypeId: string;
 
@@ -78,9 +88,11 @@ model CreateBookingRequest {
   startAtUtc: utcDateTime;
 
   /**
-   * Optional idempotency key (UUID).
-   * If provided and a booking with this id already exists,
-   * the request fails with DUPLICATE_BOOKING_ID.
+   * Optional idempotency key (UUID). Stays optional: without it the server
+   * generates the booking id, so a repeat has nothing to be deduplicated by.
+   * A repeat with the same key and an equivalent payload returns 200 with the
+   * booking created earlier; a repeat with the same key and a different payload
+   * fails with DUPLICATE_BOOKING_ID.
    */
   id?: Uuid;
 

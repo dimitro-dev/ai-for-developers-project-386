@@ -30,6 +30,7 @@ const expectedRoutes = [
   '/admin/settings',
   '/admin/event-types',
   '/admin/bookings',
+  '/calendar',
   '/event-types',
   '/slots',
   '/bookings',
@@ -44,6 +45,7 @@ const expectedOperations = [
   'getAdminEventTypes',
   'createAdminEventType',
   'getAdminUpcomingBookings',
+  'getPublicCalendar',
   'getPublicEventTypes',
   'getPublicSlots',
   'createPublicBooking',
@@ -81,11 +83,18 @@ assert(spec.components?.securitySchemes == null, 'No security schemes defined');
 assert(spec.security == null, 'No top-level security');
 
 console.log('\n=== 5. ownerId absent in all request bodies ===');
-// Request bodies are emitted as `{ $ref: '#/components/schemas/Name' }`. To actually verify
+// Bodies and responses are emitted as `{ $ref: '#/components/schemas/Name' }`. To actually verify
 // anything, $refs must be resolved against components.schemas and walked recursively —
 // including into nested properties, array items, and allOf/anyOf/oneOf branches — while
 // guarding against cyclic schema references via the `seen` set of already-visited schema names.
-function checkOwnerId(schema: any, path: string, seen: Set<string> = new Set()): boolean {
+// The set of prohibited property names is a parameter: section 5 forbids `ownerId` in requests,
+// section 11 forbids owner settings in public responses (AC1 of task-contract-001).
+function checkForbiddenProperties(
+  schema: any,
+  path: string,
+  forbidden: readonly string[],
+  seen: Set<string> = new Set(),
+): boolean {
   if (schema == null || typeof schema !== 'object') return true;
 
   if (schema.$ref) {
@@ -93,31 +102,35 @@ function checkOwnerId(schema: any, path: string, seen: Set<string> = new Set()):
     if (seen.has(refName)) return true; // cyclic reference already checked on this path
     const target = schemas[refName];
     if (target == null) return true;
-    return checkOwnerId(target, `${path} -> ${refName}`, new Set(seen).add(refName));
+    return checkForbiddenProperties(target, `${path} -> ${refName}`, forbidden, new Set(seen).add(refName));
   }
 
   let ok = true;
 
-  if (schema.properties && 'ownerId' in schema.properties) {
-    console.error(`FAIL: ownerId found in schema at ${path}`);
-    ok = false;
+  if (schema.properties) {
+    for (const name of forbidden) {
+      if (name in schema.properties) {
+        console.error(`FAIL: ${name} found in schema at ${path}`);
+        ok = false;
+      }
+    }
   }
 
   if (schema.properties) {
     for (const [key, value] of Object.entries(schema.properties)) {
-      if (!checkOwnerId(value, `${path}.properties.${key}`, seen)) ok = false;
+      if (!checkForbiddenProperties(value, `${path}.properties.${key}`, forbidden, seen)) ok = false;
     }
   }
 
   if (schema.items) {
-    if (!checkOwnerId(schema.items, `${path}.items`, seen)) ok = false;
+    if (!checkForbiddenProperties(schema.items, `${path}.items`, forbidden, seen)) ok = false;
   }
 
   for (const combinator of ['allOf', 'anyOf', 'oneOf'] as const) {
     const list = schema[combinator];
     if (Array.isArray(list)) {
       list.forEach((sub: any, i: number) => {
-        if (!checkOwnerId(sub, `${path}.${combinator}[${i}]`, seen)) ok = false;
+        if (!checkForbiddenProperties(sub, `${path}.${combinator}[${i}]`, forbidden, seen)) ok = false;
       });
     }
   }
@@ -127,7 +140,7 @@ function checkOwnerId(schema: any, path: string, seen: Set<string> = new Set()):
 for (const [route, methods] of Object.entries(paths)) {
   for (const [, op] of Object.entries(methods as Record<string, any>)) {
     if (op.requestBody?.content?.['application/json']?.schema) {
-      const ok = checkOwnerId(op.requestBody.content['application/json'].schema, `${route} requestBody`);
+      const ok = checkForbiddenProperties(op.requestBody.content['application/json'].schema, `${route} requestBody`, ['ownerId']);
       assert(ok, `ownerId absent in request body of ${route}`);
     }
   }
@@ -225,6 +238,80 @@ assert(eventTypeIdParam?.schema?.maxLength === 100, `getPublicSlots query param 
 assert(schemas['ErrorResponse']?.properties?.code?.maxLength === 100, 'ErrorResponse.code has maxLength === 100');
 
 assert(spec.info?.version !== '0.0.0', `info.version is not the placeholder '0.0.0' (got ${spec.info?.version})`);
+
+console.log('\n=== 11. Guest-flow extensions (task-contract-001: AC1, AC2, AC3, AC5, AC6, AC7) ===');
+// Six checks, one per acceptance criteria that would otherwise rest on a single manual reading of
+// the generated YAML. Each of the six is verified to FAIL against a deliberately corrupted copy of
+// the document — see task-contract-001/result.md.
+
+// (1) AC1 — the public surface exposes the owner display name and nothing else from the calendar
+// settings. Walked recursively through $ref, so a settings model wrapped into a public response
+// (directly, via a nested property, or via array items) is caught as well.
+const publicOperationIds = ['getPublicCalendar', 'getPublicEventTypes', 'getPublicSlots', 'createPublicBooking'];
+const ownerSettingsProperties = ['availabilityRules', 'slotIntervalMinutes', 'publicUrl'];
+const publicOpsReached = new Set<string>();
+for (const [route, methods] of Object.entries(paths)) {
+  for (const [, op] of Object.entries(methods as Record<string, any>)) {
+    if (!publicOperationIds.includes(op.operationId)) continue;
+    publicOpsReached.add(op.operationId);
+    for (const [status, resp] of Object.entries(op.responses ?? {}) as [string, any][]) {
+      if (!status.startsWith('2')) continue;
+      const schema = resp.content?.['application/json']?.schema;
+      if (!schema) continue;
+      const ok = checkForbiddenProperties(schema, `${route} ${op.operationId} ${status}`, ownerSettingsProperties);
+      assert(ok, `${op.operationId} ${status} response discloses none of: ${ownerSettingsProperties.join(', ')}`);
+    }
+  }
+}
+for (const opId of publicOperationIds) {
+  // Without this the check above would pass vacuously if an operation were renamed or removed.
+  assert(publicOpsReached.has(opId), `AC1 check reached public operation ${opId}`);
+}
+
+// (2) AC2 — the booking response carries the event type name, in one and the same form for the
+// guest flow (createPublicBooking) and the owner flow (getAdminUpcomingBookings): both return Booking.
+const bookingSchema = schemas['Booking'];
+assert(bookingSchema?.properties?.eventTypeName != null, 'Booking.eventTypeName exists');
+assert((bookingSchema?.required ?? []).includes('eventTypeName'), 'Booking.eventTypeName is required');
+
+// (3) AC3 — the idempotent repeat is documented machine-readably: 201 created, 200 replayed, one body.
+const createBookingResponses = paths['/bookings']?.post?.responses ?? {};
+for (const status of ['200', '201']) {
+  const ref = createBookingResponses[status]?.content?.['application/json']?.schema?.$ref;
+  assert(ref === '#/components/schemas/Booking',
+    `POST /bookings documents '${status}' with $ref Booking (got ${ref ?? 'no such response'})`);
+}
+
+// (4) AC5 — both setup-writing operations document the 400 that transport and domain validation
+// oblige the backend to return. The 400 may be a bare $ref or an anyOf of several error models.
+const setupWriteOperationIds = ['completeAdminSetup', 'updateAdminSettings'];
+const setupWriteOpsReached = new Set<string>();
+for (const [route, methods] of Object.entries(paths)) {
+  for (const [, op] of Object.entries(methods as Record<string, any>)) {
+    if (!setupWriteOperationIds.includes(op.operationId)) continue;
+    setupWriteOpsReached.add(op.operationId);
+    const schema = op.responses?.['400']?.content?.['application/json']?.schema;
+    const refs: string[] = [];
+    if (schema?.$ref) refs.push(schema.$ref.split('/').pop()!);
+    for (const item of schema?.anyOf ?? []) {
+      if (item.$ref) refs.push(item.$ref.split('/').pop()!);
+    }
+    assert(refs.includes('ValidationError'),
+      `${op.operationId} (${route}) documents 400 ValidationError (400 references: ${refs.join(', ') || 'nothing'})`);
+  }
+}
+for (const opId of setupWriteOperationIds) {
+  assert(setupWriteOpsReached.has(opId), `AC5 check reached operation ${opId}`);
+}
+
+// (5) AC6 — an availability rule cannot apply to an empty set of days.
+assert(schemas['AvailabilityRule']?.properties?.daysOfWeek?.minItems === 1, 'AvailabilityRule.daysOfWeek minItems === 1');
+
+// (6) AC7 — references to an event type id are constrained like the id itself
+// (CreateEventTypeRequest.id has minLength 1): an empty string cannot be created, nor referenced.
+const slotsEventTypeIdParam = (paths['/slots']?.get?.parameters ?? []).find((p: any) => p.name === 'eventTypeId');
+assert(slotsEventTypeIdParam?.schema?.minLength === 1, 'getPublicSlots query param eventTypeId has schema.minLength === 1');
+assert(schemas['CreateBookingRequest']?.properties?.eventTypeId?.minLength === 1, 'CreateBookingRequest.eventTypeId minLength === 1');
 
 console.log('\n=== SECURITY: String length constraints on user-input fields ===');
 const userInputFields: Record<string, string[]> = {

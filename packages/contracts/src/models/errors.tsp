@@ -51,7 +51,10 @@ model SlotNotAligned extends ErrorResponse {
   code: "SLOT_NOT_ALIGNED";
 }
 
-/** A booking with the provided id already exists (idempotency conflict). */
+/**
+ * The provided id key belongs to an existing booking whose payload differs from the request.
+ * A repeat with an equivalent payload is not an error: it returns 200 with the existing booking.
+ */
 model DuplicateBookingId extends ErrorResponse {
   code: "DUPLICATE_BOOKING_ID";
 }

@@ -21,6 +21,10 @@ op completeAdminSetup(@body body: SetupRequest):
       @body body: CalendarSettingsResponse;
     }
   | {
+      @statusCode _: 400;
+      @body body: ValidationError;
+    }
+  | {
       @statusCode _: 409;
       @body body: OnboardingAlreadyCompleted;
     };
@@ -45,6 +49,10 @@ op updateAdminSettings(@body body: SetupRequest):
   | {
       @statusCode _: 200;
       @body body: CalendarSettingsResponse;
+    }
+  | {
+      @statusCode _: 400;
+      @body body: ValidationError;
     }
   | {
       @statusCode _: 400;
