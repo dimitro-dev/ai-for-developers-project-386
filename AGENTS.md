@@ -145,10 +145,12 @@ tasks/
 ├── README.md                  lifecycle, статусы, реестр задач, план разработки
 ├── _template/                 brief.md, adr.md, plan.md, result.md
 ├── task-000/ … task-003/, task-006/     базовые задачи, старые id сохранены
-├── task-infra-001/ … task-infra-004/
+├── task-contract-001/
+├── task-infra-001/ … task-infra-005/
 ├── task-back-001/
-├── task-front-ui-001/
-├── task-front-guest-001/ … 006/
+├── task-front-ui-001/, task-front-ui-002/
+├── task-front-guest-001/, task-front-guest-002/    (003…006 — сырьё слияния 2026-08-12, удаляются
+│                               после согласования brief объединённой task-front-guest-002)
 └── task-front-owner-001/
 
 .opencode/
