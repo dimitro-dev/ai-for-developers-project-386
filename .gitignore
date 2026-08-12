@@ -5,6 +5,11 @@
 /docs/
 .opencode
 
+# Локальная конфигурация MCP-серверов (канон — .mcp.json, зеркало для OpenCode — opencode.json)
+/.mcp.json
+/opencode.json
+/opencode.jsonc
+
 # OS
 .DS_Store
 
