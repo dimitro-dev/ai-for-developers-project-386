@@ -32,6 +32,7 @@ npm ci
 | `npm run typecheck` | TypeScript typecheck всех workspaces |
 | `npm test` | Контрактный gate: сверяет `generated/openapi.yaml` с границами контракта |
 | `npm test -w @minical/api` | Backend-гейт: `node --test` по `apps/api/src/**/*.test.ts` (покрытие контракта, домен, хранилище, HTTP-сценарии) |
+| `npm test -w @minical/client` | Клиентский гейт: `jest` (preset `jest-expo`) по `apps/client/src/**/*.test.ts(x)` — дизайн-система, маппер ошибок, use-cases, guest-flow state |
 | `npm run mock:prism` | Mock-сервер контракта (Prism) на порту `4010` по `packages/contracts/generated/openapi.yaml` |
 | `npm run build` | Сборка workspaces, у которых есть скрипт `build` (клиент → web-экспорт). `apps/api` в ней не участвует: backend запускается прямо из исходников |
 

@@ -81,12 +81,22 @@ minical/
 │   │                           domain/ (model, errors, slots, timezone),
 │   │                           store/ (repositories, memory),
 │   │                           тесты рядом с кодом: *.test.ts (`node --test`)
-│   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web
+│   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web;
+│       │                       гостевой фундамент: дизайн-система, generated SDK, навигация
 │       ├── AGENTS.md          требование читать версионированные docs Expo v57
 │       ├── CLAUDE.md          @AGENTS.md
-│       ├── package.json / app.json / App.tsx / index.ts / assets/
+│       ├── package.json       jest-конфиг (preset jest-expo, alias @/*), скрипт test
+│       ├── app.json / App.tsx / index.ts / assets/    App.tsx — bootstrap: configureApiClient →
+│       │                       GuestFlowProvider → NavigationContainer (без linking) → GuestStack
 │       ├── .claude/settings.json    включённый плагин expo
-│       └── tsconfig.json      наследует expo/tsconfig.base, а не корневую базу; свой TypeScript ~6.0.3
+│       ├── tsconfig.json      наследует expo/tsconfig.base, а не корневую базу; свой TypeScript
+│       │                       ~6.0.3; paths "@/*" → ./src/* (без baseUrl — он deprecated в TS 6)
+│       └── src/               api/ (config, errors → канон $error),
+│                               design-system/ (tokens, theme, layout/, components/),
+│                               features/guest/ (model, usecases, state, lib, screens — стабы),
+│                               navigation/ (GuestStack, GuestStackParamList),
+│                               shared/ui-state/ (StateView, Repeat),
+│                               тесты рядом с кодом: *.test.ts(x) (`jest`)
 ├── packages/
 │   ├── contracts/             @minical/contracts — единственный ручной источник HTTP-контракта
 │   │   ├── src/main.tsp                @service, @info(version), импорты
@@ -171,9 +181,10 @@ npm run typecheck                # tsc --noEmit по всем workspaces
 npm test                         # контрактный gate
 npm run uispec:validate          # валидация UISpec; обязательна при изменениях в docs/ui-spec-kit/ или UI-коде apps/client/, в клоне без docs/ шаг скипается
 npm test -w @minical/api         # backend-гейт (node --test); обязателен при изменениях в apps/api/
+npm test -w @minical/client      # клиентский гейт (jest + jest-expo); обязателен при изменениях в apps/client/
 ```
 
-Корневой `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Backend-тесты в него не входят и запускаются своей командой (`node --test` по `apps/api/src/**/*.test.ts`; там же можно выбрать файл — `node --test src/domain/slots.test.ts`). Полный список команд — в [`README.md`](README.md).
+Корневой `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Тесты приложений в него не входят и запускаются своими командами: backend — `node --test` по `apps/api/src/**/*.test.ts` (можно выбрать файл: `node --test src/domain/slots.test.ts`), клиент — `jest` по `apps/client/src/**/*.test.ts(x)` (можно выбрать файл: `npx jest src/api/errors.test.ts` из `apps/client`). Полный список команд — в [`README.md`](README.md).
 
 ## Специализированные агенты
 

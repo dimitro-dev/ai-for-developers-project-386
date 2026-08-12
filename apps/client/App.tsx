@@ -1,20 +1,26 @@
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { configureApiClient } from '@/api/config';
+import { GuestFlowProvider } from '@/features/guest/state/GuestFlowProvider';
+import { GuestStack } from '@/navigation/GuestStack';
+
+// Bootstrap: экспортируемый `client` generated SDK создан без baseUrl, поэтому конфигурация
+// применяется здесь — до первого рендера и до любого запроса экранов (ADR §4).
+configureApiClient();
+
+// `linking` не настраивается сознательно (ADR §1): состояние навигации не уезжает в URL,
+// объектный параметр `booking` и черновик формы (PII) остаются в памяти JS.
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <SafeAreaProvider>
+      <GuestFlowProvider>
+        <NavigationContainer>
+          <GuestStack />
+        </NavigationContainer>
+      </GuestFlowProvider>
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
