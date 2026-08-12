@@ -16,6 +16,9 @@ import { BODY_LIMIT_BYTES, cors, securityHeaders } from './http/security.ts';
 export function createApp(deps: Deps): Express {
   const app = express();
 
+  // Заголовок разглашает фреймворк, потребителя у него нет.
+  app.disable('x-powered-by');
+
   app.use(securityHeaders);
   app.use(cors);
   app.use(express.json({ limit: BODY_LIMIT_BYTES }));

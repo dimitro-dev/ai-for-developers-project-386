@@ -41,6 +41,7 @@ function jsonBodyOfSize(bytes: number): string {
 function assertSecurityHeaders(response: Response): void {
   assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(response.headers.get('x-frame-options'), 'DENY');
+  assert.equal(response.headers.get('x-powered-by'), null);
 }
 
 // --- CORS и security-заголовки (AC1, AC4) -------------------------------------
