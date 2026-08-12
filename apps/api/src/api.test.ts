@@ -640,9 +640,13 @@ test('POST /bookings: доменные отказы окна, сетки и пр
       400,
       'SLOT_NOT_ALIGNED',
     );
-    // вне рабочего интервала отдельного кода не имеет — это «нет такого слота в сетке»
+    // вне рабочего интервала отдельного кода не имеет — это «нет такого слота в сетке».
+    // Время фиксированное (03:00 UTC назавтра), а не смещение от первого слота: тот
+    // зависит от часа запуска теста, и вычисленная точка может попасть на валидный слот.
+    const offHoursUtc = new Date(startMs + day);
+    offHoursUtc.setUTCHours(3, 0, 0, 0);
     expectError(
-      await http.post('/bookings', bookingBody(slot, { startAtUtc: new Date(startMs + day - 6 * 3_600_000).toISOString() })),
+      await http.post('/bookings', bookingBody(slot, { startAtUtc: offHoursUtc.toISOString() })),
       400,
       'SLOT_NOT_ALIGNED',
     );
