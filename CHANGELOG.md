@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/dimitro-dev/ai-for-developers-project-386/compare/v0.2.0...v0.3.0) (2026-08-15)
+
+
+### Features
+
+* task-front-guest-002 — гостевой сценарий из четырёх экранов ([95f4cff](https://github.com/dimitro-dev/ai-for-developers-project-386/commit/95f4cff6e011fc3984e4ccba3bacfacdc2021f79))
+
 ## 0.2.0 (2026-08-15)
 
 
