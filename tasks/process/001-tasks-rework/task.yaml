@@ -22,6 +22,8 @@ gates:
     sha256: 305695288f7602566b40a51d176522f58b00046ad7850b5307844c98e548dcec
   result:
     status: черновик
+workspace:
+  branch: task/process-001-tasks-rework
 meta:
-  rev: 5
-  selfHash: a69ed6f84c68222b90db54021fc6dd76c06b3a6e986bffd323ab0063d150e406
+  rev: 6
+  selfHash: d2a84eef0aa53875e5e7f8b09a6276bf6521084b76b0f70af3f508196a7b6af2
