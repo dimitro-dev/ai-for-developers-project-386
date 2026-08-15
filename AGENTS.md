@@ -69,6 +69,9 @@ minical/
 ├── package.json               корневые скрипты, npm workspaces: apps/*, packages/*
 ├── tsconfig.base.json         общая TS-база: ES2022, NodeNext, strict
 ├── .nvmrc                     Node 26 (engines: >=24)
+├── .github/workflows/         hexlet-check.yml — внешний чек Hexlet, не редактируется;
+│                              ci.yml — обязательные проверки на PR/push в `main`;
+│                              release-please.yml — release-PR (changelog + версия)
 ├── apps/
 │   ├── api/                   @minical/api — REST API: 12 операций контракта на Express 5
 │   │   │                       поверх in-memory хранилища, порт 3001; запускается из
@@ -185,6 +188,8 @@ npm test -w @minical/client      # клиентский гейт (jest + jest-ex
 ```
 
 Корневой `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Тесты приложений в него не входят и запускаются своими командами: backend — `node --test` по `apps/api/src/**/*.test.ts` (можно выбрать файл: `node --test src/domain/slots.test.ts`), клиент — `jest` по `apps/client/src/**/*.test.ts(x)` (можно выбрать файл: `npx jest src/api/errors.test.ts` из `apps/client`). Полный список команд — в [`README.md`](README.md).
+
+Тот же набор выполняет CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) на каждом PR в `main` и push в `main`; в CI-клоне нет `docs/`, поэтому `uispec:validate` там штатно скипается — валидация UISpec остаётся локальной обязанностью. На push в `main` [`release-please.yml`](.github/workflows/release-please.yml) ведёт release-PR.
 
 ## Специализированные агенты
 
