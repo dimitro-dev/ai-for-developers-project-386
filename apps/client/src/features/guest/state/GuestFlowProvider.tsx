@@ -11,8 +11,11 @@ import {
 
 export type GuestFlowContextValue = GuestFlowState & {
   setDraftField: (field: keyof GuestDraft, value: string) => void;
-  /** Возвращает ключ идемпотентности текущей брони, выдавая новый только при первой попытке. */
-  beginBookingAttempt: () => string;
+  /**
+   * Действие `initBookingKey` спеки 14: новый ключ идемпотентности на каждое монтирование
+   * формы. Возвращает выданный ключ — контейнеру он нужен сразу, до следующего рендера.
+   */
+  initBookingKey: () => string;
   completeBooking: () => void;
   resetFlow: () => void;
 };
@@ -26,11 +29,11 @@ export function GuestFlowProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'draft/change', field, value });
   }, []);
 
-  const beginBookingAttempt = useCallback(() => {
-    const key = state.bookingKey ?? newBookingKey();
-    dispatch({ type: 'booking/attempt', key });
+  const initBookingKey = useCallback(() => {
+    const key = newBookingKey();
+    dispatch({ type: 'booking/init', key });
     return key;
-  }, [state.bookingKey]);
+  }, []);
 
   const completeBooking = useCallback(() => {
     dispatch({ type: 'booking/succeeded' });
@@ -41,8 +44,8 @@ export function GuestFlowProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<GuestFlowContextValue>(
-    () => ({ ...state, setDraftField, beginBookingAttempt, completeBooking, resetFlow }),
-    [state, setDraftField, beginBookingAttempt, completeBooking, resetFlow],
+    () => ({ ...state, setDraftField, initBookingKey, completeBooking, resetFlow }),
+    [state, setDraftField, initBookingKey, completeBooking, resetFlow],
   );
 
   return <GuestFlowContext.Provider value={value}>{children}</GuestFlowContext.Provider>;

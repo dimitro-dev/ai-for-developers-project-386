@@ -5,7 +5,8 @@ import { useColors } from '@/design-system/theme';
 import { radii, sizes, spacing, typography, type ColorTokens } from '@/design-system/tokens';
 
 export interface AppButtonProps {
-  variant: 'primary' | 'secondary';
+  /** `text` — ссылка-действие внутри контента («Изменить» карточки сводки), без подложки и рамки. */
+  variant: 'primary' | 'secondary' | 'text';
   label: string;
   onPress: () => void;
   disabled?: boolean;
@@ -34,6 +35,7 @@ export function AppButton({
   const colors = useColors();
   const inactive = disabled || loading;
   const isPrimary = variant === 'primary';
+  const isText = variant === 'text';
   const labelColor = isPrimary ? colors.text.onPrimary : colors.action.primary;
 
   return (
@@ -52,8 +54,9 @@ export function AppButton({
           width: typeof width === 'number' ? width : undefined,
           alignSelf: width === 'fill' ? 'stretch' : undefined,
           opacity: disabled ? disabledOpacity : 1,
-          backgroundColor: backgroundFor(isPrimary, pressed, colors),
-          borderColor: isPrimary ? 'transparent' : colors.border.default,
+          backgroundColor: backgroundFor(variant, pressed, colors),
+          borderColor: variant === 'secondary' ? colors.border.default : 'transparent',
+          paddingHorizontal: isText ? spacing[8] : spacing[16],
         },
       ]}
     >
@@ -68,9 +71,16 @@ export function AppButton({
 /** Приглушение disabled — дополнение к `accessibilityState`, а не единственный признак (MANUAL §10). */
 const disabledOpacity = 0.5;
 
-function backgroundFor(isPrimary: boolean, pressed: boolean, colors: ColorTokens): string {
-  if (isPrimary) {
+function backgroundFor(
+  variant: AppButtonProps['variant'],
+  pressed: boolean,
+  colors: ColorTokens,
+): string {
+  if (variant === 'primary') {
     return pressed ? colors.action.primaryPressed : colors.action.primary;
+  }
+  if (variant === 'text') {
+    return pressed ? colors.background.secondary : 'transparent';
   }
   return pressed ? colors.background.secondary : colors.surface.primary;
 }
@@ -81,7 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[8],
-    paddingHorizontal: spacing[16],
     borderRadius: radii[12],
     borderWidth: StyleSheet.hairlineWidth,
   },
