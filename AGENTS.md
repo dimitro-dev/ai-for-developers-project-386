@@ -175,7 +175,7 @@ tasks/
 
 ## Обязательные проверки (quality gates)
 
-Набор ниже — стадия **quality-gates** жизненного цикла задачи: когда все пункты `plan.md` завершены, полный набор прогоняется локально и результаты фиксируются в `result.md` («Выполненные проверки») — только после этого готовится MR. При завершении отдельного пункта `plan.md` полный прогон не требуется — достаточно гейтов затронутой области (см. аннотации у команд):
+Набор ниже — фаза «Проверка» (**quality gates**) жизненного цикла задачи (все фазы — в [`tasks/README.md`](tasks/README.md), «Порядок работы»): когда все пункты `plan.md` завершены, полный набор прогоняется локально и результаты фиксируются в `result.md` («Выполненные проверки») — только после этого готовится MR. При завершении отдельного пункта `plan.md` полный прогон не требуется — достаточно гейтов затронутой области (см. аннотации у команд):
 
 ```bash
 npm run contracts:format:check   # форматирование .tsp
@@ -189,7 +189,7 @@ npm test -w @minical/client      # клиентский гейт (jest + jest-ex
 
 Корневой `npm test` — это `uispec:validate` плюс один Node-скрипт с `--experimental-strip-types`, отдельный тест выбрать нельзя. Тесты приложений в него не входят и запускаются своими командами: backend — `node --test` по `apps/api/src/**/*.test.ts` (можно выбрать файл: `node --test src/domain/slots.test.ts`), клиент — `jest` по `apps/client/src/**/*.test.ts(x)` (можно выбрать файл: `npx jest src/api/errors.test.ts` из `apps/client`). Полный список команд — в [`README.md`](README.md).
 
-Тот же набор выполняет CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) на каждом PR в `main` и push в `main` — это страховка после push, а не замена стадии quality-gates: в CI-клоне нет `docs/`, поэтому `uispec:validate` там штатно скипается, и зелёный CI не отменяет локальный полный прогон. На push в `main` [`release-please.yml`](.github/workflows/release-please.yml) ведёт release-PR.
+Тот же набор выполняет CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) на каждом PR в `main` и push в `main` — это страховка после push, а не замена фазы «Проверка»: в CI-клоне нет `docs/`, поэтому `uispec:validate` там штатно скипается, и зелёный CI не отменяет локальный полный прогон. На push в `main` [`release-please.yml`](.github/workflows/release-please.yml) ведёт release-PR.
 
 ## Специализированные агенты
 
