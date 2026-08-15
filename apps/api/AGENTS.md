@@ -1,12 +1,78 @@
 # MiniCal API Server
 
 REST-backend MiniCal: все 12 операций контракта поверх in-memory хранилища, порт `3001` по
-умолчанию. Реализовано задачей `task-back-001`, middleware-цепочка (CORS, security-заголовки, лимит
-тела) — `task-infra-003`; PostgreSQL, миграции и exclusion constraint — отдельная задача
-Database Agent.
+умолчанию. Реализовано задачей `back/001`, middleware-цепочка (CORS, security-заголовки, лимит
+тела) — `infra/003`; PostgreSQL, миграции и exclusion constraint — задача `back/002` в зоне
+[`packages/database/`](../../packages/database/AGENTS.md).
 
-Роль и её границы — в [`backend-agent.md`](../../.opencode/agents/backend-agent.md) (файл доступен
-только локально, не хранится в git).
+## Роль и границы
+
+Зона Backend Agent: реализовывать REST transport, application/domain logic и server-side validation.
+
+### Читать
+
+```text
+корневой AGENTS.md
+согласованные документы активной задачи (гейты — в её task.yaml; см. tasks/AGENTS.md)
+plan.md активной задачи
+docs/domain-rules.md
+docs/domain-model.md — сущности, VO, кардинальности и инварианты
+docs/contract-pipeline.md
+остальные разделы этого файла — фреймворк, middleware, структура
+generated backend transport schemas/types
+```
+
+### Разрешено менять
+
+```text
+apps/api/**
+packages/slot-engine/**
+backend unit/integration tests
+ручной код packages/backend-contract/src/** вне generated/
+состояние своего пункта в plan.md
+backend-раздел активного result.md
+```
+
+Repository-код внутри `apps/api/**` — общая граница с зоной
+[`packages/database/`](../../packages/database/AGENTS.md): схему, миграции и constraints владеет
+Database Agent, вызывающий их код — Backend Agent. Repository API согласуется до реализации, чтобы
+правки не пересекались.
+
+### Обязан
+
+- валидировать реальные HTTP-входы на runtime-границе;
+- реализовывать только документированные операции и ответы;
+- map-ить transport DTO в application/domain models;
+- использовать серверное время;
+- вычислять `endAt` по текущей длительности Event Type;
+- повторно проверять слот внутри команды создания Booking;
+- преобразовывать доменные ошибки в документированные HTTP errors;
+- использовать PostgreSQL constraint как последнюю защиту от гонки.
+
+### Запрещено
+
+- менять `.tsp` или generated-файлы;
+- принимать от клиента `ownerId` или authoritative `endAt`;
+- возвращать незадокументированные поля/status/error codes;
+- использовать только предварительный `SELECT` как защиту от double booking;
+- копировать transport DTO напрямую в persistence без mapping;
+- добавлять несуществующие интеграции MVP;
+- ставить `согласовано` самовольно: правило 11 корневого [`AGENTS.md`](../../AGENTS.md), фиксация —
+  только `task approve` после явного подтверждения владельца.
+
+### При недостаточном контракте
+
+Зафиксировать блокирующий пункт и требуемое изменение в `plan.md` активной задачи, затем передать
+contract-работу в зону [`packages/contracts/`](../../packages/contracts/AGENTS.md).
+
+### Definition of Done
+
+- handler соответствует generated contract;
+- domain rules покрыты тестами;
+- runtime validation включена;
+- documented errors воспроизводимы;
+- `npm run typecheck`, `npm test` и `npm test -w @minical/api` проходят;
+- пункт плана и backend-раздел `result.md` обновлены.
 
 ## Фреймворк: Express 5 без схемной машинерии
 
@@ -61,7 +127,7 @@ import type { CreateBookingRequest, ErrorResponse } from '@minical/backend-contr
 ```
 
 Схемы приходят подпутём `/zod`, типы — корневым входом: generated `index.ts` состоит из одного
-`export type` и в рантайме пуст (`task-infra-005`). Самописных схем нет. Порядок — транспорт, затем
+`export type` и в рантайме пуст (`infra/005`). Самописных схем нет. Порядок — транспорт, затем
 домен: доменный код работает с уже разобранными значениями.
 
 Доменные проверки сверх схемы (в `usecases/owner.ts`): кратность `slotIntervalMinutes` числу 60,
@@ -77,7 +143,7 @@ keyword'ами OpenAPI 3.0 не выражаются, без них мусорн
 вида `asyncHandler` нет.
 
 Вне контракта отдаются только `404 NOT_FOUND` (неизвестный URL или метод), `500 INTERNAL_ERROR` и
-`413 PAYLOAD_TOO_LARGE` (превышение лимита тела, `task-infra-003`) — ситуации, которых контракт не
+`413 PAYLOAD_TOO_LARGE` (превышение лимита тела, `infra/003`) — ситуации, которых контракт не
 описывает; форма `ErrorResponse` соблюдена. Статус этих трёх ответов берётся не из `ERROR_STATUS`:
 их коды не входят в `DomainErrorCode`, потому что домен об ограничениях транспорта не знает.
 
