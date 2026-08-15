@@ -29,7 +29,7 @@ B — документы процесса, C — миграция, D — инт�
 | P20 | Корневой README устареет | `README.md`: строки 101/105 (tasks/README → tasks/AGENTS.md, схема путей), секция «Команды» — строки `npm run task*` в существующем формате таблицы | завершено |
 | P21 | Скилла быстрого включения нет | `.opencode/skills/taskmaster/SKILL.md`: frontmatter-description с триггер-фразами («продолжи задачу», «что по задаче X», «статус задач», «заведи задачу», «согласуй brief/plan/result», «что дальше по проекту», паттерн id `тип/номер`); тело: status → tasks/AGENTS.md → flow трека → активный документ; таблица «намерение → команда»; запрет Edit на task.yaml/REGISTRY.md; девятый скилл, коллизий нет | завершено |
 | P22 | Протокол worktree не знает про task.yaml | В `worktree-isolated-agent/SKILL.md` шаг 2 дополнить: после создания worktree — `npm run task -- set <id> workspace.branch <ветка>` и `workspace.worktree <путь>`; в шаг уборки — `task unset <id> workspace` (или очистка при approve result) | завершено |
-| P23 | Фаза «Проверка» и приёмка | Полный набор «Обязательных проверок» (включая новые `task:check` в npm test, `task:test`, `task:typecheck`); прогон AC1–AC8 из brief, в т.ч. AC6 — живая проверка скилла в сессии Claude Code (по id и автоподхватом); результаты в result.md | в плане |
+| P23 | Фаза «Проверка» и приёмка | Полный набор «Обязательных проверок» (включая новые `task:check` в npm test, `task:test`, `task:typecheck`); прогон AC1–AC8 из brief, в т.ч. AC6 — живая проверка скилла в сессии Claude Code (по id и автоподхватом); результаты в result.md | завершено |
 
 Допустимые состояния:
 
