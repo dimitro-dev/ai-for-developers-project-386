@@ -1,17 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { GuestBookingConfirmationStubScreen } from '@/features/guest/screens/GuestBookingConfirmationStubScreen';
-import { GuestBookingFormStubScreen } from '@/features/guest/screens/GuestBookingFormStubScreen';
-import { GuestEventTypesStubScreen } from '@/features/guest/screens/GuestEventTypesStubScreen';
-import { GuestSlotsStubScreen } from '@/features/guest/screens/GuestSlotsStubScreen';
+import { GuestBookingConfirmationScreen } from '@/features/guest/screens/GuestBookingConfirmationScreen';
+import { GuestBookingFormScreen } from '@/features/guest/screens/GuestBookingFormScreen';
+import { GuestEventTypesScreen } from '@/features/guest/screens/GuestEventTypesScreen';
+import { GuestSlotsScreen } from '@/features/guest/screens/GuestSlotsScreen';
 
 import { guestStackInitialRoute, type GuestStackParamList } from './GuestStackParamList';
 
 const Stack = createNativeStackNavigator<GuestStackParamList>();
 
 /**
- * `<Stack id="GuestStack">` из `navigation.uispec.xml`. Каркас переживёт `front-guest-002`:
- * та задача меняет содержимое экранов, а не состав route и не типы параметров.
+ * `<Stack id="GuestStack">` из `navigation.uispec.xml`. Состав route и типы их параметров —
+ * от фундамента `front-guest-001`; `front-guest-002` заменил стаб-экраны реализациями,
+ * ничего в самом каркасе не меняя.
  *
  * Заголовок навигатора выключен: спеки экранов рисуют собственный тег `Header`
  * (`AppHeader`) внутри `Layout`, второй системный заголовок был бы дублем.
@@ -19,13 +20,10 @@ const Stack = createNativeStackNavigator<GuestStackParamList>();
 export function GuestStack() {
   return (
     <Stack.Navigator initialRouteName={guestStackInitialRoute} screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="GuestEventTypes" component={GuestEventTypesStubScreen} />
-      <Stack.Screen name="GuestSlots" component={GuestSlotsStubScreen} />
-      <Stack.Screen name="GuestBookingForm" component={GuestBookingFormStubScreen} />
-      <Stack.Screen
-        name="GuestBookingConfirmation"
-        component={GuestBookingConfirmationStubScreen}
-      />
+      <Stack.Screen name="GuestEventTypes" component={GuestEventTypesScreen} />
+      <Stack.Screen name="GuestSlots" component={GuestSlotsScreen} />
+      <Stack.Screen name="GuestBookingForm" component={GuestBookingFormScreen} />
+      <Stack.Screen name="GuestBookingConfirmation" component={GuestBookingConfirmationScreen} />
     </Stack.Navigator>
   );
 }

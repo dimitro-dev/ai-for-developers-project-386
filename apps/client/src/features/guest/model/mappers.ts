@@ -44,3 +44,13 @@ export function toBookingView(dto: Booking): BookingView {
     createdAtUtc: dto.createdAtUtc,
   };
 }
+
+/**
+ * Обратный маппинг view-model → DTO для параметра route `booking`: он типизирован контрактным
+ * `Booking` (ручной перенос `navigation.uispec.xml`), а use-case отдаёт `BookingView`.
+ * Единственное различие форм — нормализованный `guestNote`.
+ */
+export function toBookingDto(view: BookingView): Booking {
+  const { guestNote, ...rest } = view;
+  return guestNote === null ? rest : { ...rest, guestNote };
+}

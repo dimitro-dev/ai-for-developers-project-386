@@ -1,6 +1,7 @@
 import type { Booking, EventType, PublicCalendarResponse, Slot } from '@minical/api-client';
 
 import {
+  toBookingDto,
   toBookingView,
   toCalendarView,
   toEventTypeView,
@@ -119,5 +120,31 @@ describe('toBookingView', () => {
     const { guestNote: _omitted, ...withoutNote } = dto;
 
     expect(toBookingView(withoutNote).guestNote).toBeNull();
+  });
+});
+
+describe('toBookingDto', () => {
+  const dto: Booking = {
+    id: '2f1c4d7e-0a1b-4c2d-8e3f-5a6b7c8d9e0f',
+    eventTypeId: 'intro-call',
+    eventTypeName: 'Знакомство',
+    startAtUtc: '2026-08-13T09:00:00.000Z',
+    endAtUtc: '2026-08-13T09:30:00.000Z',
+    guestName: 'Иван',
+    guestEmail: 'ivan@example.com',
+    guestNote: 'Обсудить интеграцию',
+    createdAtUtc: '2026-08-12T18:00:00.000Z',
+  };
+
+  it('возвращает исходный DTO для параметра route', () => {
+    expect(toBookingDto(toBookingView(dto))).toEqual(dto);
+  });
+
+  it('null-комментарий становится отсутствующим полем DTO', () => {
+    const { guestNote: _omitted, ...withoutNote } = dto;
+    const restored = toBookingDto(toBookingView(withoutNote));
+
+    expect(restored).toEqual(withoutNote);
+    expect('guestNote' in restored).toBe(false);
   });
 });

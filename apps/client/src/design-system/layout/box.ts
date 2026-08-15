@@ -15,6 +15,12 @@ export interface BoxProps {
   /** `width="fill"` спеки → `alignSelf: 'stretch'`; число — фиксированная ширина в dp. */
   width?: number | 'fill';
   height?: number;
+  /** Ограничение ширины контента правилом раскладки (`CONTENT_MAX_WIDTH`). */
+  maxWidth?: number;
+  /** Центрирование ограниченного по ширине контента внутри широкого окна. */
+  alignSelf?: ViewStyle['alignSelf'];
+  /** Перенос элементов строки: две колонки карточек на широком окне. */
+  wrap?: boolean;
   /** `radius="$radius.12"` спеки. */
   radius?: number;
   background?: string;
@@ -34,7 +40,9 @@ export function boxStyle(props: BoxProps): ViewStyle {
     paddingBottom: props.paddingBottom,
     flex: props.flex,
     width: typeof width === 'number' ? width : undefined,
-    alignSelf: width === 'fill' ? 'stretch' : undefined,
+    alignSelf: props.alignSelf ?? (width === 'fill' ? 'stretch' : undefined),
+    maxWidth: props.maxWidth,
+    flexWrap: props.wrap === true ? 'wrap' : undefined,
     height: props.height,
     borderRadius: props.radius,
     backgroundColor: props.background,

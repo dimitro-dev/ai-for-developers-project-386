@@ -3,8 +3,8 @@
  * черновик формы — это PII, а на web параметры route уезжают в URL и историю браузера.
  *
  * Редьюсер — чистый: UUID ключа идемпотентности генерируется вызывающим кодом
- * и приходит в действии `booking/attempt`. Это делает правило «повтор уходит с тем же
- * ключом» проверяемым без обращения к криптографии платформы.
+ * и приходит в действии `booking/init`. Это делает правила ключа проверяемыми
+ * без обращения к криптографии платформы.
  */
 
 export type GuestDraft = {
@@ -15,13 +15,13 @@ export type GuestDraft = {
 
 export type GuestFlowState = {
   draft: GuestDraft;
-  /** `CreateBookingRequest.id` — живёт с первой попытки отправки до успешного ответа. */
+  /** `CreateBookingRequest.id` — живёт ровно монтирование формы (спека 14, ADR §5). */
   bookingKey: string | null;
 };
 
 export type GuestFlowAction =
   | { type: 'draft/change'; field: keyof GuestDraft; value: string }
-  | { type: 'booking/attempt'; key: string }
+  | { type: 'booking/init'; key: string }
   | { type: 'booking/succeeded' }
   | { type: 'flow/reset' };
 
@@ -37,10 +37,12 @@ export function guestFlowReducer(state: GuestFlowState, action: GuestFlowAction)
     case 'draft/change':
       return { ...state, draft: { ...state.draft, [action.field]: action.value } };
 
-    // Ключ выдаётся один раз: повтор после обрыва сети обязан уйти с тем же ключом,
-    // иначе сервер не распознает его как повтор и создаст вторую бронь.
-    case 'booking/attempt':
-      return state.bookingKey === null ? { ...state, bookingKey: action.key } : state;
+    // Ключ выдаётся заново на каждое монтирование формы — до первой попытки отправки
+    // (`initBookingKey` спеки 14). Внутри монтирования он не меняется, поэтому повтор после
+    // обрыва сети уходит с тем же ключом и той же нагрузкой; новое монтирование после смены
+    // слота получает новый ключ, и старый ключ с другой нагрузкой на сервер уйти не может.
+    case 'booking/init':
+      return { ...state, bookingKey: action.key };
 
     case 'booking/succeeded':
       return { ...state, bookingKey: null };

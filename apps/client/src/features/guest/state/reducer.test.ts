@@ -24,65 +24,45 @@ describe('guestFlowReducer — черновик формы гостя', () => {
     });
   });
 
-  // AC4: конфликт слота возвращает гостя на экран слотов; ни один шаг этого пути
+  // AC3: конфликт слота возвращает гостя на экран слотов; ни один шаг этого пути
   // черновик не очищает — он живёт в контейнере ветки, а не в параметрах route.
-  it('черновик переживает возврат на экран слотов после конфликта слота', () => {
-    const attempted = guestFlowReducer(filledDraft, { type: 'booking/attempt', key: 'key-1' });
-    const backOnSlots = guestFlowReducer(attempted, {
-      type: 'draft/change',
-      field: 'note',
-      value: 'Обсудить контракт',
-    });
-    const rechosenSlot = guestFlowReducer(backOnSlots, {
-      type: 'draft/change',
-      field: 'note',
-      value: 'Обсудить контракт',
-    });
+  it('черновик переживает возврат на экран слотов и новое монтирование формы', () => {
+    const submitted = guestFlowReducer(filledDraft, { type: 'booking/init', key: 'key-1' });
+    const remounted = guestFlowReducer(submitted, { type: 'booking/init', key: 'key-2' });
 
-    expect(rechosenSlot.draft).toEqual(filledDraft.draft);
-    expect(rechosenSlot.bookingKey).toBe('key-1');
+    expect(remounted.draft).toEqual(filledDraft.draft);
   });
 
   it('сбрасывает состояние ветки целиком по flow/reset', () => {
-    const attempted = guestFlowReducer(filledDraft, { type: 'booking/attempt', key: 'key-1' });
+    const initialized = guestFlowReducer(filledDraft, { type: 'booking/init', key: 'key-1' });
 
-    expect(guestFlowReducer(attempted, { type: 'flow/reset' })).toEqual(initialGuestFlowState);
+    expect(guestFlowReducer(initialized, { type: 'flow/reset' })).toEqual(initialGuestFlowState);
   });
 });
 
 describe('guestFlowReducer — ключ идемпотентности', () => {
-  it('выдаёт ключ при первой попытке отправки', () => {
-    const next = guestFlowReducer(initialGuestFlowState, {
-      type: 'booking/attempt',
-      key: 'key-1',
-    });
+  it('выдаёт ключ при монтировании формы, до первой отправки', () => {
+    const next = guestFlowReducer(initialGuestFlowState, { type: 'booking/init', key: 'key-1' });
 
     expect(next.bookingKey).toBe('key-1');
   });
 
-  // AC4: повтор после обрыва сети обязан уйти с тем же ключом, иначе сервер
-  // не распознает его как повтор и создаст вторую бронь.
-  it('удерживает первый ключ при повторных попытках', () => {
-    const first = guestFlowReducer(initialGuestFlowState, {
-      type: 'booking/attempt',
-      key: 'key-1',
-    });
-    const retry = guestFlowReducer(first, { type: 'booking/attempt', key: 'key-2' });
+  // Спека 14: «ключ живёт ровно монтирование». Смена слота меняет нагрузку, и тот же ключ
+  // с другой нагрузкой дал бы DUPLICATE_BOOKING_ID — поэтому запись безусловная.
+  it('новое монтирование формы заменяет ключ', () => {
+    const first = guestFlowReducer(initialGuestFlowState, { type: 'booking/init', key: 'key-1' });
+    const remounted = guestFlowReducer(first, { type: 'booking/init', key: 'key-2' });
 
-    expect(retry.bookingKey).toBe('key-1');
-    expect(retry).toBe(first);
+    expect(remounted.bookingKey).toBe('key-2');
   });
 
-  it('освобождает ключ только после успеха', () => {
-    const attempted = guestFlowReducer(initialGuestFlowState, {
-      type: 'booking/attempt',
+  it('освобождает ключ после успеха', () => {
+    const initialized = guestFlowReducer(initialGuestFlowState, {
+      type: 'booking/init',
       key: 'key-1',
     });
-    const succeeded = guestFlowReducer(attempted, { type: 'booking/succeeded' });
+    const succeeded = guestFlowReducer(initialized, { type: 'booking/succeeded' });
 
     expect(succeeded.bookingKey).toBeNull();
-
-    const nextBooking = guestFlowReducer(succeeded, { type: 'booking/attempt', key: 'key-2' });
-    expect(nextBooking.bookingKey).toBe('key-2');
   });
 });
