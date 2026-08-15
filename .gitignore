@@ -1,7 +1,6 @@
-# Внутренние документы AI-процесса
+# Внутренние документы AI-процесса (tasks/ — в git с 2026-08-16, задача process/001)
 /CLAUDE.md
 /.claude/
-/tasks/
 /docs/
 .opencode
 
