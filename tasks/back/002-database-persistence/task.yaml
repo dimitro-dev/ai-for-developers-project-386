@@ -1,0 +1,22 @@
+id: back/002
+slug: database-persistence
+title: "Персистентность: схема БД, миграции и exclusion constraint"
+track: full
+depends:
+  - infra/001
+queue:
+  after:
+    - infra/001
+  rationale: Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory
+gates:
+  brief:
+    status: черновик
+  adr:
+    status: черновик
+  plan:
+    status: черновик
+  result:
+    status: черновик
+meta:
+  rev: 1
+  selfHash: 2351d3da9dfdd3e7a93246967b8c7c533af3c94a032a3495ebe73f70ceff5534

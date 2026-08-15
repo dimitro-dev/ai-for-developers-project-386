@@ -1,0 +1,23 @@
+id: infra/001
+slug: postgres-compose
+title: PostgreSQL runtime-контур на Docker Compose
+track: full
+legacyId:
+  - infra-001
+  - "004"
+queue:
+  after:
+    - front/guest/002
+  rationale: Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка
+gates:
+  brief:
+    status: черновик
+  adr:
+    status: черновик
+  plan:
+    status: черновик
+  result:
+    status: черновик
+meta:
+  rev: 1
+  selfHash: f90fc9cd92b835268356da983ea9b8d324cf694560d4cd7b1340f282a373fdbb

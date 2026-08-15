@@ -1,0 +1,24 @@
+id: front/owner/001
+slug: owner-screens
+title: Экраны владельца
+track: full
+legacyId: front-owner-001
+depends:
+  - back/001
+  - front/guest/001
+queue:
+  after:
+    - back/003
+  rationale: Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи
+gates:
+  brief:
+    status: черновик
+  adr:
+    status: черновик
+  plan:
+    status: черновик
+  result:
+    status: черновик
+meta:
+  rev: 1
+  selfHash: feb57797621a848050238e9476e738158e5e4fa8a9dc899469e60450e47c3a87
