@@ -35,6 +35,12 @@ npm ci
 | `npm test -w @minical/client` | Клиентский гейт: `jest` (preset `jest-expo`) по `apps/client/src/**/*.test.ts(x)` — дизайн-система, маппер ошибок, use-cases, guest-flow state |
 | `npm run mock:prism` | Mock-сервер контракта (Prism) на порту `4010` по `packages/contracts/generated/openapi.yaml` |
 | `npm run build` | Сборка workspaces, у которых есть скрипт `build` (клиент → web-экспорт). `apps/api` в ней не участвует: backend запускается прямо из исходников |
+| `npm run task -- status [id]` | Стадия и контекст задачи (или всех задач) |
+| `npm run task -- new <тип> <слаг> [--lite]` | Завести новую задачу |
+| `npm run task:check` | Целостность задач и свежесть `REGISTRY.md` (входит в `npm test`) |
+| `npm run task:test` / `npm run task:typecheck` | Тесты и типы CLI-инструмента задач; обязательны при изменениях `tasks/tools/` |
+
+Полный список команд `task` (`approve`, `draft`, `set`/`unset`, `promote`, `repair`, `registry` и другие) — в [`tasks/AGENTS.md`](tasks/AGENTS.md).
 
 Generated-каталоги (`packages/contracts/generated`, `packages/api-client/src/generated`, `packages/backend-contract/src/generated`) вручную не редактируются.
 
@@ -98,8 +104,8 @@ packages/database         PostgreSQL schema и миграции (появятс�
 infra                     Docker/Compose (отдельная задача)
 ```
 
-Рабочий процесс задач описан в [`tasks/README.md`](tasks/README.md).
+Рабочий процесс задач: [`tasks/AGENTS.md`](tasks/AGENTS.md) (маршрутизатор), правила треков — [`tasks/flows/`](tasks/flows/), реестр и очередь работ — [`tasks/REGISTRY.md`](tasks/REGISTRY.md).
 
 ## Внутренние документы
 
-Каталоги `docs/`, `tasks/` и `.opencode/` — локальные артефакты AI-процесса разработки; они намеренно не публикуются в репозитории (см. [`.gitignore`](.gitignore)). Ссылки на них в этом README (например, `docs/architecture.md`, `tasks/README.md`) работают только в локальной рабочей копии, где эти каталоги присутствуют.
+Каталоги `docs/` и `.opencode/` (а также `CLAUDE.md` и `.mcp.json`) — локальные артефакты AI-процесса разработки; они намеренно не публикуются в репозитории (см. [`.gitignore`](.gitignore)). Ссылки на них в этом README (например, `docs/architecture.md`) работают только в локальной рабочей копии, где эти каталоги присутствуют. `tasks/` — в git с 2026-08-16 и доступен в любом клоне; ссылки на него (например, [`tasks/AGENTS.md`](tasks/AGENTS.md)) работают везде.
