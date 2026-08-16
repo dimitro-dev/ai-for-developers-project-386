@@ -14,12 +14,14 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | постановка |
+| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | реализация (0/10) |
 | [infra/002](infra/002-android-builder/) | Android builder: Docker-образ для сборки APK | — | постановка |
 | [infra/003](infra/003-http-security/) | Backend HTTP Security Middleware | [back/001](back/001-api-skeleton/) | завершена (10/10) |
 | [infra/004](infra/004-contract-mock-prism/) | Contract mock server (Prism) | — | завершена (8/8) |
 | [infra/005](infra/005-generated-entrypoints/) | Публичные точки входа generated-пакетов | — | завершена (9/9) |
 | [infra/006](infra/006-ci-release-please/) | CI: обязательные проверки и release-please на GitHub Actions | — | завершена (10/10) |
+| [infra/007](infra/007-e2e-native-framework/) | Выбор native e2e-фреймворка: Detox, Maestro или Appium | [infra/002](infra/002-android-builder/), [front/guest/002](front/guest/002-guest-screens/) | заявлена |
+| [infra/008](infra/008-e2e-web-playwright/) | Web e2e на Playwright: сквозной прогон гостевого сценария | [front/guest/002](front/guest/002-guest-screens/), [back/001](back/001-api-skeleton/), [infra/006](infra/006-ci-release-please/) | заявлена |
 
 ### back
 
@@ -62,11 +64,13 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | постановка | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
+| [infra/001](infra/001-postgres-compose/) | реализация (0/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |
 | [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
+| [infra/008](infra/008-e2e-web-playwright/) | заявлена | Web e2e дешевле native: testID уже проставлены, react-native-web мапит их в data-testid; эмулятор и APK не нужны. Защищает гостевой сценарий от регрессий во время работы над owner-flow и снимает часть объёма с infra/007 | — |
+| [infra/007](infra/007-e2e-native-framework/) | заявлена | Выбор native e2e-инструмента (Detox / Maestro / Appium) и способа его запуска; нужен работающий APK-контур из infra/002 и эмулятор с аппаратной виртуализацией — на macOS-хосте только вне Docker | — |
 
 ### История выполнения
 
