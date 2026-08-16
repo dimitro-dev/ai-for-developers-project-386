@@ -1,0 +1,39 @@
+# Локальный учебный runtime-контур MiniCal.
+# Наружу не публикуется: пароль по умолчанию слабый, auth в MVP нет.
+# Запуск — npm run db:up (см. README, раздел «Запуск»).
+name: minical
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-minical}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-minical}
+      POSTGRES_DB: ${POSTGRES_DB:-minical}
+      # Читается init-скриптом, штатному entrypoint неизвестна.
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-minical_test}
+      # В образе postgres:18 каталог данных по умолчанию — /var/lib/postgresql/18/docker;
+      # закрепляем путь явно, чтобы он не поехал при смене мажора.
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Монтируется родительский каталог, а не сам PGDATA: образ объявляет VOLUME
+      # /var/lib/postgresql, и монтирование внутрь него оставляет анонимный том на каждый
+      # цикл up/down. Каталог данных при этом остаётся /var/lib/postgresql/data (PGDATA выше).
+      - postgres-data:/var/lib/postgresql
+      # Скрипты отрабатывают только при инициализации пустого каталога данных.
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-minical} -d ${POSTGRES_DB:-minical}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  postgres-data:
