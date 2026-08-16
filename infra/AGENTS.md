@@ -3,9 +3,25 @@
 Зона Infrastructure Agent: обеспечить воспроизводимый build, локальный runtime, Android artifact и
 CI-интерфейс проекта.
 
-Каталог пока пуст (`.gitkeep`) — зона активируется задачей `infra/001` (PostgreSQL и Docker
-Compose); Android builder — `infra/002`. Код без задачи, которая это предусматривает, здесь не
-появляется.
+`infra/001` ввёл первый сервис контура:
+
+```text
+infra/
+├── compose.yml
+├── .env.example
+└── postgres/initdb/01-test-database.sh
+```
+
+Провайдер — colima + docker CLI + Compose plugin (Homebrew); образ — `postgres:18`, единственный
+официальный образ, сборок в контуре нет. Имя проекта Compose — `minical`; project directory —
+`infra/`, поэтому любой ручной вызов идёт с `-f infra/compose.yml`, штатный путь — npm-скрипты
+`db:up`, `db:down`, `db:logs`, `db:reset`. Две базы — `minical` (разработка) и `minical_test`
+(`back/002`); init-скрипты в `/docker-entrypoint-initdb.d/` отрабатывают только на пустом каталоге
+данных volume, поэтому изменение набора баз требует `npm run db:reset`. Установка провайдера и
+полный список команд для пользователя контура — в README.
+
+Сервисы `api`/`web` и Android builder (`infra/002`) — отдельные задачи; подробнее — в «Точка
+расширения» ниже. Код без задачи, которая это предусматривает, здесь не появляется.
 
 ## Читать
 
@@ -37,12 +53,16 @@ infrastructure-раздел активного result.md
 
 ## Обязан
 
-- поднимать web, API и PostgreSQL через Docker Compose;
+Ниже — целевое состояние зоны целиком; закрывается по частям, отдельными задачами (статус — в
+Definition of Done).
+
+- поднимать web, API и PostgreSQL через Docker Compose (PostgreSQL — `infra/001`; `api` и `web` —
+  задача вместе с `back/002`);
 - использовать multi-stage builds там, где уместно;
-- добавить healthchecks и dependency readiness;
+- добавить healthchecks и dependency readiness (для `postgres` — сделано);
 - хранить config/secrets в environment, не в images;
 - обеспечить воспроизводимый TypeSpec/codegen build;
-- поддержать Android builder как build-time image;
+- поддержать Android builder как build-time image (`infra/002`);
 - сохранять APK в документированный artifact path;
 - учитывать, что Android Emulator работает на host;
 - оставлять iOS build macOS/Xcode toolchain-у.
@@ -65,13 +85,36 @@ infrastructure-раздел активного result.md
 в `plan.md` и верни соответствующий гейт в `черновик` — `task draft <id> <гейт>`, правила каскада —
 в [`tasks/flows/full.md`](../tasks/flows/full.md).
 
+## Точка расширения
+
+Контур сейчас — один сервис `postgres`. Дальнейшее расширение не входит в `infra/001` и делается
+отдельными задачами:
+
+- **`api` и `web`** добавляются задачей вместе с `back/002`: сервисы подключаются к `postgres` по
+  параметрам, которые контур уже предоставляет (переменные `POSTGRES_*`, порт, имя базы). Форму
+  строки подключения (`DATABASE_URL` целиком или набор переменных) выбирает `back/002` — этот
+  контур её не предопределяет.
+- **Применение миграций** — шаг той же задачи `back/002`; где именно он встаёт (при старте `api`,
+  отдельным шагом CI, вручную) — решается там, не здесь.
+- **E2E-прогон web на Playwright (`infra/008`)** поднимает этот же контур (`docker compose -f
+  infra/compose.yml up -d --wait`) как предусловие перед тестами; сам контур под эту задачу не
+  меняется.
+
+Инструкции для пользователя контура (установка провайдера, запуск, переменные) — в README,
+разделы «Требования к окружению» и «Запуск»; здесь — только то, что нужно тому, кто меняет зону.
+
 ## Definition of Done
 
-- build воспроизводится из чистого checkout;
-- `docker compose up --build` поднимает заявленные runtime services — применимо с задачи, которая
-  вводит Compose; на текущем этапе `infra/` пуст и Docker не требуется;
-- healthchecks проходят;
-- migrations/startup order документированы;
-- Android builder создаёт APK artifact;
-- smoke test и применимые CI checks проходят;
+Целевое состояние зоны целиком, закрывается по частям — ниже отмечено, что уже сделано и чем.
+
+- build воспроизводится из чистого checkout — сборок образов в контуре пока нет: единственный
+  сервис использует официальный образ `postgres:18`;
+- `docker compose -f infra/compose.yml up -d --wait` поднимает контур до healthy — для `postgres`
+  сделано в `infra/001`; сервисы `api`/`web` (и вместе с ними флаг `--build` для их образов) —
+  задача вместе с `back/002`;
+- healthchecks проходят — для `postgres` сделано;
+- migrations/startup order документированы — появляются вместе с `back/002`, эта задача их не
+  вводит;
+- Android builder создаёт APK artifact — `infra/002`;
+- smoke test и применимые CI checks проходят — для `postgres` сделано (job `compose` в `ci.yml`);
 - пункт плана и infrastructure-раздел `result.md` обновлены.
