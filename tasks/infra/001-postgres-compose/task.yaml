@@ -27,6 +27,7 @@ gates:
 workspace:
   branch: task/infra-001-postgres-compose
   worktree: /Users/dm.maslennikov/Study/ai-for-developers-project-386-infra-001
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/12
 meta:
-  rev: 6
-  selfHash: 2d50f8b5fc7d972f2ce444270d13bfd1e5902bdda5b4b97ff7dc76cb8666ed87
+  rev: 7
+  selfHash: bddc1ab22cc480c1efb885d7ad25121614217749547c6a642f7e0c5b09333290
