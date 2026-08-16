@@ -10,7 +10,39 @@
 - Node.js 26 (файл [`.nvmrc`](.nvmrc); поддерживается `>=24`) и npm 11+
 - Git
 - Для Android debug-сборки клиента: Android SDK и JDK 17 на хосте
-- Docker для текущего этапа **не требуется**: Docker/Compose-контур вынесен в отдельную задачу
+- Docker — для локального контура PostgreSQL (раздел «Запуск» → PostgreSQL). На macOS/arm64 провайдер — colima + docker CLI + Compose plugin через Homebrew:
+
+```bash
+brew install colima docker docker-compose
+```
+
+**Обязательный шаг после установки** — без него `docker compose` не находится («docker: 'compose' is not a docker command»): добавить в `~/.docker/config.json`
+
+```json
+{
+  "cliPluginsExtraDirs": [
+    "/opt/homebrew/lib/docker/cli-plugins"
+  ]
+}
+```
+
+Запуск VM с явно заданными ресурсами:
+
+```bash
+colima start --cpu 4 --memory 4 --disk 20
+```
+
+Проверка установки:
+
+```bash
+docker version
+docker compose version
+colima status
+```
+
+Версии, проверенные 2026-08-16 на этой машине: colima 0.10.3, docker CLI 29.7.2, Docker Compose 5.4.0, Docker Engine (в VM) 29.5.2, образ `postgres:18`.
+
+Docker нужен только для контура базы: обязательный набор проверок и запуск API/клиента из исходников от Docker не зависят и работают на машине без него.
 
 ## Установка
 
@@ -35,6 +67,10 @@ npm ci
 | `npm test -w @minical/client` | Клиентский гейт: `jest` (preset `jest-expo`) по `apps/client/src/**/*.test.ts(x)` — дизайн-система, маппер ошибок, use-cases, guest-flow state |
 | `npm run mock:prism` | Mock-сервер контракта (Prism) на порту `4010` по `packages/contracts/generated/openapi.yaml` |
 | `npm run build` | Сборка workspaces, у которых есть скрипт `build` (клиент → web-экспорт). `apps/api` в ней не участвует: backend запускается прямо из исходников |
+| `npm run db:up` | Поднять PostgreSQL и дождаться healthy |
+| `npm run db:down` | Остановить контур, данные сохраняются |
+| `npm run db:logs` | Логи PostgreSQL, follow |
+| `npm run db:reset` | Остановить и **удалить volume** — данные теряются безвозвратно |
 | `npm run task -- status [id]` | Стадия и контекст задачи (или всех задач) |
 | `npm run task -- new <тип> <слаг> [--lite]` | Завести новую задачу |
 | `npm run task:check` | Целостность задач и свежесть `REGISTRY.md` (входит в `npm test`) |
@@ -91,6 +127,31 @@ cd android && ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew assembleDebug
 # артефакт: apps/client/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
+PostgreSQL (`localhost:5432`) — локальный runtime-контур на Docker Compose:
+
+```bash
+npm run db:up
+```
+
+- **Готовность:** команда сама дожидается состояния healthy (`docker compose up -d --wait`), отдельно ждать не нужно.
+- **Порт:** на хосте `5432`, переопределяется `POSTGRES_PORT`; в контейнере всегда `5432`.
+- **Базы:** `minical` (разработка) и `minical_test` (проверки `back/002`) — создаются при первом запуске на пустом volume.
+- **Доступ:** пользователь и пароль по умолчанию — `minical`/`minical`. Полный список переменных и их дефолтов — в `infra/.env.example`, переопределяются файлом `infra/.env` (в `.gitignore`, наружу не публикуется).
+- **`psql` на хосте не нужен** — обращения к базе идут изнутри контейнера:
+  ```bash
+  docker compose -f infra/compose.yml exec -T postgres psql -U minical -d minical -c "\l"
+  ```
+- **Полный сброс данных:**
+  ```bash
+  npm run db:reset   # docker compose down -v — данные и volume удаляются безвозвратно
+  npm run db:up      # базы создаются заново пустыми
+  ```
+  Init-скрипты `/docker-entrypoint-initdb.d/` выполняются только при инициализации пустого каталога данных: изменение набора баз требует `db:reset`, правка скрипта поверх существующего volume не применится.
+- **Только для локальной учебной среды:** пароль по умолчанию слабый, auth в MVP нет, контур наружу не публикуется.
+- Ручные вызовы Compose требуют `-f infra/compose.yml` (файл — в зоне `infra/`), штатный путь — npm-скрипты выше.
+
+Существующие способы запуска не меняются и базы не требуют: `npm start -w @minical/api` (in-memory), `npm run web -w @minical/client`, `npm run mock:prism` работают как раньше.
+
 ## Структура
 
 ```text
@@ -101,7 +162,7 @@ packages/api-client       Generated frontend SDK
 packages/backend-contract Generated backend types + Zod schemas
 packages/slot-engine      Slot Engine (появится в implementation task)
 packages/database         PostgreSQL schema и миграции (появятся в implementation task)
-infra                     Docker/Compose (отдельная задача)
+infra                     Docker/Compose: compose.yml, .env.example, postgres/initdb/
 ```
 
 Рабочий процесс задач: [`tasks/AGENTS.md`](tasks/AGENTS.md) (маршрутизатор), правила треков — [`tasks/flows/`](tasks/flows/), реестр и очередь работ — [`tasks/REGISTRY.md`](tasks/REGISTRY.md).
