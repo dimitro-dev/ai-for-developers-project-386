@@ -94,32 +94,45 @@ function byTypeSection(views: TaskView[], config: TasksConfig, byId: Map<string,
   return lines;
 }
 
+const QUEUE_HEADER = ['id', 'Стадия', 'Обоснование', 'Параллельно с'];
+
+function queueTable(views: TaskView[], byId: Map<string, TaskView>): string[] {
+  return table(
+    QUEUE_HEADER,
+    views.map((target) => {
+      const queue = target.manifest.queue ?? {};
+      return [
+        taskLink(target),
+        stageText(target.info),
+        queue.rationale ? cell(queue.rationale) : EMPTY,
+        (queue.parallel ?? []).map((id) => idLink(id, byId)).join(', ') || EMPTY,
+      ];
+    }),
+  );
+}
+
+/**
+ * Очередь отвечает на вопрос «что дальше», поэтому завершённые задачи уходят в подсекцию
+ * «История выполнения». Фильтр применяется после сортировки — порядок оставшихся тот же,
+ * что и в общем топологическом порядке.
+ */
 function queueSection(views: TaskView[], byId: Map<string, TaskView>): { lines: string[]; count: number } {
   const ordered = orderQueue(views);
   const lines: string[] = ['## Очередь работ'];
   if (ordered.length === 0) return { lines: [...lines, '', 'Очередь пуста.'], count: 0 };
 
-  return {
-    lines: [
-      ...lines,
-      '',
-      'Порядок — по `queue.after`; завершённые задачи остаются в очереди как история выполнения.',
-      '',
-      ...table(
-        ['id', 'Стадия', 'Почему здесь', 'Параллельно с'],
-        ordered.map((target) => {
-          const queue = target.manifest.queue ?? {};
-          return [
-            taskLink(target),
-            stageText(target.info),
-            queue.rationale ? cell(queue.rationale) : EMPTY,
-            (queue.parallel ?? []).map((id) => idLink(id, byId)).join(', ') || EMPTY,
-          ];
-        }),
-      ),
-    ],
-    count: ordered.length,
-  };
+  const pending = ordered.filter((target) => target.info.stage !== 'завершена');
+  const history = ordered.filter((target) => target.info.stage === 'завершена');
+
+  lines.push(
+    '',
+    'Порядок — по `queue.after`; завершённые — в «Истории выполнения».',
+    '',
+    ...(pending.length > 0 ? queueTable(pending, byId) : ['Очередь пуста.']),
+  );
+  if (history.length > 0) lines.push('', '### История выполнения', '', ...queueTable(history, byId));
+
+  return { lines, count: pending.length };
 }
 
 function legacySection(root: string, views: TaskView[], config: TasksConfig): { lines: string[]; count: number } {
@@ -142,6 +155,7 @@ function legacySection(root: string, views: TaskView[], config: TasksConfig): { 
 export interface RegistryBuild {
   text: string;
   tasks: number;
+  /** Незавершённые задачи очереди: строки таблицы «Очередь работ», без истории выполнения. */
   queued: number;
   legacy: number;
 }

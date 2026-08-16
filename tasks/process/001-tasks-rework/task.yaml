@@ -6,7 +6,7 @@ legacyId: process-001
 queue:
   after:
     - infra/006
-  rationale: "Активная задача: инструмент task, треки full/lite, миграция каталога, растворение ролей"
+  rationale: "Переработка процесса: инструмент task, треки full/lite, миграция каталога, растворение ролей; выполнена 2026-08-16"
 gates:
   brief:
     status: согласовано
@@ -27,5 +27,5 @@ gates:
 workspace:
   mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/9
 meta:
-  rev: 8
-  selfHash: 4843682d53e2d17f673d49fa577dbc11b28b9828d22ade7d5da13ebddc720343
+  rev: 9
+  selfHash: 151ed285271f54a900a6ccd4183ddd0c4979048c1f3a4dd14349d293f2db3c2b

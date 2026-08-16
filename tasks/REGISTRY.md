@@ -19,7 +19,7 @@
 | [infra/003](infra/003-http-security/) | Backend HTTP Security Middleware | [back/001](back/001-api-skeleton/) | завершена (10/10) |
 | [infra/004](infra/004-contract-mock-prism/) | Contract mock server (Prism) | — | завершена (8/8) |
 | [infra/005](infra/005-generated-entrypoints/) | Публичные точки входа generated-пакетов | — | завершена (9/9) |
-| [infra/006](infra/006-ci-release-please/) | CI: обязательные проверки и release-please на GitHub Actions | — | завершена (9/10) |
+| [infra/006](infra/006-ci-release-please/) | CI: обязательные проверки и release-please на GitHub Actions | — | завершена (10/10) |
 
 ### back
 
@@ -54,12 +54,23 @@
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
 | [process/001](process/001-tasks-rework/) | Переработка процесса задач: структура, стадии, CLI | — | завершена (23/23) |
+| [process/002](process/002-registry-queue-history/) | REGISTRY: очередь без завершённых, история отдельно | — | завершена (3/3) |
 
 ## Очередь работ
 
-Порядок — по `queue.after`; завершённые задачи остаются в очереди как история выполнения.
+Порядок — по `queue.after`; завершённые — в «Истории выполнения».
 
-| id | Стадия | Почему здесь | Параллельно с |
+| id | Стадия | Обоснование | Параллельно с |
+|---|---|---|---|
+| [infra/001](infra/001-postgres-compose/) | постановка | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
+| [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
+| [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
+| [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |
+| [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
+
+### История выполнения
+
+| id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
 | [infra/005](infra/005-generated-entrypoints/) | завершена (9/9) | Точки входа generated-пакетов: без exports пакеты не импортируются по имени; блокировала контракт и backend | — |
 | [contract/001](contract/001-guest-flow-extensions/) | завершена (16/16) | Контракт вперёд кода: расширения по макету гостевого флоу и гапы G1, G2, G4 — дешевле до реализации backend | [front/ui/002](front/ui/002-guest-uispec-rebuild/) |
@@ -68,13 +79,8 @@
 | [front/ui/002](front/ui/002-guest-uispec-rebuild/) | завершена (18/18) | Пересборка гостевого UISpec по канону от макета; спеки — документы, backend не ждут | [contract/001](contract/001-guest-flow-extensions/), [back/001](back/001-api-skeleton/) |
 | [front/guest/001](front/guest/001-client-foundation/) | завершена (11/11) | Клиентский фундамент: дизайн-система по registry, SDK, guest-flow state, тестовая инфраструктура | — |
 | [front/guest/002](front/guest/002-guest-screens/) | завершена (15/15) | Вертикальная задача: четыре гостевых экрана и сквозная проверка против реального API | [front/owner/001](front/owner/001-owner-screens/), [infra/001](infra/001-postgres-compose/) |
-| [infra/001](infra/001-postgres-compose/) | постановка | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
-| [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
-| [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
-| [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |
-| [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
-| [infra/006](infra/006-ci-release-please/) | завершена (9/10) | CI + release-please; выполнена параллельно front/guest/002, первый релиз v0.2.0 | — |
-| [process/001](process/001-tasks-rework/) | завершена (23/23) | Активная задача: инструмент task, треки full/lite, миграция каталога, растворение ролей | — |
+| [infra/006](infra/006-ci-release-please/) | завершена (10/10) | CI + release-please; выполнена параллельно front/guest/002, первый релиз v0.2.0 | — |
+| [process/001](process/001-tasks-rework/) | завершена (23/23) | Переработка процесса: инструмент task, треки full/lite, миграция каталога, растворение ролей; выполнена 2026-08-16 | — |
 
 ## Таблица legacy-id
 
