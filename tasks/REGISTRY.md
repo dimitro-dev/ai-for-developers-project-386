@@ -14,7 +14,7 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | реализация (9/10) |
+| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | завершена (10/10) |
 | [infra/002](infra/002-android-builder/) | Android builder: Docker-образ для сборки APK | — | постановка |
 | [infra/003](infra/003-http-security/) | Backend HTTP Security Middleware | [back/001](back/001-api-skeleton/) | завершена (10/10) |
 | [infra/004](infra/004-contract-mock-prism/) | Contract mock server (Prism) | — | завершена (8/8) |
@@ -64,7 +64,6 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | реализация (9/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |
@@ -83,6 +82,7 @@
 | [front/ui/002](front/ui/002-guest-uispec-rebuild/) | завершена (18/18) | Пересборка гостевого UISpec по канону от макета; спеки — документы, backend не ждут | [contract/001](contract/001-guest-flow-extensions/), [back/001](back/001-api-skeleton/) |
 | [front/guest/001](front/guest/001-client-foundation/) | завершена (11/11) | Клиентский фундамент: дизайн-система по registry, SDK, guest-flow state, тестовая инфраструктура | — |
 | [front/guest/002](front/guest/002-guest-screens/) | завершена (15/15) | Вертикальная задача: четыре гостевых экрана и сквозная проверка против реального API | [front/owner/001](front/owner/001-owner-screens/), [infra/001](infra/001-postgres-compose/) |
+| [infra/001](infra/001-postgres-compose/) | завершена (10/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
 | [infra/006](infra/006-ci-release-please/) | завершена (10/10) | CI + release-please; выполнена параллельно front/guest/002, первый релиз v0.2.0 | — |
 | [process/001](process/001-tasks-rework/) | завершена (23/23) | Переработка процесса: инструмент task, треки full/lite, миграция каталога, растворение ролей; выполнена 2026-08-16 | — |
 

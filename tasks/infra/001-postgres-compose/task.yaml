@@ -23,11 +23,11 @@ gates:
     approvedAt: 2026-08-16
     sha256: 81e43977ecd9e962f1f8003b191dca8473179a9da2734c1fe0af630b706e1c60
   result:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-16
+    sha256: 4ec66e0e64f514db11322e86b2c8656b5fa4694ddbbf9446ec3d07ea186869da
 workspace:
-  branch: task/infra-001-postgres-compose
-  worktree: /Users/dm.maslennikov/Study/ai-for-developers-project-386-infra-001
   mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/12
 meta:
-  rev: 7
-  selfHash: bddc1ab22cc480c1efb885d7ad25121614217749547c6a642f7e0c5b09333290
+  rev: 8
+  selfHash: c5250e6e708ae72cc59099817e8d41116a388afda6aea96b4fe3aea835cb9049
