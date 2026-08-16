@@ -14,7 +14,7 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | реализация (0/10) |
+| [infra/001](infra/001-postgres-compose/) | PostgreSQL runtime-контур на Docker Compose | — | реализация (2/10) |
 | [infra/002](infra/002-android-builder/) | Android builder: Docker-образ для сборки APK | — | постановка |
 | [infra/003](infra/003-http-security/) | Backend HTTP Security Middleware | [back/001](back/001-api-skeleton/) | завершена (10/10) |
 | [infra/004](infra/004-contract-mock-prism/) | Contract mock server (Prism) | — | завершена (8/8) |
@@ -64,7 +64,7 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
-| [infra/001](infra/001-postgres-compose/) | реализация (0/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
+| [infra/001](infra/001-postgres-compose/) | реализация (2/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |

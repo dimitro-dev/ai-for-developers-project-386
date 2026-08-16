@@ -26,6 +26,7 @@ gates:
     status: черновик
 workspace:
   branch: task/infra-001-postgres-compose
+  worktree: /Users/dm.maslennikov/Study/ai-for-developers-project-386-infra-001
 meta:
-  rev: 5
-  selfHash: 88ca7d1ff5a7894e9e2fac3cd366bb5414a4d3e4b6ffabd765d6483657a57300
+  rev: 6
+  selfHash: 2d50f8b5fc7d972f2ce444270d13bfd1e5902bdda5b4b97ff7dc76cb8666ed87
