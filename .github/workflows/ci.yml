@@ -27,3 +27,23 @@ jobs:
       - run: npm test
       - run: npm test -w @minical/api
       - run: npm test -w @minical/client
+
+  # Ловит дрейф compose.yml и init-скрипта. Идёт параллельно checks: критический путь проверок
+  # не удлиняется. Docker на GitHub-hosted Linux-раннерах предустановлен, ставить нечего;
+  # npm здесь не нужен — команды вызываются напрямую.
+  compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Валидация конфигурации без .env
+        run: docker compose -f infra/compose.yml config -q
+      - name: Поднять контур и дождаться healthy
+        run: docker compose -f infra/compose.yml up -d --wait
+      - name: Проверить базу разработки
+        run: docker compose -f infra/compose.yml exec -T postgres psql -U minical -d minical -c 'select 1;'
+      - name: Проверить тестовую базу
+        run: docker compose -f infra/compose.yml exec -T postgres psql -U minical -d minical_test -c 'select 1;'
+      - name: Остановить контур и удалить volume
+        if: always()
+        run: docker compose -f infra/compose.yml down -v
