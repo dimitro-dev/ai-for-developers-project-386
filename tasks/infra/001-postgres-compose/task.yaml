@@ -11,13 +11,19 @@ queue:
   rationale: Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка
 gates:
   brief:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-16
+    sha256: c4fb55535bac90938f343efe7099fc9e44dc509a9a3baec58d41cceeea74d9bc
   adr:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-16
+    sha256: 698dbf1823697f243d566be4ee319e057343c1781003400bcfbcbd45431643d3
   plan:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-16
+    sha256: 81e43977ecd9e962f1f8003b191dca8473179a9da2734c1fe0af630b706e1c60
   result:
     status: черновик
 meta:
-  rev: 1
-  selfHash: f90fc9cd92b835268356da983ea9b8d324cf694560d4cd7b1340f282a373fdbb
+  rev: 4
+  selfHash: 0918d5efc2558ee0636c37e716a4df5494f2f7efa1a5fcbb90ef0fd59340c0d1
