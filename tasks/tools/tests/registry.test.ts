@@ -74,14 +74,23 @@ function tree(tasks: TaskFixture[] = TASKS, rawConfig: unknown = { ...RAW_FIXTUR
 }
 
 const text = (built: Tree) => renderRegistry(built.root, built.config);
+
+/** Тело секции до следующего заголовка того же или более высокого уровня. */
 const section = (built: Tree, heading: string) => {
   const lines = text(built).split('\n');
   const start = lines.indexOf(heading);
   assert.ok(start >= 0, `в реестре нет секции ${heading}`);
+  const level = heading.indexOf(' ');
   const rest = lines.slice(start + 1);
-  const end = rest.findIndex((line) => line.startsWith('## '));
+  const end = rest.findIndex((line) => /^#+ /.test(line) && line.indexOf(' ') <= level);
   return (end < 0 ? rest : rest.slice(0, end)).join('\n');
 };
+
+const rowIds = (body: string) =>
+  body.split('\n').filter((line) => line.startsWith('| [')).map((line) => line.split('|')[1]!.trim());
+
+/** Тело секции очереди без вложенной подсекции истории. */
+const queueBody = (built: Tree) => section(built, '## Очередь работ').split('### ')[0]!;
 
 describe('registry — реестр по типам', () => {
   it('шапка объявляет файл генератом', () => {
@@ -89,7 +98,7 @@ describe('registry — реестр по типам', () => {
   });
 
   it('типы идут в порядке конфига, пустые пропускаются', () => {
-    const headings = text(tree()).split('\n').filter((line) => line.startsWith('### '));
+    const headings = section(tree(), '## Реестр по типам').split('\n').filter((line) => line.startsWith('### '));
     assert.deepEqual(headings, ['### contract', '### back', '### front/ui']);
   });
 
@@ -110,28 +119,61 @@ describe('registry — реестр по типам', () => {
   });
 });
 
+/** Тот же набор задач, но `back/001` доведена до конца — единственный завершённый участник очереди. */
+const WITH_DONE: TaskFixture[] = TASKS.map((task) => (task.dir !== 'back/001-api-skeleton' ? task : {
+  ...task,
+  manifest: { ...task.manifest!, gates: { brief: APPROVED, adr: APPROVED, plan: APPROVED, result: APPROVED } },
+}));
+
 describe('registry — очередь работ', () => {
   it('порядок топологический по queue.after, а не по id', () => {
-    const rows = section(tree(), '## Очередь работ').split('\n').filter((line) => line.startsWith('| ['));
     assert.deepEqual(
-      rows.map((row) => row.split('|')[1]!.trim()),
+      rowIds(queueBody(tree())),
       ['[front/ui/001](front/ui/001-guest-uispec/)', '[back/001](back/001-api-skeleton/)', '[back/002](back/002-database/)'],
     );
   });
 
   it('колонки: стадия, обоснование, параллельные задачи; задачи без queue в очередь не попадают', () => {
     const rows = section(tree(), '## Очередь работ');
+    assert.match(rows, /\| id \| Стадия \| Обоснование \| Параллельно с \|/);
     assert.match(rows, /\| \[back\/001\]\(back\/001-api-skeleton\/\) \| реализация \(3\/5\) \| Вертикальный срез API \| \[contract\/001\]\(contract\/001-guest-flow\/\) \|/);
     assert.match(rows, /\| \[front\/ui\/001\]\(front\/ui\/001-guest-uispec\/\) \| заявлена \| Спеки нужны до экранов \| — \|/);
     assert.doesNotMatch(rows, /contract\/001-guest-flow\/\) \| завершена/, 'задача без блока queue в очереди не участвует');
   });
 
-  it('завершённые задачи остаются в очереди как история выполнения', () => {
-    const done = TASKS.map((task) => (task.dir !== 'back/001-api-skeleton' ? task : {
-      ...task,
-      manifest: { ...task.manifest!, gates: { brief: APPROVED, adr: APPROVED, plan: APPROVED, result: APPROVED } },
-    }));
-    assert.match(section(tree(done), '## Очередь работ'), /\| \[back\/001\]\(back\/001-api-skeleton\/\) \| завершена \(3\/5\) \|/);
+  it('завершённая задача уходит из очереди в «Историю выполнения»', () => {
+    const built = tree(WITH_DONE);
+    assert.deepEqual(
+      rowIds(queueBody(built)),
+      ['[front/ui/001](front/ui/001-guest-uispec/)', '[back/002](back/002-database/)'],
+      'в очереди остаются только незавершённые, в прежнем порядке',
+    );
+
+    const history = section(built, '### История выполнения');
+    assert.match(history, /\| id \| Стадия \| Обоснование \| Параллельно с \|/);
+    assert.match(history, /\| \[back\/001\]\(back\/001-api-skeleton\/\) \| завершена \(3\/5\) \| Вертикальный срез API \| \[contract\/001\]\(contract\/001-guest-flow\/\) \|/);
+  });
+
+  it('без завершённых задач очереди подсекции истории нет', () => {
+    assert.doesNotMatch(text(tree()), /### История выполнения/);
+    assert.match(section(tree(), '## Очередь работ'), /Порядок — по `queue\.after`; завершённые — в «Истории выполнения»\./);
+  });
+
+  it('когда завершены все — очередь пуста, история хранит порядок', () => {
+    const gates = { setup: APPROVED, result: APPROVED };
+    const built = tree([
+      { dir: 'back/001-a', manifest: { id: 'back/001', slug: 'a', title: 'A', track: 'lite', queue: { after: ['front/ui/001'] }, gates } },
+      { dir: 'front/ui/001-b', manifest: { id: 'front/ui/001', slug: 'b', title: 'B', track: 'lite', queue: { rationale: 'Первой' }, gates } },
+    ]);
+
+    const queue = queueBody(built);
+    assert.match(queue, /Очередь пуста\./);
+    assert.deepEqual(rowIds(queue), [], 'таблицы незавершённых нет');
+    assert.deepEqual(
+      rowIds(section(built, '### История выполнения')),
+      ['[front/ui/001](front/ui/001-b/)', '[back/001](back/001-a/)'],
+    );
+    assert.match(registryCommand(context(built), []) as string, /задач: 2, в очереди: 0/);
   });
 
   it('цикл в queue.after не роняет генерацию и не ломает детерминизм', () => {
