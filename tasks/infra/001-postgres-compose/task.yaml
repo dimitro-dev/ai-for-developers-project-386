@@ -24,6 +24,8 @@ gates:
     sha256: 81e43977ecd9e962f1f8003b191dca8473179a9da2734c1fe0af630b706e1c60
   result:
     status: черновик
+workspace:
+  branch: task/infra-001-postgres-compose
 meta:
-  rev: 4
-  selfHash: 0918d5efc2558ee0636c37e716a4df5494f2f7efa1a5fcbb90ef0fd59340c0d1
+  rev: 5
+  selfHash: 88ca7d1ff5a7894e9e2fac3cd366bb5414a4d3e4b6ffabd765d6483657a57300
