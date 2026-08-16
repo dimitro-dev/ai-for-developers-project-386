@@ -88,7 +88,15 @@ Init-скрипты `/docker-entrypoint-initdb.d/` отрабатывают то
 | AC9 | состав коммитов и `.gitignore` | в git только `infra/.env.example` с безопасными дефолтами; `infra/.env` не создавался, образов проект не собирает |
 | CI (P07) | `docker compose config -q` локально; разбор `ci.yml` парсером YAML | job `compose` без `needs` — параллелен `checks`, 6 шагов |
 
-AC12 (зелёный job `compose` на PR) проверяется после push — фиксируется здесь же по факту.
+### CI на PR ([#12](https://github.com/dimitro-dev/ai-for-developers-project-386/pull/12))
+
+| Job | Результат |
+|---|---|
+| `compose` (новый) | зелёный, 24 с — уложился в бюджет 2–3 минуты из ADR Р9 |
+| `checks` | зелёный, 57 с — критический путь проверок не удлинился, jobs идут параллельно |
+| `build` (hexlet-check) | зелёный, 8 с; файл workflow не изменялся |
+
+AC12 закрыт: job контура зелёный на PR, `.github/workflows/hexlet-check.yml` не тронут.
 
 ### Версии
 
