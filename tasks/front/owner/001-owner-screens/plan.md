@@ -27,7 +27,7 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P06 | 1 | Каркасы экранов не сгенерированы | `generate_scaffold.py` по owner-спекам (кроме sheets), перенос generated-типов в `features/owner/**/generated/` | завершено |
 | P07 | 2 | Нет базового bottom-sheet и диалога | `BottomSheet` (RN Modal transparent, scrim, drag handle, свайп/backdrop/`onRequestClose`) и `ConfirmationDialog` по спекам; тесты | в плане |
 | P08 | 2 | Нет searchable-выбора | `SelectField` c `pickerMode="bottom-sheet"` и поиском (timezone-пикер экранов 02/09); тесты | в плане |
-| P09 | 2 | Нет полей расписания и длительности | `TimeField`, `WeekdaySelector`, `DurationSelector` по спекам; тесты | в плане |
+| P09 | 2 | Нет полей расписания и длительности | `TimeField`, `WeekdaySelector`, `DurationSelector` по спекам; тесты | завершено |
 | P10 | 2 | Нет таб-бара по токенам | `BottomNavigation` — кастомный tabBar для bottom-tabs по спеке; тесты | в плане |
 | P11 | 2 | Нет онбординг-обвязки | `ProgressHeader`, `AnimatedSetupIllustration` (placeholder, `TODO-ASSET`) по спекам | в плане |
 | P12 | 2 | Нет owner-карточек и строк | `SettingsRow` (ведущая иконка), `MeetingCard` (нагрузка `booking`), `EventTypeCard` (accent из id, единый глиф), `ScheduleCard` (нагрузка `interval`); компонентные тесты | завершено |
