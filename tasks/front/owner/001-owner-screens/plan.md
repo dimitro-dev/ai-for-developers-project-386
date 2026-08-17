@@ -30,7 +30,7 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P09 | 2 | Нет полей расписания и длительности | `TimeField`, `WeekdaySelector`, `DurationSelector` по спекам; тесты | в плане |
 | P10 | 2 | Нет таб-бара по токенам | `BottomNavigation` — кастомный tabBar для bottom-tabs по спеке; тесты | в плане |
 | P11 | 2 | Нет онбординг-обвязки | `ProgressHeader`, `AnimatedSetupIllustration` (placeholder, `TODO-ASSET`) по спекам | в плане |
-| P12 | 2 | Нет owner-карточек и строк | `SettingsRow` (ведущая иконка), `MeetingCard` (нагрузка `booking`), `EventTypeCard` (accent из id, единый глиф), `ScheduleCard` (нагрузка `interval`); компонентные тесты | в плане |
+| P12 | 2 | Нет owner-карточек и строк | `SettingsRow` (ведущая иконка), `MeetingCard` (нагрузка `booking`), `EventTypeCard` (accent из id, единый глиф), `ScheduleCard` (нагрузка `interval`); компонентные тесты | завершено |
 | P13 | 3 | Нет owner-модели и usecases | `features/owner/model` (view-модели, мапперы DTO) и `usecases` (7 admin-операций через `runOperation`), owner-словарь ошибок в каноне `$error`; юниты | в плане |
 | P14 | 3 | Нет owner-навигации | OwnerRoot: `SetupCheck → OnboardingStack → OwnerTabs`, ручные param lists, интеграция в App.tsx (режим owner) | в плане |
 | P15 | 3 | Экран 01 | SetupCheck: `getAdminSetup`, роутинг по `onboardingCompleted`, состояния checking/error | в плане |
