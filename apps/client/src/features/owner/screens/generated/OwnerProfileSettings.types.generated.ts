@@ -1,9 +1,6 @@
-// PATCHED (manually, not by generate_scaffold.py): the source spec's `CalendarSettingsSnapshot`
-// model references `AvailabilityRule[]` without `source="api"`, so the generator does not emit
-// this import (it only imports @minical/api-client types for models tagged source="api"). See
-// front/owner/001 P06 report for the generator/spec gap; regenerating this file will drop this
-// line again until the spec or generator is fixed.
 import type { AvailabilityRule } from '@minical/api-client';
+
+export type { AvailabilityRule };
 
 export interface OwnerProfileSettingsDraft {
   displayName: string;
