@@ -37,6 +37,7 @@
 |---|---|---|---|
 | [front/ui/001](front/ui/001-guest-uispec/) | Гостевой UISpec: экраны публичного сценария гостя | — | завершена (7/7) |
 | [front/ui/002](front/ui/002-guest-uispec-rebuild/) | Гостевой UISpec по макету дизайн-отдела | [front/ui/001](front/ui/001-guest-uispec/), [contract/001](contract/001-guest-flow-extensions/) | завершена (18/18) |
+| [front/ui/003](front/ui/003-owner-uispec-sync/) | Синхронизация owner-спек с контрактом 0.2.0 и новыми макетами | — | реализация (0/7) |
 
 ### front/guest
 
@@ -49,7 +50,7 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/) | постановка |
+| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/), [front/ui/003](front/ui/003-owner-uispec-sync/) | проектирование |
 
 ### process
 
@@ -64,10 +65,11 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
+| [front/ui/003](front/ui/003-owner-uispec-sync/) | реализация (0/7) | Разблокирует front/owner/001: owner-спеки приводятся к контракту 0.2.0, решениям сессии 2026-08-17 и новым макетам | — |
+| [front/owner/001](front/owner/001-owner-screens/) | проектирование | Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17 | — |
+| [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
-| [front/owner/001](front/owner/001-owner-screens/) | постановка | Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи | — |
-| [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
 | [infra/008](infra/008-e2e-web-playwright/) | заявлена | Web e2e дешевле native: testID уже проставлены, react-native-web мапит их в data-testid; эмулятор и APK не нужны. Защищает гостевой сценарий от регрессий во время работы над owner-flow и снимает часть объёма с infra/007 | — |
 | [infra/007](infra/007-e2e-native-framework/) | заявлена | Выбор native e2e-инструмента (Detox / Maestro / Appium) и способа его запуска; нужен работающий APK-контур из infra/002 и эмулятор с аппаратной виртуализацией — на macOS-хосте только вне Docker | — |
 

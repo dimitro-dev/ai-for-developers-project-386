@@ -6,13 +6,16 @@ legacyId: front-owner-001
 depends:
   - back/001
   - front/guest/001
+  - front/ui/003
 queue:
   after:
-    - back/003
-  rationale: Экраны владельца; объём зависел от решения contract/001 по иконке и цвету типа встречи
+    - front/ui/003
+  rationale: Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17
 gates:
   brief:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-17
+    sha256: 4e1db82d7bb191ee8a99e8839e54e4c56c2ffd9abe1d3b11ba1ab60b63ef792b
   adr:
     status: черновик
   plan:
@@ -20,5 +23,5 @@ gates:
   result:
     status: черновик
 meta:
-  rev: 1
-  selfHash: feb57797621a848050238e9476e738158e5e4fa8a9dc899469e60450e47c3a87
+  rev: 5
+  selfHash: ad3363acfab6d1e886052535826da31493197b0c2a1b83f8180bb0f3da5d815c

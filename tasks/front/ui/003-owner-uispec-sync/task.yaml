@@ -1,0 +1,16 @@
+id: front/ui/003
+slug: owner-uispec-sync
+title: Синхронизация owner-спек с контрактом 0.2.0 и новыми макетами
+track: lite
+queue:
+  rationale: "Разблокирует front/owner/001: owner-спеки приводятся к контракту 0.2.0, решениям сессии 2026-08-17 и новым макетам"
+gates:
+  setup:
+    status: согласовано
+    approvedAt: 2026-08-17
+    sha256: b0a67b771951867c795a1b867ae42d62881e74aa58c4537739972cbe45ebfa47
+  result:
+    status: черновик
+meta:
+  rev: 4
+  selfHash: 6dc0f670fc337afc1d196ceacdc72704b8e2b37d57d460aeb10897d547100a01
