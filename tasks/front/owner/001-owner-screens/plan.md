@@ -36,7 +36,7 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P15 | 3 | Экран 01 | SetupCheck: `getAdminSetup`, роутинг по `onboardingCompleted`, состояния checking/error | завершено |
 | P16 | 3 | Экраны 02–04 | Онбординг: профиль (черновик параметром навигации), рабочие часы, sheet 04 внутри обоих родителей (создание/редактирование с префиллом, замена интервала, `ConfirmationDialog` перезаписи), submit `completeAdminSetup` | в плане |
 | P17 | 3 | Экраны 05 и 11 | Встречи: две операции, группировка по датам владельца, `eventTypeName` из Booking, refresh с `preserveContent`, empty c share `publicUrl`, sheet деталей пропсами | в плане |
-| P18 | 3 | Экраны 06 и 10 | Типы событий: список с accent, создание с `DurationSelector` (дефолт 30 ставит контейнер), автогенерацией id, баннером `InlineAlert`, `DUPLICATE_EVENT_TYPE_ID → fieldErrors['public-id']`; поддержка `prefix` в `AppTextField` (TODO-COMPONENT спеки 10) | в плане |
+| P18 | 3 | Экраны 06 и 10 | Типы событий: список с accent, создание с `DurationSelector` (дефолт 30 ставит контейнер), автогенерацией id, баннером `InlineAlert`, `DUPLICATE_EVENT_TYPE_ID → fieldErrors['public-id']`; поддержка `prefix` в `AppTextField` (TODO-COMPONENT спеки 10) | завершено |
 | P19 | 3 | Экраны 08, 09, 07 | Настройки: сводка, профиль и рабочее время read-modify-write полным `SetupRequest`, dirty-гейт кнопок, sheet 04 из настроек | в плане |
 | P20 | 4 | Работоспособность web не доказана | Прогон против реального `back/001` в браузере: сценарии A–D brief, оба режима (guest без регрессий), `expo export --platform web`; фиксация в result | в плане |
 | P21 | 4 | Работоспособность Android не доказана | Прогон на эмуляторе: сценарии A–D, безопасные зоны, системная «назад» у sheets; фиксация в result | в плане |
