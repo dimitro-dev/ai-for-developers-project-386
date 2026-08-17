@@ -26,10 +26,10 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P05 | 1 | Owner-хелперов нет | `features/owner/lib`: `formatAvailabilitySummary`, генерация публичного id из названия (до первой ручной правки), `groupBookingsByOwnerDate`, подписи длительности; юниты | завершено |
 | P06 | 1 | Каркасы экранов не сгенерированы | `generate_scaffold.py` по owner-спекам (кроме sheets), перенос generated-типов в `features/owner/**/generated/` | завершено |
 | P07 | 2 | Нет базового bottom-sheet и диалога | `BottomSheet` (RN Modal transparent, scrim, drag handle, свайп/backdrop/`onRequestClose`) и `ConfirmationDialog` по спекам; тесты | завершено |
-| P08 | 2 | Нет searchable-выбора | `SelectField` c `pickerMode="bottom-sheet"` и поиском (timezone-пикер экранов 02/09); тесты | в плане |
+| P08 | 2 | Нет searchable-выбора | `SelectField` c `pickerMode="bottom-sheet"` и поиском (timezone-пикер экранов 02/09); тесты | завершено |
 | P09 | 2 | Нет полей расписания и длительности | `TimeField`, `WeekdaySelector`, `DurationSelector` по спекам; тесты | завершено |
 | P10 | 2 | Нет таб-бара по токенам | `BottomNavigation` — кастомный tabBar для bottom-tabs по спеке; тесты | в плане |
-| P11 | 2 | Нет онбординг-обвязки | `ProgressHeader`, `AnimatedSetupIllustration` (placeholder, `TODO-ASSET`) по спекам | в плане |
+| P11 | 2 | Нет онбординг-обвязки | `ProgressHeader`, `AnimatedSetupIllustration` (placeholder, `TODO-ASSET`) по спекам | завершено |
 | P12 | 2 | Нет owner-карточек и строк | `SettingsRow` (ведущая иконка), `MeetingCard` (нагрузка `booking`), `EventTypeCard` (accent из id, единый глиф), `ScheduleCard` (нагрузка `interval`); компонентные тесты | завершено |
 | P13 | 3 | Нет owner-модели и usecases | `features/owner/model` (view-модели, мапперы DTO) и `usecases` (7 admin-операций через `runOperation`), owner-словарь ошибок в каноне `$error`; юниты | в плане |
 | P14 | 3 | Нет owner-навигации | OwnerRoot: `SetupCheck → OnboardingStack → OwnerTabs`, ручные param lists, интеграция в App.tsx (режим owner) | в плане |

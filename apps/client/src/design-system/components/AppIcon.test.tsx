@@ -22,6 +22,7 @@ const ALL_NAMES: IconName[] = [
   'calendar',
   'calendar-x',
   'check-circle',
+  'chevron-down',
   'chevron-right',
   'clock',
   'cloud-off',

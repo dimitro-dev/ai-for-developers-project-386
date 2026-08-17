@@ -16,6 +16,7 @@ export type IconName =
   | 'calendar'
   | 'calendar-x'
   | 'check-circle'
+  | 'chevron-down'
   | 'chevron-right'
   | 'clock'
   | 'cloud-off'
@@ -50,7 +51,7 @@ const feather = Feather as unknown as GlyphFamily;
 const materialCommunity = MaterialCommunityIcons as unknown as GlyphFamily;
 
 /**
- * Основное семейство — Feather: 12 из 14 имён спеков совпадают с его глифами буквально.
+ * Основное семейство — Feather: 13 из 15 имён спеков совпадают с его глифами буквально.
  * Двум именам прямого глифа в Feather нет, они берутся из MaterialCommunityIcons того же пакета:
  * `calendar-x` → `calendar-remove`, `event-type` → `forum` (парный речевой пузырь кадров 1–7
  * `guest-mobile-flow.png`).
@@ -62,6 +63,7 @@ const GLYPHS: Readonly<Record<IconName, Glyph>> = {
   calendar: { family: feather, glyph: 'calendar' },
   'calendar-x': { family: materialCommunity, glyph: 'calendar-remove' },
   'check-circle': { family: feather, glyph: 'check-circle' },
+  'chevron-down': { family: feather, glyph: 'chevron-down' },
   'chevron-right': { family: feather, glyph: 'chevron-right' },
   clock: { family: feather, glyph: 'clock' },
   'cloud-off': { family: feather, glyph: 'cloud-off' },
