@@ -25,7 +25,7 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P04 | 1 | `AppHeader` не умеет правые действия | Реализовать `rightActions` по спеке `app-header` (нужно экранам 05, 06) | завершено |
 | P05 | 1 | Owner-хелперов нет | `features/owner/lib`: `formatAvailabilitySummary`, генерация публичного id из названия (до первой ручной правки), `groupBookingsByOwnerDate`, подписи длительности; юниты | завершено |
 | P06 | 1 | Каркасы экранов не сгенерированы | `generate_scaffold.py` по owner-спекам (кроме sheets), перенос generated-типов в `features/owner/**/generated/` | завершено |
-| P07 | 2 | Нет базового bottom-sheet и диалога | `BottomSheet` (RN Modal transparent, scrim, drag handle, свайп/backdrop/`onRequestClose`) и `ConfirmationDialog` по спекам; тесты | в плане |
+| P07 | 2 | Нет базового bottom-sheet и диалога | `BottomSheet` (RN Modal transparent, scrim, drag handle, свайп/backdrop/`onRequestClose`) и `ConfirmationDialog` по спекам; тесты | завершено |
 | P08 | 2 | Нет searchable-выбора | `SelectField` c `pickerMode="bottom-sheet"` и поиском (timezone-пикер экранов 02/09); тесты | в плане |
 | P09 | 2 | Нет полей расписания и длительности | `TimeField`, `WeekdaySelector`, `DurationSelector` по спекам; тесты | завершено |
 | P10 | 2 | Нет таб-бара по токенам | `BottomNavigation` — кастомный tabBar для bottom-tabs по спеке; тесты | в плане |
