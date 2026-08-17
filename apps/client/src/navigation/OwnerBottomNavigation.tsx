@@ -78,6 +78,9 @@ function isStandaloneProps(
   return 'activeTab' in props;
 }
 
+/** Route, на которых спека экрана таб-бар не показывает (спека 10 — единственная такая). */
+const ROUTES_WITHOUT_BOTTOM_NAVIGATION = new Set<string>(['CreateEventType']);
+
 /** UISpec-тег `BottomNavigation`. */
 export function OwnerBottomNavigation(props: OwnerBottomNavigationProps) {
   const colors = useColors();
@@ -114,6 +117,18 @@ export function OwnerBottomNavigation(props: OwnerBottomNavigationProps) {
   // иначе нижний отступ посчитается дважды (тот же frame insets, что уже применил SafeAreaProvider).
   const { state, navigation, insets } = props;
   const focusedRoute = state.routes[state.index];
+
+  // Экраны, чьи спеки бар не содержат (единственный такой owner-экран — 10, «Новый тип события»:
+  // у остальных экранов вкладок `<BottomNavigation>` объявлен явно). Навигатор рисует бар для всей
+  // вкладки, поэтому решение принимает сам бар, глядя на сфокусированный route вложенного стека.
+  const nestedState = focusedRoute?.state;
+  const nestedRouteName =
+    nestedState !== undefined && nestedState.index !== undefined
+      ? nestedState.routes[nestedState.index]?.name
+      : undefined;
+  if (nestedRouteName !== undefined && ROUTES_WITHOUT_BOTTOM_NAVIGATION.has(nestedRouteName)) {
+    return null;
+  }
 
   return (
     <View

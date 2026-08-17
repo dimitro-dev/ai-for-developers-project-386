@@ -98,6 +98,24 @@ describe('OwnerBottomNavigation — tabBar (BottomTabBarProps)', () => {
     expect(props.navigation.navigate).toHaveBeenCalledWith('SettingsTab', { screen: 'OwnerSettings' });
   });
 
+  it('не рисует бар на route, где спека его не показывает (экран 10)', async () => {
+    const props = buildTabBarProps({ focusedIndex: 0 });
+    // Вкладка «Встречи» с открытым вложенным `CreateEventType`: спека 10 — единственный
+    // owner-экран без `<BottomNavigation>`, бар на нём не показывается.
+    (props.state as unknown as { routes: unknown[] }).routes = [
+      {
+        key: 'meetings-key',
+        name: 'MeetingsTab',
+        state: { index: 1, routes: [{ name: 'EventTypes' }, { name: 'CreateEventType' }] },
+      },
+      { key: 'settings-key', name: 'SettingsTab' },
+    ];
+
+    await render(<OwnerBottomNavigation {...props} />);
+
+    expect(screen.queryByTestId('owner-bottom-navigation')).toBeNull();
+  });
+
   it('нажатие на уже активный таб не вызывает navigate', async () => {
     const props = buildTabBarProps({ focusedIndex: 0 });
     await render(<OwnerBottomNavigation {...props} />);
