@@ -17,16 +17,34 @@ export type OwnerActiveTab = OwnerTabId | 'none';
 
 interface OwnerTabDescriptor {
   readonly id: OwnerTabId;
-  /** Route id из `navigation.uispec.xml` — тот же id регистрирует таб в реальном навигаторе P14. */
-  readonly route: string;
+  /**
+   * Имя таба в реальном навигаторе — `<Tab id=...>` из `navigation.uispec.xml` (`MeetingsTab` /
+   * `SettingsTab`). Именно эти имена лежат в `state.routes` табового навигатора; экранные route
+   * (`OwnerMeetings`, `OwnerSettings`) живут во вложенных стеках и в состоянии табов не видны.
+   */
+  readonly tabRoute: string;
+  /** Route экрана внутри вкладки — атрибут `route=` пункта спеки `component.bottom-navigation`. */
+  readonly screenRoute: string;
   readonly icon: IconName;
   readonly label: string;
 }
 
 /** Порядок и состав — буквально `component.bottom-navigation`, менять только вслед за спекой. */
 export const OWNER_BOTTOM_NAVIGATION_TABS: readonly OwnerTabDescriptor[] = [
-  { id: 'meetings', route: 'OwnerMeetings', icon: 'calendar', label: 'Встречи' },
-  { id: 'settings', route: 'OwnerSettings', icon: 'settings', label: 'Настройки' },
+  {
+    id: 'meetings',
+    tabRoute: 'MeetingsTab',
+    screenRoute: 'OwnerMeetings',
+    icon: 'calendar',
+    label: 'Встречи',
+  },
+  {
+    id: 'settings',
+    tabRoute: 'SettingsTab',
+    screenRoute: 'OwnerSettings',
+    icon: 'settings',
+    label: 'Настройки',
+  },
 ];
 
 /**
@@ -104,7 +122,7 @@ export function OwnerBottomNavigation(props: OwnerBottomNavigationProps) {
     >
       <Row height={sizes.bottomNav.height} align="center">
         {OWNER_BOTTOM_NAVIGATION_TABS.map((tab) => {
-          const route = state.routes.find((candidate) => candidate.name === tab.route);
+          const route = state.routes.find((candidate) => candidate.name === tab.tabRoute);
           const selected = route !== undefined && route.key === focusedRoute?.key;
           return (
             <BottomNavigationItem
@@ -124,7 +142,10 @@ export function OwnerBottomNavigation(props: OwnerBottomNavigationProps) {
                   canPreventDefault: true,
                 });
                 if (!selected && !emitted.defaultPrevented) {
-                  navigation.navigate(route.name);
+                  // Пункт спеки привязан к корневому экрану вкладки (`route="OwnerMeetings"`),
+                  // поэтому переключение ведёт именно на него, а не на то место вложенного
+                  // стека, где владелец остановился в прошлый раз.
+                  navigation.navigate(route.name, { screen: tab.screenRoute });
                 }
               }}
               testID={`owner-bottom-navigation-item-${tab.id}`}

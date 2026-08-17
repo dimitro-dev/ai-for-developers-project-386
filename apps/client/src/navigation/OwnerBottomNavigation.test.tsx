@@ -57,9 +57,11 @@ describe('OwnerBottomNavigation — tabBar (BottomTabBarProps)', () => {
     const emit = jest.fn().mockReturnValue({ defaultPrevented: overrides?.defaultPrevented ?? false });
     const state = {
       index: overrides?.focusedIndex ?? 0,
+      // Имена — как в реальном `OwnerTabs`: состояние табового навигатора содержит `<Tab id=...>`
+      // (`MeetingsTab`/`SettingsTab`), а экранные route живут во вложенных стеках.
       routes: [
-        { key: 'meetings-key', name: 'OwnerMeetings' },
-        { key: 'settings-key', name: 'OwnerSettings' },
+        { key: 'meetings-key', name: 'MeetingsTab' },
+        { key: 'settings-key', name: 'SettingsTab' },
       ],
     };
     return {
@@ -93,7 +95,7 @@ describe('OwnerBottomNavigation — tabBar (BottomTabBarProps)', () => {
       expect.objectContaining({ type: 'tabPress', target: 'settings-key' }),
     );
     expect(props.navigation.navigate).toHaveBeenCalledTimes(1);
-    expect(props.navigation.navigate).toHaveBeenCalledWith('OwnerSettings');
+    expect(props.navigation.navigate).toHaveBeenCalledWith('SettingsTab', { screen: 'OwnerSettings' });
   });
 
   it('нажатие на уже активный таб не вызывает navigate', async () => {
