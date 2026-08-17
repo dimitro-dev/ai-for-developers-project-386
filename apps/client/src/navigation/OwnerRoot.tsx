@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { SetupCheckScreen } from '@/features/owner/screens/SetupCheckScreen';
 import { OnboardingStack } from '@/navigation/OnboardingStack';
 import { OwnerTabs } from '@/navigation/OwnerTabs';
-import { SetupCheckScreen } from '@/navigation/OwnerStubScreens';
 
 import { ownerRootInitialRoute, type OwnerRootStackParamList } from './OwnerRootStackParamList';
 

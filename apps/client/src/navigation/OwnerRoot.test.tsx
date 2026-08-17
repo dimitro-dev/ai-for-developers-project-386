@@ -4,10 +4,16 @@ import { render, screen } from '@testing-library/react-native';
 import { OwnerRoot } from '@/navigation/OwnerRoot';
 
 /**
- * P14: проверяем, что корень owner-навигации собирается и открывается на `SetupCheck`
- * (`initial="SetupCheck"` из `navigation.uispec.xml`) — без ухода в реальные экраны P15–P19,
- * которых ещё нет (заглушки `OwnerStubScreens`, testID `owner-stub-*`).
+ * Корень owner-навигации собирается и открывается на `SetupCheck` (`initial="SetupCheck"` из
+ * `navigation.uispec.xml`). Экран проверки делает запрос при монтировании, поэтому use-case
+ * замокан: здесь проверяется маршрутизация корня, а не поведение самого экрана (его состояния
+ * покрыты в `features/owner/screens/SetupCheck.test.tsx`). Пока промис висит, экран остаётся
+ * в состоянии `checking` — по нему и опознаём начальный route.
  */
+jest.mock('@/features/owner/usecases/owner', () => ({
+  checkSetup: jest.fn(() => new Promise(() => {})),
+}));
+
 describe('OwnerRoot', () => {
   it('открывается на SetupCheck — initial route корня', async () => {
     await render(
@@ -16,8 +22,7 @@ describe('OwnerRoot', () => {
       </NavigationContainer>,
     );
 
-    expect(screen.getByTestId('owner-stub-setup-check')).toBeTruthy();
-    expect(screen.queryByTestId('owner-stub-onboarding-profile')).toBeNull();
+    expect(screen.getByTestId('setup-check-progress')).toBeTruthy();
     expect(screen.queryByTestId('owner-bottom-navigation')).toBeNull();
   });
 });

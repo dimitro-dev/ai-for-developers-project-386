@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { CreateEventTypeScreen, EventTypesScreen, OwnerMeetingsScreen } from '@/navigation/OwnerStubScreens';
+import { CreateEventTypeScreen } from '@/features/owner/screens/CreateEventTypeScreen';
+import { EventTypesScreen } from '@/features/owner/screens/EventTypesScreen';
+import { OwnerMeetingsScreen } from '@/features/owner/screens/OwnerMeetingsScreen';
 
 import {
   ownerMeetingsStackInitialRoute,

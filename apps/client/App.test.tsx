@@ -16,6 +16,12 @@ jest.mock('@/features/guest/usecases/guest', () => ({
   loadPublicEventTypes: jest.fn(() => new Promise(() => {})),
 }));
 
+// Стартовый route owner-корня (`SetupCheck`) тоже делает запрос на монтировании — держим его
+// в состоянии `checking` тем же приёмом.
+jest.mock('@/features/owner/usecases/owner', () => ({
+  checkSetup: jest.fn(() => new Promise(() => {})),
+}));
+
 import App from './App';
 
 const APP_MODE_ENV_KEY = 'EXPO_PUBLIC_APP_MODE';
@@ -44,7 +50,7 @@ describe('App — выбор корня по режиму', () => {
     expect(
       screen.getAllByTestId('skeleton-event-type-card', { includeHiddenElements: true }).length,
     ).toBeGreaterThan(0);
-    expect(screen.queryByTestId('owner-stub-setup-check')).toBeNull();
+    expect(screen.queryByTestId('setup-check-progress')).toBeNull();
   });
 
   it('EXPO_PUBLIC_APP_MODE=owner монтирует owner-корень (SetupCheck)', async () => {
@@ -52,6 +58,6 @@ describe('App — выбор корня по режиму', () => {
 
     await render(<App />);
 
-    expect(screen.getByTestId('owner-stub-setup-check')).toBeTruthy();
+    expect(screen.getByTestId('setup-check-progress')).toBeTruthy();
   });
 });

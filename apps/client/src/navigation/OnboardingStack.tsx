@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { OnboardingProfileScreen, OnboardingWorkingHoursScreen } from '@/navigation/OwnerStubScreens';
+import { OnboardingProfileScreen } from '@/features/owner/screens/OnboardingProfileScreen';
+import { OnboardingWorkingHoursScreen } from '@/features/owner/screens/OnboardingWorkingHoursScreen';
 
 import {
   onboardingStackInitialRoute,
