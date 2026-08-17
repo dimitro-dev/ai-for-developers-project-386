@@ -26,6 +26,9 @@ gates:
     sha256: ad8454b1a2d26fdceac98e403e00fe71d2140b76fa0f425b2dcdbb953b400baf
   result:
     status: черновик
+workspace:
+  branch: task/front-owner-001-owner-screens
+  worktree: ../minical-front-owner-001
 meta:
-  rev: 9
-  selfHash: af3bb49971b45208b1d58f2198c3acea422601278c47093253535187ce303371
+  rev: 11
+  selfHash: 0f3bd3d3cfd90aa967ae198eb081da79d3eb402d3c544ab42bd70b0e497613e1

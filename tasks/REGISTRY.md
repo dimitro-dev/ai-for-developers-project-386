@@ -50,7 +50,7 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/), [front/ui/003](front/ui/003-owner-uispec-sync/) | реализация (0/22) |
+| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/), [front/ui/003](front/ui/003-owner-uispec-sync/) | реализация (13/22) |
 
 ### process
 
@@ -65,7 +65,7 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
-| [front/owner/001](front/owner/001-owner-screens/) | реализация (0/22) | Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17 | — |
+| [front/owner/001](front/owner/001-owner-screens/) | реализация (13/22) | Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17 | — |
 | [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
