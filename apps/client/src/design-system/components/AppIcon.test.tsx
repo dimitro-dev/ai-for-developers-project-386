@@ -29,7 +29,11 @@ const ALL_NAMES: IconName[] = [
   'event-type',
   'globe',
   'info',
+  'layout-grid',
   'mail',
+  'message-square',
+  'plus',
+  'settings',
   'user',
 ];
 
@@ -42,8 +46,8 @@ describe('AppIcon', () => {
     );
   });
 
-  // Два имени спеков не имеют глифа в Feather и переопределены другим семейством пакета.
-  it('подменяет семейство для calendar-x и event-type', async () => {
+  // Три имени спеков не имеют глифа в Feather и переопределены другим семейством пакета.
+  it('подменяет семейство для calendar-x, event-type и layout-grid', async () => {
     await render(<AppIcon name="calendar-x" />);
     expect(screen.getByTestId('icon-calendar-x', HIDDEN)).toHaveTextContent(
       glyphChar(MaterialCommunityIcons.glyphMap, 'calendar-remove'),
@@ -52,6 +56,28 @@ describe('AppIcon', () => {
     await render(<AppIcon name="event-type" />);
     expect(screen.getByTestId('icon-event-type', HIDDEN)).toHaveTextContent(
       glyphChar(MaterialCommunityIcons.glyphMap, 'forum'),
+    );
+
+    // `layout-grid` — header action экрана 05 (`owner.upcoming-meetings`, открыть типы событий).
+    await render(<AppIcon name="layout-grid" />);
+    expect(screen.getByTestId('icon-layout-grid', HIDDEN)).toHaveTextContent(
+      glyphChar(MaterialCommunityIcons.glyphMap, 'view-grid'),
+    );
+  });
+
+  // Остальные owner-имена берут глиф из Feather буквально, как guest-имена выше.
+  it('рендерит Feather-глиф для owner-имён settings, plus и message-square', async () => {
+    await render(<AppIcon name="settings" />);
+    expect(screen.getByTestId('icon-settings', HIDDEN)).toHaveTextContent(
+      glyphChar(Feather.glyphMap, 'settings'),
+    );
+
+    await render(<AppIcon name="plus" />);
+    expect(screen.getByTestId('icon-plus', HIDDEN)).toHaveTextContent(glyphChar(Feather.glyphMap, 'plus'));
+
+    await render(<AppIcon name="message-square" />);
+    expect(screen.getByTestId('icon-message-square', HIDDEN)).toHaveTextContent(
+      glyphChar(Feather.glyphMap, 'message-square'),
     );
   });
 

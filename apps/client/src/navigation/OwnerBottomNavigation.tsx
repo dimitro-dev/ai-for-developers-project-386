@@ -1,12 +1,13 @@
 import { View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
+import type { IconName } from '@/design-system/components/AppIcon';
 import { Row } from '@/design-system/layout/Row';
 import { AppSafeArea } from '@/design-system/layout/AppSafeArea';
 import { useColors } from '@/design-system/theme';
 import { sizes } from '@/design-system/tokens';
 
-import { BottomNavigationItem, type BottomNavigationIconName } from '@/navigation/BottomNavigationItem';
+import { BottomNavigationItem } from '@/navigation/BottomNavigationItem';
 
 /** Единственные два таба owner-флоу (`component.bottom-navigation` Rules — «Типы событий не tab»). */
 export type OwnerTabId = 'meetings' | 'settings';
@@ -18,7 +19,7 @@ interface OwnerTabDescriptor {
   readonly id: OwnerTabId;
   /** Route id из `navigation.uispec.xml` — тот же id регистрирует таб в реальном навигаторе P14. */
   readonly route: string;
-  readonly icon: BottomNavigationIconName;
+  readonly icon: IconName;
   readonly label: string;
 }
 

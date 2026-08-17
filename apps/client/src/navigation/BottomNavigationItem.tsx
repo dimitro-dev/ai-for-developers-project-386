@@ -1,4 +1,3 @@
-import Feather from '@expo/vector-icons/Feather';
 import { Pressable } from 'react-native';
 
 import { AppIcon, type IconName } from '@/design-system/components/AppIcon';
@@ -7,21 +6,9 @@ import { Column } from '@/design-system/layout/Column';
 import { useColors } from '@/design-system/theme';
 import { sizes, spacing, typography } from '@/design-system/tokens';
 
-/**
- * `component.bottom-navigation` требует у пункта «Настройки» `icon="settings"`, но словарь
- * `IconName`/`GLYPHS` в `AppIcon` (design-system, для этого пункта — read-only, см. постановку
- * P10) такого глифа не содержит. Расширять общий словарь кита — решение для владельца дизайн-системы
- * (или отдельного пункта плана); здесь это точечный, локальный для owner-навигации union сверх
- * `IconName`, а не правка read-only зоны. Единственный потребитель "settings" — сама эта пара
- * файлов: `navigation.uispec.xml` не рендерит иконку напрямую, а `OwnerTabs` (P14) получит бар
- * целиком через `tabBar={props => <OwnerBottomNavigation {...props} />}`, поэтому дублирования
- * этого workaround в других местах не возникает.
- */
-export type BottomNavigationIconName = IconName | 'settings';
-
 export interface BottomNavigationItemProps {
   /** Глиф пункта (`$size.icon.medium`, тон меняется вместе с `selected`). */
-  icon: BottomNavigationIconName;
+  icon: IconName;
   label: string;
   /** Активный пункт — `component.bottom-navigation`, AC «active state не только цветом». */
   selected: boolean;
@@ -56,20 +43,7 @@ export function BottomNavigationItem({ icon, label, selected, onPress, testID }:
       }}
     >
       <Column align="center" gap={spacing[4]}>
-        {icon === 'settings' ? (
-          // Тот же decorative-контракт, что у AppIcon без accessibilityLabel: подпись под глифом
-          // уже озвучивает смысл пункта, повторно объявлять его на иконке не нужно.
-          <Feather
-            name="settings"
-            size={sizes.icon.medium}
-            color={tint}
-            testID="icon-settings"
-            accessible={false}
-            importantForAccessibility="no-hide-descendants"
-          />
-        ) : (
-          <AppIcon name={icon} size={sizes.icon.medium} color={tint} />
-        )}
+        <AppIcon name={icon} size={sizes.icon.medium} color={tint} />
         <AppText typography={typography.label.medium} color={tint}>
           {label}
         </AppText>
