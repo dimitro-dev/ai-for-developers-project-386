@@ -84,6 +84,48 @@ export function fullDateLabel(date: string): string {
   return `${capitalize(weekday)}, ${partValue(parts, 'day')} ${partValue(parts, 'month')}`;
 }
 
+/** Одна группа встреч владельца по календарной дате (registry `groupBookingsByOwnerDate`). */
+export interface OwnerBookingGroup<T> {
+  id: string;
+  title: string;
+  bookings: T[];
+}
+
+/**
+ * Группировка встреч владельца по календарной дате в его timezone; группы идут по возрастанию
+ * даты, встречи внутри группы — по возрастанию `startAt` (UX rules спеки 05).
+ *
+ * Дженерик `T` вместо контрактного `BookingView` из registry: owner view-model
+ * (`features/owner/model`, `front/owner/001` P13) на момент этого хелпера ещё не определена, а
+ * `shared/datetime` не должен получать зависимость от feature-модулей. Ограничение
+ * `{ startAt: string }` — то же поле, которым uispec-модель `BookingView` называет
+ * `Booking.startAtUtc` (спеки 05 и 11), поэтому реальная `BookingView` подходит под дженерик без
+ * адаптеров.
+ */
+export function groupBookingsByOwnerDate<T extends { startAt: string }>(
+  bookings: readonly T[],
+  timeZone: string,
+): OwnerBookingGroup<T>[] {
+  const sorted = [...bookings].sort((left, right) =>
+    left.startAt < right.startAt ? -1 : left.startAt > right.startAt ? 1 : 0,
+  );
+
+  const groups = new Map<string, T[]>();
+  for (const booking of sorted) {
+    const date = calendarDate(booking.startAt, timeZone);
+    const bucket = groups.get(date);
+    if (bucket) {
+      bucket.push(booking);
+    } else {
+      groups.set(date, [booking]);
+    }
+  }
+
+  return [...groups.keys()]
+    .sort()
+    .map((date) => ({ id: date, title: fullDateLabel(date), bookings: groups.get(date) ?? [] }));
+}
+
 /** Подпись выбранного слота — «31 июля · 10:00–10:30». Конец встречи считает сервер. */
 export function formattedSlot(startAtUtc: string, endAtUtc: string, timeZone: string): string {
   const start = new Date(startAtUtc);

@@ -4,6 +4,7 @@ import {
   formatUtcOffset,
   formattedSlot,
   fullDateLabel,
+  groupBookingsByOwnerDate,
   guestTimeZone,
   timeLabel,
 } from '@/shared/datetime';
@@ -96,5 +97,47 @@ describe('formatUtcOffset', () => {
 describe('guestTimeZone', () => {
   it('возвращает IANA-имя зоны устройства', () => {
     expect(guestTimeZone()).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  });
+});
+
+describe('groupBookingsByOwnerDate', () => {
+  const booking = (id: string, startAt: string) => ({ id, startAt });
+
+  it('пустой список броней — пустой список групп', () => {
+    expect(groupBookingsByOwnerDate([], PRAGUE)).toEqual([]);
+  });
+
+  it('группирует по календарной дате владельца и сортирует брони внутри группы по startAt', () => {
+    const bookings = [
+      booking('c', '2026-07-31T09:00:00Z'),
+      booking('a', '2026-07-31T07:00:00Z'),
+      booking('b', '2026-08-01T07:00:00Z'),
+    ];
+
+    const groups = groupBookingsByOwnerDate(bookings, PRAGUE);
+
+    expect(groups.map((group) => group.id)).toEqual(['2026-07-31', '2026-08-01']);
+    expect(groups[0].title).toBe('Пятница, 31 июля');
+    expect(groups[0].bookings.map((item) => item.id)).toEqual(['a', 'c']);
+    expect(groups[1].bookings.map((item) => item.id)).toEqual(['b']);
+  });
+
+  it('несколько дат группируются по возрастанию независимо от порядка на входе', () => {
+    const bookings = [
+      booking('later', '2026-08-05T07:00:00Z'),
+      booking('earlier', '2026-07-30T07:00:00Z'),
+    ];
+
+    expect(groupBookingsByOwnerDate(bookings, PRAGUE).map((group) => group.id)).toEqual([
+      '2026-07-30',
+      '2026-08-05',
+    ]);
+  });
+
+  it('граница суток относит бронь к календарному дню владельца, а не UTC', () => {
+    const bookings = [booking('a', '2026-07-31T23:30:00Z')];
+
+    expect(groupBookingsByOwnerDate(bookings, KAMCHATKA)[0].id).toBe('2026-08-01');
+    expect(groupBookingsByOwnerDate(bookings, HONOLULU)[0].id).toBe('2026-07-31');
   });
 });
