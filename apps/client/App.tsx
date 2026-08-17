@@ -3,8 +3,10 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { configureApiClient } from '@/api/config';
+import { resolveAppMode } from '@/appMode';
 import { GuestFlowProvider } from '@/features/guest/state/GuestFlowProvider';
 import { GuestStack } from '@/navigation/GuestStack';
+import { OwnerRootPlaceholder } from '@/navigation/OwnerRootPlaceholder';
 
 // Bootstrap: экспортируемый `client` generated SDK создан без baseUrl, поэтому конфигурация
 // применяется здесь — до первого рендера и до любого запроса экранов (ADR §4).
@@ -13,13 +15,21 @@ configureApiClient();
 // `linking` не настраивается сознательно (ADR §1): состояние навигации не уезжает в URL,
 // объектный параметр `booking` и черновик формы (PII) остаются в памяти JS.
 export default function App() {
+  const appMode = resolveAppMode();
+
   return (
     <SafeAreaProvider>
-      <GuestFlowProvider>
-        <NavigationContainer>
-          <GuestStack />
-        </NavigationContainer>
-      </GuestFlowProvider>
+      {appMode === 'owner' ? (
+        // Owner-корень (`SetupCheck → OnboardingStack → OwnerTabs`, ADR §2) появится в P14 —
+        // до тех пор монтируется плейсхолдер без собственной навигации.
+        <OwnerRootPlaceholder />
+      ) : (
+        <GuestFlowProvider>
+          <NavigationContainer>
+            <GuestStack />
+          </NavigationContainer>
+        </GuestFlowProvider>
+      )}
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
