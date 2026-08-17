@@ -6,7 +6,7 @@ import { configureApiClient } from '@/api/config';
 import { resolveAppMode } from '@/appMode';
 import { GuestFlowProvider } from '@/features/guest/state/GuestFlowProvider';
 import { GuestStack } from '@/navigation/GuestStack';
-import { OwnerRootPlaceholder } from '@/navigation/OwnerRootPlaceholder';
+import { OwnerRoot } from '@/navigation/OwnerRoot';
 
 // Bootstrap: экспортируемый `client` generated SDK создан без baseUrl, поэтому конфигурация
 // применяется здесь — до первого рендера и до любого запроса экранов (ADR §4).
@@ -20,9 +20,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       {appMode === 'owner' ? (
-        // Owner-корень (`SetupCheck → OnboardingStack → OwnerTabs`, ADR §2) появится в P14 —
-        // до тех пор монтируется плейсхолдер без собственной навигации.
-        <OwnerRootPlaceholder />
+        // Owner-корень (`SetupCheck → OnboardingStack → OwnerTabs`, ADR §2). Собственный
+        // `NavigationContainer` — независимо от гостевого, `linking` не настраивается (ADR §2).
+        <NavigationContainer>
+          <OwnerRoot />
+        </NavigationContainer>
       ) : (
         <GuestFlowProvider>
           <NavigationContainer>
