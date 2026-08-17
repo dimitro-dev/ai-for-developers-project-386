@@ -34,7 +34,7 @@ usecases), 4 — сквозная проверка (P20–P22).
 | P13 | 3 | Нет owner-модели и usecases | `features/owner/model` (view-модели, мапперы DTO) и `usecases` (7 admin-операций через `runOperation`), owner-словарь ошибок в каноне `$error`; юниты | завершено |
 | P14 | 3 | Нет owner-навигации | OwnerRoot: `SetupCheck → OnboardingStack → OwnerTabs`, ручные param lists, интеграция в App.tsx (режим owner) | завершено |
 | P15 | 3 | Экран 01 | SetupCheck: `getAdminSetup`, роутинг по `onboardingCompleted`, состояния checking/error | завершено |
-| P16 | 3 | Экраны 02–04 | Онбординг: профиль (черновик параметром навигации), рабочие часы, sheet 04 внутри обоих родителей (создание/редактирование с префиллом, замена интервала, `ConfirmationDialog` перезаписи), submit `completeAdminSetup` | в плане |
+| P16 | 3 | Экраны 02–04 | Онбординг: профиль (черновик параметром навигации), рабочие часы, sheet 04 внутри обоих родителей (создание/редактирование с префиллом, замена интервала, `ConfirmationDialog` перезаписи), submit `completeAdminSetup` | завершено |
 | P17 | 3 | Экраны 05 и 11 | Встречи: две операции, группировка по датам владельца, `eventTypeName` из Booking, refresh с `preserveContent`, empty c share `publicUrl`, sheet деталей пропсами | в плане |
 | P18 | 3 | Экраны 06 и 10 | Типы событий: список с accent, создание с `DurationSelector` (дефолт 30 ставит контейнер), автогенерацией id, баннером `InlineAlert`, `DUPLICATE_EVENT_TYPE_ID → fieldErrors['public-id']`; поддержка `prefix` в `AppTextField` (TODO-COMPONENT спеки 10) | завершено |
 | P19 | 3 | Экраны 08, 09, 07 | Настройки: сводка, профиль и рабочее время read-modify-write полным `SetupRequest`, dirty-гейт кнопок, sheet 04 из настроек | в плане |
