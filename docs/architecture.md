@@ -173,6 +173,8 @@ minical/
 │       ├── Makefile           typecheck, test, gates, start, web, android, ios, build
 │       ├── CLAUDE.md          @AGENTS.md
 │       ├── package.json       jest-конфиг (preset jest-expo, alias @/*)
+│       ├── app.config.ts      experiments.baseUrl из EXPO_WEB_BASE_URL — базовый префикс
+│       │                       web-экспорта (владельческий бандл раздаётся с /admin)
 │       ├── app.json / App.tsx / index.ts / assets/    App.tsx — bootstrap: configureApiClient →
 │       │                       GuestFlowProvider → NavigationContainer (без linking) → GuestStack
 │       ├── .claude/settings.json    включённый плагин expo

@@ -3,7 +3,7 @@
 
 export interface AppConfig {
   port: number;
-  /** Канонический публичный адрес гостевого web-клиента → `publicUrl` в ответах настроек. */
+  /** Канонический публичный адрес гостевой половины → `publicUrl` в owner-ответах настроек. */
   publicWebUrl: string;
   /** Наполнять ли пустое хранилище демо-календарём на старте (`SEED_DEMO`), по умолчанию нет. */
   seedDemo: boolean;
@@ -13,8 +13,10 @@ const DEFAULT_PORT = 3001;
 const DEFAULT_PUBLIC_WEB_URL = 'http://localhost:8081';
 
 /**
- * Мусорное значение — отказ старта, а не тихий откат к дефолту: `publicUrl` уходит
- * гостю в ответах `CalendarSettingsResponse`, и подмена обнаружилась бы только у него.
+ * Мусорное значение — отказ старта, а не тихий откат к дефолту: это адрес, который
+ * владелец раздаёт гостям, и отдаётся он полем `publicUrl` в owner-ответах настроек
+ * (`CalendarSettingsResponse`); самим гостям поле не отдаётся вовсе. Подмена всплыла бы
+ * не здесь, а у того, кто прошёл по ссылке.
  * Бросает `Error`; `server.ts` печатает сообщение и завершает процесс.
  */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
