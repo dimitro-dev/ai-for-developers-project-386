@@ -18,7 +18,7 @@
     "generate:backend": "openapi-ts -f packages/backend-contract/openapi-ts.config.ts",
     "generate:check": "npm run generate && git diff --exit-code -- packages/contracts/generated packages/api-client/src/generated packages/backend-contract/src/generated",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "uispec:validate": "test ! -d docs/ui-spec-kit || python3 docs/ui-spec-kit/tools/uispec/validate_uispec.py --config docs/ui-spec-kit/uispec.config.json",
+    "uispec:validate": "python3 docs/ui-spec-kit/tools/uispec/validate_uispec.py --config docs/ui-spec-kit/uispec.config.json",
     "test": "npm run uispec:validate && npm run task:check && node --experimental-strip-types tests/contract-validation.test.ts",
     "mock:prism": "prism mock packages/contracts/generated/openapi.yaml -p 4010",
     "build": "npm run build --workspaces --if-present",

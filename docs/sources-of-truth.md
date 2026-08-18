@@ -1,0 +1,75 @@
+# Источники правды MiniCal
+
+Каждый артефакт является источником правды только для своей области. Документ, чей гейт в `task.yaml` находится в статусе «черновик», — рабочая гипотеза, а не принятое решение.
+
+| Область | Источник правды |
+|---|---|
+| Scope, сценарии и acceptance criteria конкретной задачи | согласованный `tasks/<тип>/<номер>-<слаг>/brief.md` |
+| Архитектурное решение конкретной задачи | согласованный `tasks/<тип>/<номер>-<слаг>/adr.md` |
+| Декомпозиция и текущее состояние выполнения | `tasks/<тип>/<номер>-<слаг>/plan.md` |
+| Фактический результат и описание MR | `tasks/<тип>/<номер>-<слаг>/result.md` |
+| Состояние задачи: гейты, согласования, зависимости, очередь | `task.yaml` задачи — пишет только CLI (`npm run task`) |
+| Сводный реестр и очередь работ | `tasks/REGISTRY.md` — генерат `task registry`, руками не правится |
+| Доменная модель — сущности, VO, кардинальности и инварианты | `docs/domain-model.md` |
+| Общие правила onboarding, расписания, слотов и Booking | `docs/domain-rules.md` |
+| Базовый архитектурный контур и границы компонентов | `docs/architecture.md` |
+| HTTP routes, transport models, statuses и errors | `packages/contracts/src/**/*.tsp` |
+| Машинное представление HTTP-контракта | `packages/contracts/generated/openapi.yaml` |
+| Frontend API types и SDK | `packages/api-client/src/generated/**` |
+| Backend transport types и runtime schemas | `packages/backend-contract/src/generated/**` |
+| Реализация slot engine и application rules | `packages/slot-engine/` и `apps/api/` |
+| Физическая модель PostgreSQL | `packages/database/` и миграции |
+| Локальный runtime и build | `infra/`, Dockerfiles и Compose |
+| Внешний вид экрана, его состояния и design tokens | `docs/ui-spec-kit/specs/ui/**` — UISpec-файлы, `tokens/*.xml`, `registry/components.registry.xml` |
+| Связь UI-действий с HTTP-операциями | `docs/ui-spec-kit/specs/ui/bindings/api-bindings.xml` |
+| Границы контракта, которые нельзя пересекать (набор маршрутов и операций, запреты на auth/`ownerId`/клиентский `endAt`) | `tests/contract-validation.test.ts` |
+| Правила процесса, роли и порядок работы | `AGENTS.md`, `tasks/AGENTS.md` и `tasks/flows/` |
+| Требования к окружению и команды | `README.md` и корневой `package.json` |
+| Проверяемое поведение | tests плюс acceptance criteria активной задачи |
+
+UISpec — источник истины для UI, но не для HTTP: модели с `source="api"` и `operation`-ссылки в `api-bindings.xml` подчинены TypeSpec-контракту. При конфликте UISpec и контракта прав контракт, а расхождение фиксируется как contract gap.
+
+## Иерархия при конфликте
+
+1. Явное актуальное решение пользователя.
+2. Согласованный `brief.md` активной задачи.
+3. Согласованный `adr.md` активной задачи.
+4. Общие `docs/domain-rules.md` и `docs/architecture.md`, если задача явно их не изменяет.
+5. TypeSpec-контракт.
+6. Реализация.
+
+`plan.md` задаёт порядок реализации, но не может незаметно менять scope или архитектуру. `result.md` фиксирует фактическое выполнение, но расхождение результата с согласованными `brief.md` или `adr.md` является дефектом, а не новым правилом.
+
+## Производные артефакты
+
+Не редактируются вручную:
+
+```text
+packages/contracts/generated/**
+packages/api-client/src/generated/**
+packages/backend-contract/src/generated/**
+```
+
+OpenAPI — производное представление TypeSpec, а не отдельный ручной источник.
+
+## Разделение моделей
+
+Не отождествляй:
+
+```text
+HTTP DTO
+Domain model
+Persistence model
+```
+
+Пример:
+
+```text
+CreateBookingRequest  — transport input
+BookingCommand        — application command
+Booking               — domain entity
+bookings row          — persistence record
+BookingResponse       — transport output
+```
+
+Если нужного решения нет, не подменяй его догадкой: верни соответствующий гейт в `черновик` (`npm run task -- draft`) и зафиксируй решение в документе.

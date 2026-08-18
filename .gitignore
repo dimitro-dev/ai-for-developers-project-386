@@ -1,7 +1,6 @@
-# Внутренние документы AI-процесса (tasks/ — в git с 2026-08-16, задача process/001)
+# Локальные файлы харнессов (tasks/ в git с 2026-08-16, docs/ — с 2026-08-18, задача process/003)
 /CLAUDE.md
 /.claude/
-/docs/
 .opencode
 
 # Локальная конфигурация MCP-серверов (канон — .mcp.json, зеркало для OpenCode — opencode.json)
