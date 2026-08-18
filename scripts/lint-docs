@@ -162,7 +162,9 @@ function main() {
       let mention;
       while ((mention = MAKE_MENTION.exec(line)) !== null) {
         const [, zone, target] = mention;
-        if (zone === undefined) {
+        // Без `-C` и с плейсхолдером вида `make -C <зона> gates` зону проверить нельзя,
+        // цель — можно: она должна существовать хотя бы в одном Makefile.
+        if (zone === undefined || zone.includes('<') || zone.includes('>')) {
           if (!allTargets.has(target)) {
             problems.push(`${rel}:${index + 1}  цель «make ${target}» не определена ни в одном Makefile`);
           }

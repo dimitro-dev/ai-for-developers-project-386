@@ -82,81 +82,188 @@ Android Emulator работает на хосте и обращается к gat
 
 В MVP нет auth. Поэтому admin API и UI допустимы только для локальной учебной среды. Публикация в интернет требует отдельного решения по доступу и не может считаться безопасной за счёт пути `/admin`.
 
-## Целевая структура репозитория
+## Слой команд
+
+Команда определена ровно один раз — рецептом цели в `Makefile`. Слоёв три:
+
+```text
+make/common.mk     корень репозитория, PATH до node_modules/.bin, механика help
+Makefile           операции уровня репозитория и фан-аут по зонам
+<зона>/Makefile    глаголы своей зоны
+```
+
+Список зон фан-аута вычисляется по наличию `Makefile`, а не перечисляется, поэтому новая зона
+включается в него сама. Каждая зона обязана определять `typecheck`, `test` и `gates` — даже
+пустыми: у `make` нет аналога `--if-present`, и отсутствие цели должно быть видимой ошибкой
+конфигурации, а не молчаливым пропуском. Специфические глаголы (`dev`, `start`, `web`, `up`)
+живут только там, где осмысленны. Аргументы CLI задач через `make` не проходят — у него свой
+исполняемый вход `scripts/task`, не знающий грамматики команд.
+
+Секции `scripts` в `package.json` пусты. Единственное исключение — корневой `"test": "make test"`
+как страховка для непрозрачного авточекера учебной платформы; причина зафиксирована ключом `"//"`
+того же манифеста.
+
+## Структура репозитория
+
+Фактическое состояние с назначением каждого каталога. Не создавай параллельную альтернативную
+структуру без изменения `adr.md` активной задачи.
 
 ```text
 minical/
-├── AGENTS.md                  точка входа AI-сессии, реестр ролей и скиллов
-├── CLAUDE.md                  ссылка на AGENTS.md (локальный, в .gitignore)
-├── README.md                  окружение, установка, команды, запуск
-├── package.json               npm workspaces и корневые скрипты
-├── tsconfig.base.json         общая TS-база
-├── .nvmrc                     версия Node
-├── .github/workflows/         hexlet-check.yml — внешний чек учебной платформы (не
-│                              редактируется); ci.yml — обязательные проверки на PR/push
-│                              в main; release-please.yml — release-PR (task-infra-006)
-├── .claude/
-│   └── skills → ../.opencode/skills    симлинк, чтобы скиллы видел Claude Code
-├── .opencode/
-│   └── skills/                скиллы AI-процесса (роли растворены во вложенных AGENTS.md
-│                              зон: apps/api, apps/client, packages/contracts,
-│                              packages/database, infra, tests)
-├── docs/
-│   ├── domain-rules.md
-│   ├── domain-model.md
-│   ├── architecture.md
-│   ├── sources-of-truth.md
-│   ├── contract-pipeline.md
-│   └── ui-spec-kit/           UISpec owner-flow (экраны 01–11, approved) и
-│                              guest-flow (экраны 12–15, draft, spec-first без
-│                              reference-кадров): screens, components, tokens,
-│                              navigation (включая GuestStack), registry,
-│                              bindings (в т.ч. guest-операций), tools, assets
-├── tasks/
-│   ├── AGENTS.md
-│   ├── REGISTRY.md            генерат task registry, руками не правится
-│   ├── tasks.config.json
-│   ├── flows/
-│   │   ├── full.md
-│   │   └── lite.md
-│   ├── _template/
-│   │   ├── full/
-│   │   │   ├── brief.md
-│   │   │   ├── adr.md
-│   │   │   ├── plan.md
-│   │   │   └── result.md
-│   │   └── lite/
-│   │       └── task.md
-│   ├── tools/                 CLI и его тесты
-│   ├── archive/                дотиповая эпоха, как есть
-│   └── <тип>/<номер>-<слаг>/   тип: contract | infra | back | front/ui | front/guest |
-│       │                       front/owner | process
-│       ├── task.yaml           канон состояния — пишет только CLI
-│       ├── brief.md
-│       ├── adr.md
-│       ├── plan.md
-│       └── result.md
+├── AGENTS.md                  точка входа AI-сессии: правила, bootstrap, карта зон
+├── CLAUDE.md                  только ссылка на AGENTS.md (локальный, в .gitignore)
+├── .mcp.json                  канонический реестр MCP-серверов (локальный, в .gitignore)
+├── README.md                  что за проект, требования к машине, установка, запуск
+├── Makefile                   операции уровня репозитория и фан-аут по зонам
+├── make/common.mk             общая часть всех Makefile
+├── scripts/                   task — вход к CLI задач; lint-docs — гейт контракта размещения
+├── package.json               npm workspaces: apps/*, packages/*; scripts пуст, кроме test
+├── tsconfig.base.json         общая TS-база: ES2022, NodeNext, strict
+├── .nvmrc                     Node 26 (engines: >=24)
+├── .github/workflows/         hexlet-check.yml — внешний чек учебной платформы, не
+│                              редактируется; ci.yml — обязательные проверки на PR/push
+│                              в `main`; release-please.yml — release-PR
 ├── apps/
-│   ├── client/
-│   └── api/
+│   ├── api/                   @minical/api — REST API: 12 операций контракта на Express 5
+│   │   │                       поверх in-memory хранилища, порт 3001; запускается из
+│   │   │                       исходников, сборки в dist нет
+│   │   ├── AGENTS.md           контракт зоны
+│   │   ├── architecture.md     слои, точка валидации, таблица статусов, middleware
+│   │   ├── README.md           запуск, переменные окружения, поведение состояния
+│   │   ├── Makefile            typecheck, test, gates, start, dev
+│   │   ├── package.json / tsconfig.json    noEmit + allowImportingTsExtensions
+│   │   └── src/                server.ts, config.ts, app.ts,
+│   │                           http/ (routes, handlers, parse, present, errors, security),
+│   │                           usecases/ (owner, booking),
+│   │                           domain/ (model, errors, slots, timezone),
+│   │                           store/ (repositories, memory),
+│   │                           тесты рядом с кодом: *.test.ts
+│   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web;
+│       │                       гостевой фундамент: дизайн-система, generated SDK, навигация
+│       ├── AGENTS.md          контракт зоны
+│       ├── README.md          режимы запуска, переменные EXPO_PUBLIC_*, сборка APK
+│       ├── Makefile           typecheck, test, gates, start, web, android, ios, build
+│       ├── CLAUDE.md          @AGENTS.md
+│       ├── package.json       jest-конфиг (preset jest-expo, alias @/*)
+│       ├── app.json / App.tsx / index.ts / assets/    App.tsx — bootstrap: configureApiClient →
+│       │                       GuestFlowProvider → NavigationContainer (без linking) → GuestStack
+│       ├── .claude/settings.json    включённый плагин expo
+│       ├── tsconfig.json      наследует expo/tsconfig.base, а не корневую базу; свой TypeScript
+│       │                       ~6.0.3; paths "@/*" → ./src/* (без baseUrl — он deprecated в TS 6)
+│       └── src/               api/ (config, errors → канон $error),
+│                               design-system/ (tokens, theme, layout/, components/),
+│                               features/guest/ (model, usecases, state, lib, screens — стабы),
+│                               navigation/ (GuestStack, GuestStackParamList),
+│                               shared/ui-state/ (StateView, Repeat),
+│                               тесты рядом с кодом: *.test.ts(x)
 ├── packages/
-│   ├── contracts/
-│   │   ├── src/
-│   │   └── generated/openapi.yaml
-│   ├── api-client/
-│   │   └── src/generated/
-│   ├── backend-contract/
-│   │   └── src/generated/
-│   ├── slot-engine/
-│   └── database/
-├── infra/
-└── tests/
-    └── contract-validation.test.ts     контрактный gate
+│   ├── contracts/             @minical/contracts — единственный ручной источник HTTP-контракта
+│   │   ├── AGENTS.md                   контракт зоны и generation pipeline
+│   │   ├── Makefile                    format, format-check, build, typecheck, test, gates
+│   │   ├── src/main.tsp                @service, @info(version), импорты
+│   │   ├── src/models/                 common, errors, owner, event-type, booking
+│   │   ├── src/operations/             health, admin, public
+│   │   ├── tspconfig.yaml              эмиттер @typespec/openapi3 → generated/openapi.yaml
+│   │   └── generated/openapi.yaml      фактически OpenAPI 3.0.0 (версия в конфиге не зафиксирована)
+│   ├── api-client/            @minical/api-client — generated frontend SDK (@hey-api/client-fetch)
+│   ├── backend-contract/      @minical/backend-contract — generated types + Zod schemas
+│   ├── slot-engine/           .gitkeep — появится в отдельной задаче
+│   └── database/              AGENTS.md + .gitkeep — schema и миграции, отдельная задача
+├── tests/
+│   ├── AGENTS.md              контракт зоны проверок: контрактные, доменные, интеграционные, E2E
+│   └── contract-validation.test.ts   контрактный гейт
+├── infra/                     Docker/Compose локального контура
+│   ├── AGENTS.md              контракт зоны
+│   ├── README.md              установка Docker-провайдера, контур PostgreSQL, Prism-мок
+│   └── Makefile               up, down, logs, reset, config
+├── tasks/                     процесс задач; в git
+│   ├── AGENTS.md              маршрутизатор каталога: карта, команды CLI, словарь
+│   ├── REGISTRY.md            генерат `task registry`: реестр по типам, очередь работ, legacy-id
+│   ├── Makefile               typecheck, test, gates для CLI задач
+│   ├── flows/                 full.md, lite.md — правила треков, гейтов и откатов
+│   ├── tasks.config.json      типы, статусы, состояния пунктов, треки, hash-стратегии
+│   ├── _template/             full/ (brief, adr, plan, result), lite/ (task.md)
+│   ├── tools/                 CLI: task.ts, lib/, tests/
+│   ├── archive/               000…003, 006 — дотиповая эпоха, как есть, не трогается
+│   ├── contract/              001-guest-flow-extensions/
+│   ├── infra/                 001-postgres-compose/ … 006-ci-release-please/
+│   ├── back/                  001-api-skeleton/, 002-database-persistence/, 003-slot-engine-package/
+│   ├── front/                 ui/, guest/, owner/ — например front/guest/002-guest-screens/
+│   └── process/               001-tasks-rework/ … 003-docs-commands-rework/
+├── docs/                      документы проекта; в git
+└── .opencode/                 скиллы AI-процесса, не в git
 ```
 
-Фактическое состояние структуры с назначением каждого каталога и пометками о пустых заготовках — в `AGENTS.md`, раздел «Структура репозитория». Этот документ описывает целевой контур; при расхождении обновляются оба.
+Каждая задача — `<номер>-<слаг>/` с `task.yaml` (канон состояния) и документами своего трека.
+Канонический id — путь без слага: `front/guest/002`, `infra/006`.
 
-Не создавай параллельную альтернативную структуру без изменения `adr.md` активной задачи. Отдельного глобального каталога ADR и отдельного Orchestrator Agent в проекте нет.
+`packages/slot-engine`, `packages/database` и `infra` кода пока не содержат — только `AGENTS.md`
+зоны и `.gitkeep`. Не наполняй их кодом без задачи, которая это предусматривает.
+
+### Пакеты и границы
+
+| Пакет | Роль | Кто меняет |
+|---|---|---|
+| `@minical/contracts` | Ручной TypeSpec и производный OpenAPI | по [`packages/contracts/AGENTS.md`](../packages/contracts/AGENTS.md) |
+| `@minical/api-client` | Generated frontend SDK | никто вручную — только цель `make generate` |
+| `@minical/backend-contract` | Generated transport types и runtime Zod-схемы | никто вручную — только цель `make generate` |
+| `@minical/api` | REST, application logic, mapping transport ↔ domain ↔ persistence | по [`apps/api/AGENTS.md`](../apps/api/AGENTS.md) |
+| `@minical/client` | UI, навигация, состояния экранов по generated SDK | по [`apps/client/AGENTS.md`](../apps/client/AGENTS.md) |
+
+Backend валидирует входящий transport-запрос generated Zod-схемами: generated TypeScript-типы
+не заменяют runtime-валидацию.
+
+### Каталоги AI-процесса
+
+```text
+docs/
+├── domain-rules.md            поведение onboarding, расписания, слотов, Booking
+├── domain-model.md            сущности, VO, кардинальности, инварианты
+├── architecture.md            этот файл: стиль, компоненты, слой команд, структура, runtime
+├── sources-of-truth.md        владение источниками правды, контракт размещения, иерархия
+├── contract-pipeline.md       порядок изменения контракта и генерации
+└── ui-spec-kit/               декларативная UISpec owner-flow и guest-flow
+    ├── README.md / MANUAL.md / uispec.config.json
+    ├── AUDIT.md / ROADMAP.md      аудит кита 2026-08-05 и исполненный план исправлений R1–R6
+    ├── specs/ui/screens/          экраны owner-flow и guest-flow (*.screen.md) + FRAME_MAP.md
+    ├── specs/ui/components/       компоненты (*.component.md)
+    ├── specs/ui/tokens/           colors, typography, spacing, radii, sizes, motion
+    ├── specs/ui/navigation/ registry/ bindings/ schema/ assets/
+    │                              (bindings: api-bindings.xml — единственная связь action→operationId,
+    │                               contract-gaps.xml — реестр расхождений с контрактом)
+    └── tools/uispec/              валидатор (V1–V11, --config/--strict/--lint), генератор каркасов,
+                                   tests/ — негативные фикстуры валидатора
+
+.opencode/
+└── skills/                    brainstorming, decomposition, grill-me, grilling, lean-code,
+                               taskmaster, uispec-generator, verification-before-completion,
+                               worktree-isolated-agent
+```
+
+### Как скиллы и MCP попадают в сессию
+
+Проектные инструкции процесса физически лежат в `.opencode/`, и разные харнессы видят их
+по-разному. Не рассчитывай на автоподхват — проверяй по этой таблице:
+
+| Артефакт | OpenCode | Claude Code |
+|---|---|---|
+| `.opencode/skills/*/SKILL.md` — 9 скиллов; `scripts/` у `uispec-generator` — симлинк на `docs/ui-spec-kit/tools/uispec` (канон скриптов один, копии нет) | автоматически как skills | подхватываются через симлинк `.claude/skills → ../.opencode/skills` — проверено на живой сессии. Без симлинка `SKILL.md` читается как Markdown |
+| `.mcp.json` в корне — канонический реестр MCP-серверов (формат `mcpServers`) | **не читается** (feature request закрыт как not planned): у OpenCode свой формат — секция `mcp` в `opencode.json`, записи зеркалирует владелец вручную | подхватывается автоматически как project-scope MCP; первое использование сервера требует одобрения пользователя |
+
+Практические следствия:
+
+- «обязательный скилл» во вложенном `AGENTS.md` означает обязательный *процесс* из `SKILL.md`;
+  выполнить его вручную по шагам — полноценное соблюдение правила;
+- `grill-me` помечен `disable-model-invocation: true`, поэтому в модельном списке скиллов его нет
+  и агент сам его не вызовет — он запускается только пользователем через `/grill-me`. Остальные
+  восемь доступны агенту;
+- `tasks/` и `docs/` приезжают с клоном, а `.claude/`, `.opencode/` и `.mcp.json` — нет: в свежем
+  клоне нет ни скиллов, ни симлинков, их восстанавливает владелец рабочей копии;
+- MCP-серверы описываются только в `.mcp.json` — это единственный источник правды; зеркало
+  в `opencode.json` обновляется следом за ним. Оба файла в `.gitignore` (внутри могут быть
+  локальные пути и env-секреты), свежий клон MCP-серверов не получает;
+- при добавлении новой зоны, скилла или MCP-сервера обнови таблицы здесь и карту зон в корневом
+  [`AGENTS.md`](../AGENTS.md): манифеста, который бы их перечислял, нет.
 
 ## Поток создания бронирования
 
