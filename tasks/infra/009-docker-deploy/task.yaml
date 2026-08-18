@@ -1,0 +1,18 @@
+id: infra/009
+slug: docker-deploy
+title: "Публикация приложения: Docker-образ и деплой"
+track: full
+queue:
+  rationale: "Внешнее требование учебной платформы: Dockerfile, старт по PORT, публичная ссылка. Раньше back/002 — решение владельца 2026-08-18: с базой задача про образ растёт, а переезд на неё потом образ не переписывает"
+gates:
+  brief:
+    status: черновик
+  adr:
+    status: черновик
+  plan:
+    status: черновик
+  result:
+    status: черновик
+meta:
+  rev: 3
+  selfHash: 41b54b4a93fe6a42d28da3382cc72c77a19c77920fa11c4ec79a1a7c7bfb1ae4
