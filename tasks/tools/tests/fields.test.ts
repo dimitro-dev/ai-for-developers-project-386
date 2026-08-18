@@ -141,7 +141,7 @@ describe('set/unset — границы', () => {
 
   it('неверное число аргументов — подсказка по употреблению', () => {
     const built = tree();
-    assert.throws(() => setCommand(context(built), ['front/guest/002', 'title']), /npm run task -- set <id> <путь> <значение>/);
+    assert.throws(() => setCommand(context(built), ['front/guest/002', 'title']), /scripts\/task set <id> <путь> <значение>/);
     assert.throws(() => unsetCommand(context(built), ['front/guest/002']), CliError);
   });
 });

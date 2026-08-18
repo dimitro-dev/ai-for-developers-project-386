@@ -1,6 +1,6 @@
 # @minical/contracts — HTTP-контракт
 
-Зона Contract Agent: владеть HTTP-контрактом MiniCal и производными generated-артефактами.
+Зона `packages/contracts/` отвечает за HTTP-контракт MiniCal и производные generated-артефакты.
 `packages/contracts/src/**/*.tsp` — единственный ручной источник контракта (правило 5 корневого
 [`AGENTS.md`](../../AGENTS.md)); всё остальное в цепочке — генерат.
 
@@ -21,7 +21,7 @@ tests/contract-validation.test.ts — перед изменением набор
 
 ```text
 packages/contracts/src/**/*.tsp
-TypeSpec project config/scripts — только если это предусмотрено ADR/plan активной задачи
+TypeSpec project config и цели Makefile зоны — только если это предусмотрено ADR/plan активной задачи
 состояние своего пункта в plan.md
 contract-раздел активного result.md
 ```
@@ -34,7 +34,8 @@ Generated-файлы разрешено обновлять только запу
 - использовать стабильные operation names и error codes;
 - добавить transport validation constraints и документацию;
 - сохранять обратную совместимость, если задача не требует breaking change;
-- запустить format, compile и полную генерацию;
+- прогнать форматирование, компиляцию и полную генерацию (`make -C packages/contracts format`,
+  `make generate`);
 - просмотреть generated diff;
 - при добавлении или удалении операции согласовать с зоной [`tests/`](../../tests/AGENTS.md) правку
   `expectedRoutes`/`expectedOperations` в `tests/contract-validation.test.ts`: gate сверяет их
@@ -49,23 +50,22 @@ Generated-файлы разрешено обновлять только запу
 - скрыто менять бизнес-правило через форму контракта;
 - добавлять endpoint или поле, которых нет в согласованных документах задачи;
 - ставить `согласовано` самовольно: правило 11 корневого [`AGENTS.md`](../../AGENTS.md), фиксация —
-  только `task approve` после явного подтверждения владельца.
+  только `scripts/task approve` после явного подтверждения владельца.
 
 ## При недостающем решении
 
-Contract Agent — адресат эскалаций от остальных зон, но своих решений он тоже не выдумывает. Если
-требуемая форма API не выводится из согласованных документов активной задачи — например, не решено,
-какой статус или error code соответствует доменному случаю, нужен ли новый endpoint, или является ли
-изменение breaking, — не выбирай вариант молча. Зафиксируй вопрос в `plan.md` и верни
-соответствующий гейт в `черновик`: `task draft <id> <гейт>`, правила каскада —
+Эскалации остальных зон приходят в `packages/contracts/`, но своих решений зона тоже не выдумывает.
+Если требуемая форма API не выводится из согласованных документов активной задачи — например, не
+решено, какой статус или error code соответствует доменному случаю, нужен ли новый endpoint, или
+является ли изменение breaking, — не выбирай вариант молча. Зафиксируй вопрос в `plan.md` и верни
+соответствующий гейт в `черновик`: `scripts/task draft <id> <гейт>`, правила каскада —
 в [`tasks/flows/full.md`](../../tasks/flows/full.md), иерархия источников правды —
-в `docs/sources-of-truth.md`. Эскалация, пришедшая из зоны `apps/api/` или `apps/client/`, тоже не
+в `docs/sources-of-truth.md`. Эскалация, пришедшая из `apps/api/` или `apps/client/`, тоже не
 является основанием менять контракт: основанием является согласованный документ задачи.
 
 ## Definition of Done
 
-- `npm run contracts:format:check`, `npm run generate:check`, `npm run typecheck` и `npm test`
-  проходят;
+- `make -C packages/contracts gates` и `make gates` в корне зелёные;
 - generated OpenAPI, frontend SDK и backend schemas обновлены;
 - каждый ожидаемый ответ документирован;
 - generated diff соответствует brief/ADR задачи;

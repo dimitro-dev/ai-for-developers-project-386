@@ -6,8 +6,5 @@
   "type": "module",
   "exports": {
     ".": "./src/generated/index.ts"
-  },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
   }
 }

@@ -6,7 +6,7 @@ import { legacyIds } from './manifest.ts';
 import { stageText } from './stage.ts';
 import { loadViews, type TaskView } from './view.ts';
 
-const HEADER = 'Генерируется `npm run task -- registry`; руками не правится.';
+const HEADER = 'Генерируется `scripts/task registry`; руками не правится.';
 const EMPTY = '—';
 
 export function registryPath(root: string, config: TasksConfig): string {
@@ -192,17 +192,17 @@ export function renderRegistry(root: string, config: TasksConfig): string {
 export function registryDrift(root: string, config: TasksConfig): string | null {
   const file = registryPath(root, config);
   if (!existsSync(file)) {
-    return `${config.registryFile} отсутствует — сгенерируйте: npm run task -- registry`;
+    return `${config.registryFile} отсутствует — сгенерируйте: scripts/task registry`;
   }
   return readFileSync(file, 'utf8') === renderRegistry(root, config)
     ? null
-    : `${config.registryFile} устарел: данные задач изменились — перегенерируйте: npm run task -- registry`;
+    : `${config.registryFile} устарел: данные задач изменились — перегенерируйте: scripts/task registry`;
 }
 
 export function registryCommand(ctx: CommandContext, args: string[]): string | CommandResult {
   const parsed = parseFlags(args, { boolean: ['check'] });
   if (parsed.positional.length > 0) {
-    throw new CliError('употребление: npm run task -- registry [--check]');
+    throw new CliError('употребление: scripts/task registry [--check]');
   }
 
   if (parsed.flags.check === true) {

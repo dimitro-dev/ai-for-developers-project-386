@@ -94,7 +94,7 @@ const queueBody = (built: Tree) => section(built, '## Очередь работ'
 
 describe('registry — реестр по типам', () => {
   it('шапка объявляет файл генератом', () => {
-    assert.match(text(tree()), /^# Реестр задач\n\nГенерируется `npm run task -- registry`; руками не правится\.\n/);
+    assert.match(text(tree()), /^# Реестр задач\n\nГенерируется `scripts\/task registry`; руками не правится\.\n/);
   });
 
   it('типы идут в порядке конфига, пустые пропускаются', () => {
@@ -258,7 +258,7 @@ describe('registry — детерминизм и --check', () => {
     const result = registryCommand(context(built), ['--check']) as CommandResult;
     assert.equal(result.code, 1);
     assert.match(result.text, /REGISTRY\.md устарел/);
-    assert.match(result.text, /npm run task -- registry/);
+    assert.match(result.text, /scripts\/task registry/);
   });
 
   it('--check: отсутствующий реестр — сообщение и код 1', () => {
@@ -272,6 +272,6 @@ describe('registry — детерминизм и --check', () => {
   });
 
   it('лишний аргумент — ошибка употребления', () => {
-    assert.throws(() => registryCommand(context(tree()), ['back/001']), /употребление: npm run task -- registry \[--check\]/);
+    assert.throws(() => registryCommand(context(tree()), ['back/001']), /употребление: scripts\/task registry \[--check\]/);
   });
 });

@@ -21,7 +21,7 @@ function templateDirOf(root: string, config: TasksConfig, track: string): string
 export function readTrackTemplates(root: string, config: TasksConfig, track: string): Record<string, string> {
   const dir = templateDirOf(root, config, track);
   if (!existsSync(dir)) {
-    throw new CliError(`шаблоны трека "${track}" не найдены в ${config.templateDir}/${track}/ — создайте их командой: npm run task -- init`);
+    throw new CliError(`шаблоны трека "${track}" не найдены в ${config.templateDir}/${track}/ — создайте их командой: scripts/task init`);
   }
   const templates: Record<string, string> = {};
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -82,7 +82,7 @@ export function newCommand(ctx: CommandContext, args: string[]): string {
       ]
       : [
         `  1. заполнить ${firstGate.file}`,
-        `  2. после явного «согласовано» владельца → npm run task -- approve ${id} ${firstGate.name}`,
+        `  2. после явного «согласовано» владельца → scripts/task approve ${id} ${firstGate.name}`,
       ]),
     ...(flowLine ? [flowLine] : []),
   ].join('\n');

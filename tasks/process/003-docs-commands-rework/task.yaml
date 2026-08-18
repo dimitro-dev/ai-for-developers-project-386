@@ -1,0 +1,25 @@
+id: process/003
+slug: docs-commands-rework
+title: Единый вход команд и контракт размещения документации
+track: full
+gates:
+  brief:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: 8adbf24d380de45d3b84fbd0383eb5232d3d8c2c26eb8e6de13adbb822e0a348
+  adr:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: d778e92205a0d591541b97432e129971e1e09779a7b338b7d67011936e4e232c
+  plan:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: a9133107c61c7befb529e4a7a4875db24113c65d2e0cf4f7a53af2abbbf33c12
+  result:
+    status: черновик
+workspace:
+  branch: task/process-003-docs-commands-rework
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/14
+meta:
+  rev: 9
+  selfHash: fb491625af47ef1b410c5f9afffa5a5af32de0a36ba4074289f312edd4005293

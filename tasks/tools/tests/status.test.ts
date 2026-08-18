@@ -161,7 +161,7 @@ describe('status — без id', () => {
     assert.match(out, /front\/guest\/002\s+реализация \(1\/3\)\s+гейт: result/);
     assert.match(out, /process\/001\s+заявлена\s+гейт: setup/);
     assert.ok(!out.includes('back/001'), 'завершённая задача в списке незавершённых не нужна');
-    assert.match(out, /Подробно: npm run task -- status <id>/);
+    assert.match(out, /Подробно: scripts\/task status <id>/);
   });
 
   it('единственную незавершённую задачу показывает сразу детально', () => {

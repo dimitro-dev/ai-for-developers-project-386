@@ -9,27 +9,9 @@
     "apps/*",
     "packages/*"
   ],
+  "//": "Секция scripts очищена задачей process/003: строка команды определена один раз — рецептом цели в Makefile. Единственное исключение — test: это вход непрозрачного авточекера Hexlet, поэтому он делегирован цели make test и удалён быть не может.",
   "scripts": {
-    "contracts:format": "tsp format \"packages/contracts/src/**/*.tsp\"",
-    "contracts:format:check": "tsp format --check \"packages/contracts/src/**/*.tsp\"",
-    "contracts:build": "tsp compile packages/contracts/src/main.tsp --config packages/contracts/tspconfig.yaml",
-    "generate": "npm run contracts:build && npm run generate:client && npm run generate:backend",
-    "generate:client": "openapi-ts -f packages/api-client/openapi-ts.config.ts",
-    "generate:backend": "openapi-ts -f packages/backend-contract/openapi-ts.config.ts",
-    "generate:check": "npm run generate && git diff --exit-code -- packages/contracts/generated packages/api-client/src/generated packages/backend-contract/src/generated",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "uispec:validate": "test ! -d docs/ui-spec-kit || python3 docs/ui-spec-kit/tools/uispec/validate_uispec.py --config docs/ui-spec-kit/uispec.config.json",
-    "test": "npm run uispec:validate && npm run task:check && node --experimental-strip-types tests/contract-validation.test.ts",
-    "mock:prism": "prism mock packages/contracts/generated/openapi.yaml -p 4010",
-    "build": "npm run build --workspaces --if-present",
-    "db:up": "docker compose -f infra/compose.yml up -d --wait",
-    "db:down": "docker compose -f infra/compose.yml down",
-    "db:logs": "docker compose -f infra/compose.yml logs -f postgres",
-    "db:reset": "docker compose -f infra/compose.yml down -v",
-    "task": "test ! -d tasks || node --experimental-strip-types tasks/tools/task.ts",
-    "task:check": "test ! -d tasks || npm run task -- check",
-    "task:test": "test ! -d tasks || (cd tasks/tools && node --experimental-strip-types --test)",
-    "task:typecheck": "test ! -d tasks || tsc --noEmit -p tasks/tools/tsconfig.json"
+    "test": "make test"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.99.0",

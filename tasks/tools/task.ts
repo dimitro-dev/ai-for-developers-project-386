@@ -49,7 +49,7 @@ function help(): string {
   const width = Math.max(...COMMANDS.map((command) => command.usage.length));
   const lines = COMMANDS.map((command) => `  ${command.usage.padEnd(width)}  ${command.summary}`);
   return [
-    'Использование: npm run task -- <команда> [аргументы]',
+    'Использование: scripts/task <команда> [аргументы]',
     '',
     'Команды:',
     ...lines,
@@ -80,7 +80,7 @@ export function run(argv: string[]): number {
 
   const spec = COMMANDS.find((candidate) => candidate.name === command);
   if (!spec) {
-    console.error(`Неизвестная команда «${command}». Список команд: npm run task -- --help`);
+    console.error(`Неизвестная команда «${command}». Список команд: scripts/task --help`);
     return 1;
   }
 

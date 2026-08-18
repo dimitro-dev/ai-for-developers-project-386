@@ -3,7 +3,7 @@
 # Штатный entrypoint образа создаёт только POSTGRES_DB.
 #
 # Каталог /docker-entrypoint-initdb.d/ отрабатывает ТОЛЬКО при инициализации пустого каталога
-# данных: на существующем volume правка этого файла ничего не изменит — нужен `npm run db:reset`.
+# данных: на существующем volume правка этого файла ничего не изменит — нужна цель `make db-reset`.
 set -euo pipefail
 
 test_db="${POSTGRES_TEST_DB:-minical_test}"
