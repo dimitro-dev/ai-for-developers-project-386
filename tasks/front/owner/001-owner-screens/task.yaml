@@ -25,11 +25,11 @@ gates:
     approvedAt: 2026-08-17
     sha256: ad8454b1a2d26fdceac98e403e00fe71d2140b76fa0f425b2dcdbb953b400baf
   result:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: b8c48409708b121be525c3eecb2438ccd875b1eb1be4fc8e4003483c5063df86
 workspace:
-  branch: task/front-owner-001-owner-screens
-  worktree: ../minical-front-owner-001
   mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/13
 meta:
-  rev: 12
-  selfHash: a87a565fe672542576a7520c7f3b6a75e6eeea507b68a2304bb49344cd76e67d
+  rev: 13
+  selfHash: cecf511fc8c34c9e54138f9e9f2da2f490bdea1750764cb79e733c5de75ff9d4

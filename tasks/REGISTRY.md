@@ -50,7 +50,7 @@
 
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
-| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/), [front/ui/003](front/ui/003-owner-uispec-sync/) | результат (22/22) |
+| [front/owner/001](front/owner/001-owner-screens/) | Экраны владельца | [back/001](back/001-api-skeleton/), [front/guest/001](front/guest/001-client-foundation/), [front/ui/003](front/ui/003-owner-uispec-sync/) | завершена (22/22) |
 
 ### process
 
@@ -65,7 +65,6 @@
 
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
-| [front/owner/001](front/owner/001-owner-screens/) | результат (22/22) | Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17 | — |
 | [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
 | [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
@@ -77,6 +76,7 @@
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
 | [front/ui/003](front/ui/003-owner-uispec-sync/) | завершена (7/7) | Разблокирует front/owner/001: owner-спеки приводятся к контракту 0.2.0, решениям сессии 2026-08-17 и новым макетам | — |
+| [front/owner/001](front/owner/001-owner-screens/) | завершена (22/22) | Экраны владельца по синхронизированным спекам; приоритет перед back/002–003 — решение владельца 2026-08-17 | — |
 | [infra/005](infra/005-generated-entrypoints/) | завершена (9/9) | Точки входа generated-пакетов: без exports пакеты не импортируются по имени; блокировала контракт и backend | — |
 | [contract/001](contract/001-guest-flow-extensions/) | завершена (16/16) | Контракт вперёд кода: расширения по макету гостевого флоу и гапы G1, G2, G4 — дешевле до реализации backend | [front/ui/002](front/ui/002-guest-uispec-rebuild/) |
 | [back/001](back/001-api-skeleton/) | завершена (17/17) | Каркас API по итоговому контракту 0.2.0; разблокировал infra/003 и сквозную проверку | [front/ui/002](front/ui/002-guest-uispec-rebuild/), [front/guest/001](front/guest/001-client-foundation/), [front/guest/002](front/guest/002-guest-screens/) |
