@@ -69,7 +69,7 @@ describe('new — полный трек', () => {
     assert.match(out, /Создана задача back\/001 — REST-каркас \(трек full\)/);
     assert.match(out, /tasks\/back\/001-api-skeleton\/task\.yaml/);
     assert.match(out, /1\. заполнить brief\.md/);
-    assert.match(out, /2\. после явного «согласовано» владельца → npm run task -- approve back\/001 brief/);
+    assert.match(out, /2\. после явного «согласовано» владельца → scripts\/task approve back\/001 brief/);
   });
 
   it('подставляет id и заголовок в документы', () => {
@@ -144,7 +144,7 @@ describe('new — отказы', () => {
 
   it('без шаблонов трека команда отсылает к init', () => {
     const built = createTree([]);
-    assert.throws(() => newCommand(context(built), ['back', 'api-skeleton']), /шаблоны трека "full" не найдены.*npm run task -- init/s);
+    assert.throws(() => newCommand(context(built), ['back', 'api-skeleton']), /шаблоны трека "full" не найдены.*scripts\/task init/s);
     assert.ok(!existsSync(join(built.root, 'back', '001-api-skeleton')), 'директория не создаётся до проверки шаблонов');
   });
 });

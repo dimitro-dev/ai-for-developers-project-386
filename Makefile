@@ -28,7 +28,7 @@ contract-test: ## Контрактный гейт: точный список rou
 	node --experimental-strip-types tests/contract-validation.test.ts
 
 task-check: ## Проверить целостность дерева задач и свежесть реестра
-	node --experimental-strip-types tasks/tools/task.ts check
+	test ! -d tasks || scripts/task check
 
 uispec-validate: ## Проверить UISpec owner-flow и guest-flow
 	python3 docs/ui-spec-kit/tools/uispec/validate_uispec.py --config docs/ui-spec-kit/uispec.config.json

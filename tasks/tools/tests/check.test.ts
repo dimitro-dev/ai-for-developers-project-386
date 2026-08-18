@@ -131,7 +131,7 @@ describe('check — ошибки', () => {
     const built = tree();
     const file = taskFile(built, DIR, MANIFEST_FILE);
     writeFileSync(file, readFileSync(file, 'utf8').replace('REST-каркас', 'REST-каркас (правка руками)'), 'utf8');
-    assertOnly(built, /meta\.selfHash не сходится.*npm run task -- repair back\/001/s);
+    assertOnly(built, /meta\.selfHash не сходится.*scripts\/task repair back\/001/s);
   });
 
   it('нарушен порядок статусов гейтов', () => {
@@ -146,7 +146,7 @@ describe('check — ошибки', () => {
     assert.deepEqual(errors(built), []);
 
     writeFileSync(taskFile(built, DIR, 'brief.md'), `${BRIEF}\nДописано после согласования.\n`, 'utf8');
-    assertOnly(built, /гейт "brief": brief\.md изменён после согласования — верните содержимое или откатите гейт: npm run task -- draft back\/001 brief/);
+    assertOnly(built, /гейт "brief": brief\.md изменён после согласования — верните содержимое или откатите гейт: scripts\/task draft back\/001 brief/);
   });
 
   it('перевод пункта плана дрейфом не считается', () => {
@@ -215,7 +215,7 @@ describe('check — предупреждения', () => {
 
   it('чеклист длиннее семи пунктов — признак full', () => {
     const built = lite({ 'task.md': checklist(8) });
-    assert.match(warnings(built)[0]!, /lite-задача с признаками full: 8 пунктов чеклиста \(больше 7\) — рассмотрите npm run task -- promote process\/001/);
+    assert.match(warnings(built)[0]!, /lite-задача с признаками full: 8 пунктов чеклиста \(больше 7\) — рассмотрите scripts\/task promote process\/001/);
     assert.deepEqual(errors(built), []);
   });
 
@@ -327,10 +327,10 @@ describe('check — живое дерево', () => {
 
 describe('check — употребление', () => {
   it('лишний аргумент отсекается подсказкой', () => {
-    assert.throws(() => checkCommand(context(tree()), ['back/001']), /употребление: npm run task -- check/);
+    assert.throws(() => checkCommand(context(tree()), ['back/001']), /употребление: scripts\/task check/);
   });
 
   it('repair требует ровно один id', () => {
-    assert.throws(() => repairCommand(context(tree()), []), /Употребление: npm run task -- repair <id>/);
+    assert.throws(() => repairCommand(context(tree()), []), /Употребление: scripts\/task repair <id>/);
   });
 });

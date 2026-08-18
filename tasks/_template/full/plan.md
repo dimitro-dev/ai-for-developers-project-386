@@ -20,6 +20,6 @@
 
 Полный список — в корневом `AGENTS.md`, результаты фиксируются в `result.md`.
 
-- [ ] `npm run uispec:validate` — при изменениях в `docs/ui-spec-kit/` или UI-коде `apps/client/` (входит в `npm test`, в клоне без `docs/` скипается)
+- [ ] `make uispec-validate` — при изменениях в `docs/ui-spec-kit/` или UI-коде `apps/client/` (входит в `make test`)
 
 ## Блокеры и открытые вопросы

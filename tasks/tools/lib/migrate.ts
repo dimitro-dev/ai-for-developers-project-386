@@ -453,7 +453,7 @@ function appendLegacyNote(root: string): void {
 }
 
 export function migrateCommand(ctx: CommandContext, args: string[]): string {
-  if (parseFlags(args).positional.length > 0) throw new CliError('употребление: npm run task -- migrate');
+  if (parseFlags(args).positional.length > 0) throw new CliError('употребление: scripts/task migrate');
   const { root, config } = ctx;
   preflight(root, config);
 
@@ -552,7 +552,7 @@ export function migrateCommand(ctx: CommandContext, args: string[]): string {
     `  ссылок переписано: ${links.length} в ${new Set(links.map((change) => change.file)).size} файлах`,
     '',
     'Дальше:',
-    '  1. npm run task -- registry',
-    '  2. npm run task -- check',
+    '  1. scripts/task registry',
+    '  2. scripts/task check',
   ].join('\n');
 }

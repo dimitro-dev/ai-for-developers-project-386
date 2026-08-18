@@ -89,7 +89,7 @@ function documentProblems(target: TaskView, config: TasksConfig): string[] {
       continue;
     }
     if (actual !== state.sha256) {
-      problems.push(`гейт "${gate.name}": ${gate.file} изменён после согласования — верните содержимое или откатите гейт: npm run task -- draft ${location.id} ${gate.name}`);
+      problems.push(`гейт "${gate.name}": ${gate.file} изменён после согласования — верните содержимое или откатите гейт: scripts/task draft ${location.id} ${gate.name}`);
     }
   }
   return problems;
@@ -136,7 +136,7 @@ function trackWarnings(target: TaskView, config: TasksConfig): string[] {
   }
   if (signs.length === 0) return [];
 
-  return [`lite-задача с признаками full: ${signs.join('; ')} — рассмотрите npm run task -- promote ${target.location.id}`];
+  return [`lite-задача с признаками full: ${signs.join('; ')} — рассмотрите scripts/task promote ${target.location.id}`];
 }
 
 export function checkTree(ctx: CommandContext): CheckReport {
@@ -166,7 +166,7 @@ export function checkTree(ctx: CommandContext): CheckReport {
       add(`id "${manifest.id}" не совпадает с путём — по директории это ${location.id}`);
     }
     if (!verifySelfHash(manifest, config)) {
-      add(`meta.selfHash не сходится — task.yaml правили в обход CLI. После ревью примите состояние: npm run task -- repair ${location.id}`);
+      add(`meta.selfHash не сходится — task.yaml правили в обход CLI. После ревью примите состояние: scripts/task repair ${location.id}`);
     }
 
     const order = gateOrderProblem(target, config);
@@ -216,7 +216,7 @@ export function renderReport(report: CheckReport): string {
 
 export function checkCommand(ctx: CommandContext, args: string[]): CommandResult {
   if (parseFlags(args).positional.length > 0) {
-    throw new CliError('употребление: npm run task -- check');
+    throw new CliError('употребление: scripts/task check');
   }
   const report = checkTree(ctx);
   return { text: renderReport(report), code: report.errors.length > 0 ? 1 : 0 };
@@ -247,6 +247,6 @@ export function repairCommand(ctx: CommandContext, args: string[]): string {
   return [
     `Состояние задачи ${written.id} принято, rev ${written.meta.rev}.`,
     '  task.yaml перезаписан канонически, selfHash пересчитан',
-    '  остальные инварианты: npm run task -- check',
+    '  остальные инварианты: scripts/task check',
   ].join('\n');
 }

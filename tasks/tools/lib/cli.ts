@@ -89,7 +89,7 @@ export function flagValue(parsed: ParsedArgs, name: string): string | undefined 
 /** Ровно `count` позиционных аргументов, иначе — подсказка по употреблению. */
 export function expectPositional(parsed: ParsedArgs, count: number, usage: string): string[] {
   if (parsed.positional.length !== count) {
-    throw new CliError(`ожидалось аргументов: ${count}, получено ${parsed.positional.length}. Употребление: npm run task -- ${usage}`);
+    throw new CliError(`ожидалось аргументов: ${count}, получено ${parsed.positional.length}. Употребление: scripts/task ${usage}`);
   }
   return parsed.positional;
 }

@@ -105,7 +105,7 @@ export function renderDetail(ctx: CommandContext, target: TaskView, stages: Map<
 export function statusCommand(ctx: CommandContext, args: string[]): string {
   const parsed = parseFlags(args);
   if (parsed.positional.length > 1) {
-    throw new CliError('употребление: npm run task -- status [id]');
+    throw new CliError('употребление: scripts/task status [id]');
   }
   const { views, broken } = loadViews(ctx.root, ctx.config);
   const stages = new Map(views.map((item) => [item.manifest.id, item.info.stage]));
@@ -123,8 +123,8 @@ export function statusCommand(ctx: CommandContext, args: string[]): string {
   }
   if (unfinished.length === 0) {
     return [
-      views.length === 0 ? 'Задач нет — заведите первую: npm run task -- new <тип> <слаг>' : 'Незавершённых задач нет.',
-      ...(views.length === 0 ? [] : ['Все задачи: npm run task -- list']),
+      views.length === 0 ? 'Задач нет — заведите первую: scripts/task new <тип> <слаг>' : 'Незавершённых задач нет.',
+      ...(views.length === 0 ? [] : ['Все задачи: scripts/task list']),
       ...brokenLines(broken),
     ].join('\n');
   }
@@ -140,7 +140,7 @@ export function statusCommand(ctx: CommandContext, args: string[]): string {
       ]),
     ),
     '',
-    'Подробно: npm run task -- status <id>',
+    'Подробно: scripts/task status <id>',
     ...brokenLines(broken),
   ].join('\n');
 }
@@ -148,7 +148,7 @@ export function statusCommand(ctx: CommandContext, args: string[]): string {
 export function listCommand(ctx: CommandContext, args: string[]): string {
   const parsed = parseFlags(args, { value: ['type'] });
   if (parsed.positional.length > 0) {
-    throw new CliError('употребление: npm run task -- list [--type <тип>]');
+    throw new CliError('употребление: scripts/task list [--type <тип>]');
   }
   const filter = flagValue(parsed, 'type');
   if (filter !== undefined && !ctx.config.types.some((type) => type === filter || type.startsWith(`${filter}/`))) {
