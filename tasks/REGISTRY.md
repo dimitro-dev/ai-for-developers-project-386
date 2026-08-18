@@ -22,7 +22,7 @@
 | [infra/006](infra/006-ci-release-please/) | CI: обязательные проверки и release-please на GitHub Actions | — | завершена (10/10) |
 | [infra/007](infra/007-e2e-native-framework/) | Выбор native e2e-фреймворка: Detox, Maestro или Appium | [infra/002](infra/002-android-builder/), [front/guest/002](front/guest/002-guest-screens/) | заявлена |
 | [infra/008](infra/008-e2e-web-playwright/) | Web e2e на Playwright: сквозной прогон гостевого сценария | [front/guest/002](front/guest/002-guest-screens/), [back/001](back/001-api-skeleton/), [infra/006](infra/006-ci-release-please/) | заявлена |
-| [infra/009](infra/009-docker-deploy/) | Публикация приложения: Docker-образ и деплой | — | реализация (7/10) |
+| [infra/009](infra/009-docker-deploy/) | Публикация приложения: Docker-образ и деплой | — | реализация (8/10) |
 
 ### back
 
@@ -72,7 +72,7 @@
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [infra/008](infra/008-e2e-web-playwright/) | заявлена | Web e2e дешевле native: testID уже проставлены, react-native-web мапит их в data-testid; эмулятор и APK не нужны. Защищает гостевой сценарий от регрессий во время работы над owner-flow и снимает часть объёма с infra/007 | — |
 | [infra/007](infra/007-e2e-native-framework/) | заявлена | Выбор native e2e-инструмента (Detox / Maestro / Appium) и способа его запуска; нужен работающий APK-контур из infra/002 и эмулятор с аппаратной виртуализацией — на macOS-хосте только вне Docker | — |
-| [infra/009](infra/009-docker-deploy/) | реализация (7/10) | Внешнее требование учебной платформы: Dockerfile, старт по PORT, публичная ссылка. Раньше back/002 — решение владельца 2026-08-18: с базой задача про образ растёт, а переезд на неё потом образ не переписывает | — |
+| [infra/009](infra/009-docker-deploy/) | реализация (8/10) | Внешнее требование учебной платформы: Dockerfile, старт по PORT, публичная ссылка. Раньше back/002 — решение владельца 2026-08-18: с базой задача про образ растёт, а переезд на неё потом образ не переписывает | — |
 
 ### История выполнения
 
