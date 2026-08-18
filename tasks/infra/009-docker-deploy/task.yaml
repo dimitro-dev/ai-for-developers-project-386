@@ -19,6 +19,9 @@ gates:
     sha256: 3298646b8eb5b2946f9f1e6177715218de77f862218cf14e9f629f348e83686b
   result:
     status: черновик
+workspace:
+  branch: task/infra-009-docker-deploy
+  worktree: ../minical-infra-009
 meta:
-  rev: 6
-  selfHash: 1b8e82ef49305008fbba550a36822e74db6933c3c5fc4950bc16fbd07ffa4df7
+  rev: 8
+  selfHash: 64c20653852e5a40425dc19d2767abb61596d6a3f3f74881e4405d1ab8c184eb
