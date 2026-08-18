@@ -21,17 +21,18 @@ function withProductionMode<T>(run: () => T): T {
   }
 }
 
+const originalValue = process.env[ENV_KEY];
+
+// Файловый хук: каждый блок ниже задаёт переменную по-своему, восстановление у всех одно.
+afterEach(() => {
+  if (originalValue === undefined) {
+    delete process.env[ENV_KEY];
+  } else {
+    process.env[ENV_KEY] = originalValue;
+  }
+});
+
 describe('resolveApiBaseUrl', () => {
-  const originalValue = process.env[ENV_KEY];
-
-  afterEach(() => {
-    if (originalValue === undefined) {
-      delete process.env[ENV_KEY];
-    } else {
-      process.env[ENV_KEY] = originalValue;
-    }
-  });
-
   it('без переменной окружения отдаёт Prism-дефолт', () => {
     delete process.env[ENV_KEY];
 
@@ -64,16 +65,6 @@ describe('resolveApiBaseUrl', () => {
 });
 
 describe('resolveApiBaseUrl в production-сборке', () => {
-  const originalValue = process.env[ENV_KEY];
-
-  afterEach(() => {
-    if (originalValue === undefined) {
-      delete process.env[ENV_KEY];
-    } else {
-      process.env[ENV_KEY] = originalValue;
-    }
-  });
-
   it('без переменной окружения отказывает, а не уходит на мок', () => {
     delete process.env[ENV_KEY];
 
@@ -100,15 +91,9 @@ describe('resolveApiBaseUrl в production-сборке', () => {
 });
 
 describe('configureApiClient', () => {
-  const originalValue = process.env[ENV_KEY];
   const originalBaseUrl = client.getConfig().baseUrl;
 
   afterEach(() => {
-    if (originalValue === undefined) {
-      delete process.env[ENV_KEY];
-    } else {
-      process.env[ENV_KEY] = originalValue;
-    }
     client.setConfig({ baseUrl: originalBaseUrl });
   });
 
