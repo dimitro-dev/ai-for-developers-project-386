@@ -16,13 +16,18 @@ export type IconName =
   | 'calendar'
   | 'calendar-x'
   | 'check-circle'
+  | 'chevron-down'
   | 'chevron-right'
   | 'clock'
   | 'cloud-off'
   | 'event-type'
   | 'globe'
   | 'info'
+  | 'layout-grid'
   | 'mail'
+  | 'message-square'
+  | 'plus'
+  | 'settings'
   | 'user';
 
 /**
@@ -50,10 +55,12 @@ const feather = Feather as unknown as GlyphFamily;
 const materialCommunity = MaterialCommunityIcons as unknown as GlyphFamily;
 
 /**
- * Основное семейство — Feather: 12 из 14 имён спеков совпадают с его глифами буквально.
- * Двум именам прямого глифа в Feather нет, они берутся из MaterialCommunityIcons того же пакета:
+ * Основное семейство — Feather: 16 из 19 имён спеков совпадают с его глифами буквально.
+ * Трём именам прямого глифа в Feather нет, они берутся из MaterialCommunityIcons того же пакета:
  * `calendar-x` → `calendar-remove`, `event-type` → `forum` (парный речевой пузырь кадров 1–7
- * `guest-mobile-flow.png`).
+ * `guest-mobile-flow.png`), `layout-grid` → `view-grid` (Feather не содержит этого имени, оно
+ * пришло в набор владельца из более позднего Lucide; `view-grid` — тот же смысл «сетка карточек»,
+ * header action экрана 05 `owner.upcoming-meetings`).
  */
 const GLYPHS: Readonly<Record<IconName, Glyph>> = {
   'alert-circle': { family: feather, glyph: 'alert-circle' },
@@ -62,13 +69,18 @@ const GLYPHS: Readonly<Record<IconName, Glyph>> = {
   calendar: { family: feather, glyph: 'calendar' },
   'calendar-x': { family: materialCommunity, glyph: 'calendar-remove' },
   'check-circle': { family: feather, glyph: 'check-circle' },
+  'chevron-down': { family: feather, glyph: 'chevron-down' },
   'chevron-right': { family: feather, glyph: 'chevron-right' },
   clock: { family: feather, glyph: 'clock' },
   'cloud-off': { family: feather, glyph: 'cloud-off' },
   'event-type': { family: materialCommunity, glyph: 'forum' },
   globe: { family: feather, glyph: 'globe' },
   info: { family: feather, glyph: 'info' },
+  'layout-grid': { family: materialCommunity, glyph: 'view-grid' },
   mail: { family: feather, glyph: 'mail' },
+  'message-square': { family: feather, glyph: 'message-square' },
+  plus: { family: feather, glyph: 'plus' },
+  settings: { family: feather, glyph: 'settings' },
   user: { family: feather, glyph: 'user' },
 };
 

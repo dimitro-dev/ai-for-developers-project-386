@@ -1,24 +1,37 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { AppIcon } from '@/design-system/components/AppIcon';
+import { AppIcon, type IconName } from '@/design-system/components/AppIcon';
 import { AppText } from '@/design-system/components/AppText';
 import { Row } from '@/design-system/layout/Row';
 import { useColors } from '@/design-system/theme';
 import { sizes, spacing, typography } from '@/design-system/tokens';
 
+/** Элемент `$props.rightActions` спеки `app-header` (тег `Repeat` → `IconButton`). */
+export interface HeaderAction {
+  id: string;
+  icon: IconName;
+  accessibilityLabel: string;
+  onPress: () => void;
+}
+
 export interface AppHeaderProps {
   title: string;
   /** Кнопка «Назад» появляется, только если действие передано. */
   backAction?: () => void;
+  /**
+   * Правые icon-действия. Правило спеки «максимум две header actions справа» соблюдается
+   * структурно: лишние элементы отбрасываются, а не падают молча в layout.
+   */
+  rightActions?: HeaderAction[];
   testID?: string;
 }
 
-/**
- * UISpec-тег `Header`. `rightActions` спеки не реализованы: гостевые экраны их не используют,
- * а `AppIconButton` в этой задаче не создаётся.
- */
-export function AppHeader({ title, backAction, testID }: AppHeaderProps) {
+const MAX_RIGHT_ACTIONS = 2;
+
+/** UISpec-тег `Header`. */
+export function AppHeader({ title, backAction, rightActions, testID }: AppHeaderProps) {
   const colors = useColors();
+  const visibleActions = rightActions?.slice(0, MAX_RIGHT_ACTIONS);
   return (
     <Row
       testID={testID}
@@ -34,7 +47,7 @@ export function AppHeader({ title, backAction, testID }: AppHeaderProps) {
           onPress={backAction}
           accessibilityRole="button"
           accessibilityLabel="Назад"
-          style={styles.backTarget}
+          style={styles.touchTarget}
         >
           <AppIcon name="arrow-left" size={sizes.icon.medium} color={colors.icon.primary} />
         </Pressable>
@@ -42,13 +55,25 @@ export function AppHeader({ title, backAction, testID }: AppHeaderProps) {
       <AppText typography={typography.title.medium} color={colors.text.primary} flex={1} numberOfLines={1}>
         {title}
       </AppText>
+      {visibleActions?.map((action) => (
+        <Pressable
+          key={action.id}
+          testID={`app-header-action-${action.id}`}
+          onPress={action.onPress}
+          accessibilityRole="button"
+          accessibilityLabel={action.accessibilityLabel}
+          style={styles.touchTarget}
+        >
+          <AppIcon name={action.icon} size={sizes.icon.medium} color={colors.icon.primary} />
+        </Pressable>
+      ))}
     </Row>
   );
 }
 
 const styles = StyleSheet.create({
   // Touch target не меньше 48 dp (MANUAL §10), при этом иконка остаётся размером токена.
-  backTarget: {
+  touchTarget: {
     width: sizes.touch.android,
     height: sizes.touch.android,
     alignItems: 'center',

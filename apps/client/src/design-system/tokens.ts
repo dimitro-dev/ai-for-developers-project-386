@@ -99,7 +99,7 @@ const dark: ColorTokens = {
   background: { primary: '#111318', secondary: '#1A1E26', scrim: '#00000099' },
   surface: { primary: '#191D24', selected: '#20345F' },
   text: { primary: '#F7F8FA', secondary: '#AEB5C3', onPrimary: '#FFFFFF' },
-  action: { primary: '#4D86FF', primaryPressed: '#6A99FF' },
+  action: { primary: '#246BFD', primaryPressed: '#1554D6' },
   border: { default: '#343945', focus: '#6A99FF' },
   icon: { primary: '#EEF1F7', secondary: '#AAB2C2' },
   status: {
