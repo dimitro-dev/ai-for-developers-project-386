@@ -1,27 +1,32 @@
-# Expo HAS CHANGED
+# @minical/client — React Native / Web
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Зона единого клиента MiniCal: UI, навигация и клиентская логика owner-flow и guest-flow на Expo 57,
+React Native 0.86 и react-native-web. Запуск, переменные окружения и сборка — [`README.md`](README.md)
+этого каталога.
 
-## Роль и границы
+Expo меняется от версии к версии: до первой строки кода читай версионированную документацию
+https://docs.expo.dev/versions/v57.0.0/ — память о прежних версиях источником не является.
 
-Зона Frontend Agent: реализовывать React Native/web интерфейс и клиентскую логику MiniCal.
-
-### Читать
+## Читать
 
 ```text
+apps/client/README.md — режимы запуска, EXPO_PUBLIC_*, debug-сборка Android
 корневой AGENTS.md
 согласованные документы активной задачи (гейты — в её task.yaml; см. tasks/AGENTS.md)
 plan.md активной задачи
 связанные generated SDK/types
 docs/domain-rules.md — для отображаемого поведения
 docs/architecture.md — при изменении структуры клиента
-docs/ui-spec-kit/README.md и MANUAL.md — перед любым экраном owner-flow или guest-flow
+docs/ui-spec-kit/README.md — что является источником истины и как запускать инструменты кита
+docs/ui-spec-kit/MANUAL.md — формат спеки, §3 приоритеты при конфликте, §5 layout,
+                             §6 генерация React Native, §7 типы, §10 accessibility,
+                             §12 визуальная сверка, §13 запрещённые действия
 docs/ui-spec-kit/specs/ui/** — UISpec экрана, компоненты, токены, registry, api-bindings
-.opencode/skills/uispec-generator/SKILL.md — обязательный скилл для создания UI
-раздел «Expo HAS CHANGED» выше — версионированные docs Expo v57
+.opencode/skills/uispec-generator/SKILL.md — обязательный процесс создания UI
+https://docs.expo.dev/versions/v57.0.0/ — версионированная документация Expo
 ```
 
-### Разрешено менять
+## Разрешено менять
 
 ```text
 apps/client/**
@@ -34,59 +39,16 @@ docs/ui-spec-kit/specs/ui/** — только если правка UISpec пр�
 frontend-раздел активного result.md
 ```
 
-## UI создаётся из UISpec
-
-Экраны не проектируются «от себя». Owner-flow и guest-flow уже описаны декларативно в `docs/ui-spec-kit/specs/ui/`: `screens/` — по одному `*.screen.md` на экран, `components/`, `tokens/`, `navigation/`, `bindings/`, плюс визуальный reference в `ui-screen-mockups/`. UISpec — источник истины для внешнего вида, состояний и токенов; TypeSpec проекта остаётся источником истины для HTTP.
-
-Для создания и изменения UI обязателен процесс скилла [`uispec-generator`](../../.opencode/skills/uispec-generator/SKILL.md). В OpenCode он вызывается как скилл; в Claude Code — доступен через `.claude/skills`, а при отсутствии симлинка `SKILL.md` читается как инструкция и выполняется по шагам вручную. Обязателен именно процесс, а не способ вызова. Порядок работы:
-
-```text
-1. Найти *.screen.md нужного экрана в docs/ui-spec-kit/specs/ui/screens/
-   и связанные *.component.md, tokens, components.registry.xml, api-bindings.xml.
-2. Прочитать MANUAL.md — формат файла, layout-правила, приоритеты при конфликте.
-3. Провалидировать спеки ДО генерации:
-   cd docs/ui-spec-kit && python3 tools/uispec/validate_uispec.py specs/ui
-   Ожидаемый результат: валидатор завершается с `errors=0` (число файлов в наборе агент считает сам).
-4. Сгенерировать каркас: сначала TypeScript models/state/actions,
-   затем React Native view, затем fixtures и тесты.
-   cd docs/ui-spec-kit && python3 tools/uispec/generate_scaffold.py \
-     specs/ui/screens/<NN-name>.screen.md --out <каталог>
-5. Дописать бизнес-логику, запросы через generated SDK, timezone-преобразования
-   и анимации вручную по правилам MANUAL.md.
-```
-
-На этом хосте есть только `python3`; `python` отсутствует в PATH, поэтому команды из `docs/ui-spec-kit/README.md` и `SKILL.md` с `python` упадут с кодом 127. Скрипты кита существуют в одном экземпляре — канон лежит в `docs/ui-spec-kit/tools/uispec/`, а в скилл `uispec-generator` попадает симлинком `scripts/`; копий, которые могли бы разойтись, нет.
-
-`generate_scaffold.py` создаёт каталог `--out` и пишет в него три файла: `{Name}.types.generated.ts`, `{Name}.generated.tsx`, `{Name}.models.generated.tsp`. Сгенерированный `.tsp` — фрагмент локальных UISpec-моделей; он **не** копируется в `packages/contracts/src/**`. Модели с `source="api"` и `operation`-ссылки действий привязываются к уже существующему контракту проекта, а не описываются заново.
-
-Правила генерации:
-
-- каждый UI-тег резолвится через `components.registry.xml`; произвольные примитивы вместо зарегистрированных компонентов не подставляются;
-- генерация идёт в `*.generated.*`; рукописные wrapper-ы, use-cases, mappers и тесты не перезаписываются;
-- состояния экрана — discriminated unions; API DTO и view model не отождествляются; view остаётся презентационным, данные приходят из container/use-case;
-- явно объявленные спекой состояния (loading, empty, content, refreshing, error, validation) реализуются все;
-- значения берутся из token references, а не хардкодятся; для icon-only контролов нужны accessibility labels, для Android — touch targets 48 dp;
-- bottom-sheet presentation сохраняется там, где так указано в спеке;
-- navigation-переходы берутся только из `navigation.uispec.xml`.
-
-Приоритет при конфликте (`MANUAL.md`, §3):
-
-```text
-UX rules и acceptance criteria экрана
-→ XML-блок UISpec
-→ design tokens и component registry
-→ визуальный reference PNG
-→ предположение агента
-```
-
-Пиксели мокапа ниже текста спеки и токенов. При противоречии внутри спеки, отсутствующем токене/ассете или недостающей API-операции автоматическая генерация спорного участка останавливается, фиксируется contract gap и выносится в `plan.md` активной задачи — далее по разделу «При недостаточном контракте».
-
-Изменение самих UISpec-файлов — изменение согласованной спецификации, а не деталь реализации: оно проходит через документы задачи (правило 8 корневого [`AGENTS.md`](../../AGENTS.md)), а не правкой в обход.
-
 ## Обязан
 
+- вести UI по UISpec: экран, его состояния, компоненты и токены берутся из
+  `docs/ui-spec-kit/specs/ui/`, а не проектируются в коде;
+- выполнять процесс скилла [`uispec-generator`](../../.opencode/skills/uispec-generator/SKILL.md) —
+  валидация спек до генерации, генерация каркаса, ручная доработка по `MANUAL.md`; обязателен именно
+  процесс, а не способ его вызова, порядок шагов и инструменты — в `docs/ui-spec-kit/README.md`;
 - использовать generated SDK и generated transport types;
-- реализовывать loading, empty, error и success states;
+- реализовывать все состояния, объявленные спекой: loading, empty, content, refreshing, error,
+  validation;
 - обрабатывать документированные status/error codes;
 - передавать UTC timestamp выбранного слота в API;
 - считать backend источником истины для доступности;
@@ -97,6 +59,8 @@ UX rules и acceptance criteria экрана
 
 - создавать ручные копии API DTO;
 - редактировать `.tsp` или generated code;
+- копировать `*.models.generated.tsp` генератора каркасов в `packages/contracts/src/**`: это
+  фрагмент локальных UISpec-моделей, а не контракт проекта;
 - писать альтернативные API routes в обход SDK;
 - вычислять authoritative `endAt`;
 - считать `GET slots` гарантией бронирования;
@@ -105,21 +69,29 @@ UX rules и acceptance criteria экрана
 - реализовывать экраны, элементы и navigation-переходы, отсутствующие в UISpec;
 - подменять зарегистрированные компоненты произвольными примитивами;
 - хардкодить цвета, отступы и размеры вместо token references;
-- менять внешний вид или набор состояний экрана в коде в обход UISpec;
-- ставить `согласовано` самовольно: правило 11 корневого [`AGENTS.md`](../../AGENTS.md), фиксация — только `task approve` после явного подтверждения владельца.
+- менять внешний вид или набор состояний экрана в коде в обход UISpec: правка самих UISpec-файлов
+  проходит через документы задачи (правило 8 корневого [`AGENTS.md`](../../AGENTS.md));
+- ставить `согласовано` самовольно: правило 11 корневого [`AGENTS.md`](../../AGENTS.md), фиксация —
+  только `scripts/task approve` после явного подтверждения владельца.
 
-## При недостаточном контракте
+## При недостающем решении
 
-Зафиксировать блокирующий пункт и требуемое изменение в `plan.md` активной задачи, затем передать contract-работу в зону [`packages/contracts/`](../../packages/contracts/AGENTS.md). TypeSpec самостоятельно не менять.
+Противоречие внутри спеки, отсутствующий токен или ассет, недостающая операция API — не повод
+достроить решение догадкой. Автоматическая генерация спорного участка останавливается, расхождение
+фиксируется как contract gap в `docs/ui-spec-kit/specs/ui/bindings/contract-gaps.xml`
+(`MANUAL.md` §8) и выносится блокирующим пунктом в `plan.md` активной задачи. Contract-работа
+передаётся в зону [`packages/contracts/`](../../packages/contracts/AGENTS.md), TypeSpec самостоятельно
+не меняется; правила каскада гейтов — в [`tasks/flows/full.md`](../../tasks/flows/full.md), иерархия
+источников правды — в `docs/sources-of-truth.md`.
 
 ## Definition of Done
 
 - UI соответствует acceptance criteria;
-- экран соответствует своему UISpec, component registry и токенам; расхождения зафиксированы как contract gap, а не «исправлены» молча;
-- `validate_uispec.py` проходит на затронутых спеках;
+- экран соответствует своему UISpec, component registry и токенам; расхождения зафиксированы как
+  contract gap, а не «исправлены» молча;
 - каждое UI-действие связано с операцией из `api-bindings.xml`;
 - применимые состояния реализованы;
 - generated SDK используется без обходов;
-- `npm run typecheck`, `npm run uispec:validate` и `npm test -w @minical/client` проходят;
+- `make gates` этой зоны зелёный; полный набор фазы «Проверка» — `make gates` в корне репозитория;
 - изменения проверены минимум на web и Android, если задача затрагивает общий UI;
 - пункт плана и frontend-раздел `result.md` обновлены.
