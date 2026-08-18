@@ -1,7 +1,7 @@
 include ../make/common.mk
 
 typecheck: ## Проверить типы CLI задач
-	tsc --noEmit -p tools/tsconfig.json
+	$(RUN) tsc --noEmit -p tools/tsconfig.json
 
 test: ## Тесты CLI задач
 	cd tools && node --experimental-strip-types --test

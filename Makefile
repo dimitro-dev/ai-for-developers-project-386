@@ -12,8 +12,8 @@ setup: ## Установить зависимости репозитория
 
 generate: ## Перегенерировать OpenAPI и generated-пакеты
 	$(MAKE) -C packages/contracts build
-	openapi-ts -f packages/api-client/openapi-ts.config.ts
-	openapi-ts -f packages/backend-contract/openapi-ts.config.ts
+	$(RUN) openapi-ts -f packages/api-client/openapi-ts.config.ts
+	$(RUN) openapi-ts -f packages/backend-contract/openapi-ts.config.ts
 
 generate-check: ## Перегенерировать и упасть при diff в generated (защита от drift)
 	$(MAKE) generate
@@ -46,7 +46,7 @@ zones: ## Показать зоны, участвующие в фан-ауте
 	@for zone in $(ZONES); do echo $$zone; done
 
 mock: ## Поднять Prism-мок контракта на порту 4010
-	prism mock packages/contracts/generated/openapi.yaml -p 4010
+	$(RUN) prism mock packages/contracts/generated/openapi.yaml -p 4010
 
 db-up: ## Поднять PostgreSQL и дождаться healthy
 	$(MAKE) -C infra up

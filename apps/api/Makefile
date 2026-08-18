@@ -1,7 +1,7 @@
 include ../../make/common.mk
 
 typecheck: ## Проверить типы зоны
-	tsc --noEmit
+	$(RUN) tsc --noEmit
 
 test: ## Тесты backend рядом с кодом
 	node --test

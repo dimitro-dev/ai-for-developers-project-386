@@ -9,6 +9,12 @@ REPO_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))..)
 # Локальный .bin зоны идёт первым — у apps/client свой TypeScript, он должен побеждать корневой.
 export PATH := $(CURDIR)/node_modules/.bin:$(REPO_ROOT)/node_modules/.bin:$(PATH)
 
+# GNU Make 3.81 исполняет простой рецепт сама, минуя shell, и ищет программу в PATH, который
+# унаследовала при старте: export выше на этот поиск не влияет, и прямой `make -C <зона> typecheck`
+# не находит tsc. Префикс передаёт запуск программе `env`, которая PATH из окружения уважает.
+# Нужен только для инструментов из node_modules/.bin; node, git, docker и python3 берутся из системы.
+RUN := env
+
 .DEFAULT_GOAL := help
 
 help: ## Показать цели этого Makefile
