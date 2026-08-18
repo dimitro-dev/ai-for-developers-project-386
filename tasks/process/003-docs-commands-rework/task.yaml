@@ -16,10 +16,11 @@ gates:
     approvedAt: 2026-08-18
     sha256: a9133107c61c7befb529e4a7a4875db24113c65d2e0cf4f7a53af2abbbf33c12
   result:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: cbb1f8cc676a431e66d14d015a3f64cd7ee9403ea39bd4005af6b11129fca7f5
 workspace:
-  branch: task/process-003-docs-commands-rework
   mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/14
 meta:
-  rev: 9
-  selfHash: fb491625af47ef1b410c5f9afffa5a5af32de0a36ba4074289f312edd4005293
+  rev: 10
+  selfHash: 85f9cfd0fe3042111168b8598618072c7d3af0094a37810bfed8260f76376855
