@@ -135,6 +135,8 @@ function main() {
     targetsByZone.set(path.dirname(rel) === '.' ? '' : path.dirname(rel), targets);
     for (const target of targets) allTargets.add(target);
   }
+  // Цели из common.mk подключены в каждую зону директивой include.
+  const common = targetsByZone.get('make') || new Set();
 
   const problems = [];
   const markers = [];
@@ -173,7 +175,7 @@ function main() {
         const zoneTargets = targetsByZone.get(zone.replace(/\/$/, ''));
         if (!zoneTargets) {
           problems.push(`${rel}:${index + 1}  зона «${zone}» не имеет Makefile: make -C ${zone} ${target}`);
-        } else if (!zoneTargets.has(target) && !targetsByZone.get('').has(target)) {
+        } else if (!zoneTargets.has(target) && !common.has(target)) {
           problems.push(`${rel}:${index + 1}  цель «${target}» не определена в ${zone}/Makefile`);
         }
       }
