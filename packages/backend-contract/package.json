@@ -8,9 +8,6 @@
     ".": "./src/generated/index.ts",
     "./zod": "./src/generated/zod.gen.ts"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
   "dependencies": {
     "zod": "^4.0.0"
   }
