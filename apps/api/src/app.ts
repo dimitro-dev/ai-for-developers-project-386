@@ -7,13 +7,22 @@ import { errorMiddleware, notFoundHandler } from './http/errors.ts';
 import { ROUTES } from './http/routes.ts';
 import { BODY_LIMIT_BYTES, cors, securityHeaders } from './http/security.ts';
 
+/** Каталоги собранных web-бандлов; оба раздаются этим же процессом (ADR §3 infra/009). */
+export interface WebBundlePaths {
+  /** Гостевой бандл, раздаётся с корня. */
+  guestDir: string;
+  /** Владельческий бандл, раздаётся с `/admin`. */
+  ownerDir: string;
+}
+
 /**
- * Единственное место, где монтируются маршруты, и единственная точка вставки
- * middleware (Р8 back-001). Порядок цепочки значим: security-заголовки и CORS стоят до
- * парсера тела, иначе ответ `413` уйдёт без `Access-Control-Allow-Origin` и браузер не
- * даст клиенту прочитать даже код ошибки (task-infra-003, Р2).
+ * Единственное место, где монтируются маршруты. Точек вставки middleware две: до цикла
+ * маршрутов (заголовки, CORS, парсер тела) и после него — раздача web-бандлов, если
+ * они переданы. Порядок цепочки значим: security-заголовки и CORS стоят до парсера
+ * тела, иначе ответ `413` уйдёт без `Access-Control-Allow-Origin` и браузер не даст
+ * клиенту прочитать даже код ошибки (task-infra-003, Р2).
  */
-export function createApp(deps: Deps): Express {
+export function createApp(deps: Deps, webBundles?: WebBundlePaths): Express {
   const app = express();
 
   // Заголовок разглашает фреймворк, потребителя у него нет.
@@ -38,6 +47,19 @@ export function createApp(deps: Deps): Express {
         app.post(route.path, handler);
         break;
     }
+  }
+
+  // Место вставки выбрано, а не случайно: раньше цикла статика затенила бы операции
+  // контракта, которые делят префикс `/admin` (`GET /admin/settings` ушёл бы в файлы);
+  // позже `notFoundHandler` — не увидела бы запрос вовсе. Реестр `ROUTES` при этом не
+  // пополняется: соответствие контракту 1:1 остаётся под тестом.
+  //
+  // Запрос без файла проваливается сквозь `express.static` дальше и получает прежний
+  // JSON-404 — SPA-fallback не вводится (навигация клиента адресную строку не
+  // использует). Security-заголовки и CORS стоят выше и накрывают статические ответы.
+  if (webBundles !== undefined) {
+    app.use(express.static(webBundles.guestDir));
+    app.use('/admin', express.static(webBundles.ownerDir));
   }
 
   app.use(notFoundHandler);

@@ -20,9 +20,11 @@ REST-backend MiniCal: все 12 операций контракта поверх
 
 ```text
 src/
-├── server.ts                 entry: loadConfig() → createMemoryStore() → createApp(deps) → listen
-├── config.ts                 PORT, PUBLIC_WEB_URL; мусорное значение = отказ старта
-├── app.ts                    createApp(deps): express.json() → цикл по ROUTES → 404 → error-middleware
+├── server.ts                 entry: loadConfig() → createMemoryStore() → сид → createApp(deps) → listen
+├── config.ts                 PORT, PUBLIC_WEB_URL, SEED_DEMO; мусорное значение = отказ старта
+├── app.ts                    createApp(deps, webBundles?): middleware → ROUTES → статика → 404 → errors
+├── bootstrap/
+│   └── seed.ts               демо-календарь через use-cases; включается флагом SEED_DEMO
 ├── http/
 │   ├── routes.ts             ROUTES — реестр 12 операций (данные) и тип OperationId
 │   ├── handlers.ts           handlers: Record<OperationId, (deps) => RequestHandler>, Deps
@@ -49,6 +51,9 @@ src/
 - `http/**` — единственное место, где живёт transport: Zod-схемы, статусы, сериализация.
 - `store/**` реализует интерфейсы и наружу больше ничего не отдаёт. Переход на PostgreSQL меняет
   `store/memory.ts` → `store/postgres.ts` плюс одну строку сборки `deps` в `server.ts`.
+- `bootstrap/**` наполняет хранилище только через `usecases/**`, а не записью в store: доменные
+  проверки выполняются те же, что на HTTP-входе, и демо-данные не разъезжаются с доменом.
+  Хранилище предполагается пустым — сид рассчитан на единственный вызов при старте процесса.
 
 ## Валидация входа — одна точка
 
@@ -82,7 +87,8 @@ keyword'ами OpenAPI 3.0 не выражаются, без них мусорн
 
 ## Middleware-цепочка
 
-Единственная точка вставки — начало `createApp`, до цикла монтирования маршрутов. Порядок значим:
+Точек вставки две, обе в `createApp`: до цикла монтирования маршрутов и сразу после него.
+Порядок значим:
 
 ```text
 securityHeaders                            X-Content-Type-Options: nosniff, X-Frame-Options: DENY
@@ -90,7 +96,9 @@ cors                                       Access-Control-Allow-Origin: * на �
                                            OPTIONS → 204 + Allow-Methods (выводятся из ROUTES)
                                            + Allow-Headers: Content-Type
 express.json({ limit: BODY_LIMIT_BYTES })  64KB; превышение → 413 PAYLOAD_TOO_LARGE
-цикл по ROUTES → notFoundHandler → errorMiddleware
+цикл по ROUTES
+static(guest) на «/», static(owner) на «/admin»   только если бандлы переданы
+notFoundHandler → errorMiddleware
 ```
 
 Заголовки стоят до парсера тела не случайно: иначе ответ `413` уйдёт без
@@ -108,13 +116,40 @@ preflight выводится из реестра `ROUTES`, поэтому не �
 `express.json()` не читает вовсе: оно не попадает в память приложения, но и `413` не получает —
 обработчик увидит пустое тело и вернёт `400 VALIDATION_ERROR`.
 
+## Раздача web-бандлов
+
+Тот же процесс раздаёт два собранных web-бандла клиента: гостевой с корня, владельческий с
+`/admin`. Второго сервера и новых зависимостей нет — `express.static` входит в Express.
+
+Место вставки — после цикла `ROUTES` и до `notFoundHandler`, и это не деталь оформления:
+
+- операции контракта смонтированы раньше и затенить их невозможно, хотя префикс `/admin` общий:
+  `GET /admin/settings` уходит в API, `GET /admin/_expo/...` — в файлы владельческого бандла;
+- запрос без файла проваливается сквозь статику дальше по цепочке и получает прежний JSON-404.
+  SPA-fallback не вводится: навигация клиента адресную строку не использует, а fallback сломал бы
+  правило «вне контракта → 404 в форме `ErrorResponse`»;
+- security-заголовки и CORS стоят выше и накрывают статические ответы;
+- реестр `ROUTES` не пополняется — соответствие контракту 1:1 остаётся под своим тестом.
+
+`GET /admin` без завершающего слэша получает штатный `301` от `serve-static` на `/admin/` —
+браузер проходит это прозрачно, а проверка по адресу должна следовать редиректу. Не-GET запросы
+статика не обслуживает вовсе, поэтому `POST /admin` — тот же JSON-404.
+
+Каталоги передаёт `server.ts` вторым необязательным параметром `createApp` — по конвенции
+`apps/client/dist/{guest,owner}`, вычисленной от файла, а не от рабочего каталога: локально
+процесс стартует из `apps/api`, в образе — из корня репозитория. Если каталогов нет (обычное
+состояние рабочей копии — бандлы собирает образ), параметр не передаётся и приложение работает
+API-only: локальная разработка и тесты зоны от раздачи не зависят.
+
 ## Тесты зоны
 
 Тесты лежат рядом с кодом: `src/http/routes.contract.test.ts` (покрытие контракта 12/12),
 `src/domain/slots.test.ts` (таймзоны, окно, сетка, пересечения), `src/store/memory.test.ts`
 (атомарность `create`, копии записей), `src/api.test.ts` (HTTP-сценарии, тела ответов сверяются
 generated response-схемами), `src/http/security.test.ts` (CORS, preflight, security-заголовки,
-лимит тела) — 71 тест в 5 файлах.
+лимит тела), `src/config.test.ts` (дефолты и отказ старта на мусорном окружении),
+`src/bootstrap/seed.test.ts` (состав демо-календаря), `src/static.test.ts` (раздача бандлов на
+временных fixture-каталогах) — 87 тестов в 8 файлах.
 
 Раннер — встроенный `node:test`, HTTP-тесты поднимают `createApp(deps)` на `listen(0)` и обращаются
 глобальным `fetch`: ни `supertest`, ни внешнего раннера в зависимостях нет. Запуск — цель `test`
@@ -132,6 +167,12 @@ generated response-схемами), `src/http/security.test.ts` (CORS, preflight
 - импорты только типов — через `import type`;
 - зависимости ставятся в корне репозитория с сохранением симлинков npm workspaces: внутри
   физического `node_modules` Node отказывается стриптить типы
-  (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`). Это требование к будущему Docker-образу.
+  (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`).
 
 Цель `typecheck` зоны — единственное место, где типы действительно проверяются.
+
+Отсюда же требования к рантайм-образу (задача `infra/009`, состав самого образа — зона
+[`infra/`](../../infra/AGENTS.md)): зависимости в него ставятся из корня репозитория, а не внутри
+`apps/api`; в образ попадают исходники зоны и `packages/backend-contract`, а не результат сборки —
+её нет; процесс стартует тем же способом, что и локально, и раздаёт собранные web-бандлы из
+каталогов конвенции, если они там лежат.
