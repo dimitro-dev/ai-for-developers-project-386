@@ -118,6 +118,26 @@ npm run android -w @minical/client # Android (эмулятор/устройст�
 npm run build -w @minical/client   # production web-экспорт в apps/client/dist
 ```
 
+Единая сборка клиента содержит оба флоу; какой из них монтируется и куда он ходит за данными, задают две переменные окружения. Обе читаются статически (`process.env.EXPO_PUBLIC_APP_MODE`), поэтому Expo инлайнит их в бандл на старте — **после смены значения dev-сервер нужно перезапустить с `--clear`**, иначе применится закешированное:
+
+- **`EXPO_PUBLIC_APP_MODE`** — `guest` (по умолчанию) или `owner`. Любое другое значение, пустая строка и отсутствие переменной дают гостевой флоу; owner-корень (`SetupCheck → Onboarding → OwnerTabs`) монтируется только при точном `owner`.
+- **`EXPO_PUBLIC_API_BASE_URL`** — адрес API. По умолчанию — mock-сервер: `http://localhost:4010`, на Android-эмуляторе `http://10.0.2.2:4010` (внутри эмулятора `localhost` — он сам). Для работы против реального backend нужен явный адрес.
+
+```bash
+# owner-флоу в браузере против реального backend
+EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://localhost:3001 \
+  npm run web -w @minical/client -- --clear
+
+# owner-флоу на Android-эмуляторе
+EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:3001 \
+  npm run android -w @minical/client
+
+# гостевой флоу — как раньше, переменные не нужны
+npm run web -w @minical/client
+```
+
+Auth в MVP нет: owner-режим — способ локально открыть экраны владельца, а не защищённая роль (правило 9 корневого `AGENTS.md`). Оба режима ходят в один backend, состояние onboarding общее.
+
 Android debug APK:
 
 ```bash

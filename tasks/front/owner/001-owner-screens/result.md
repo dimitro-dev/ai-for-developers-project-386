@@ -2,7 +2,7 @@
 
 ## Итог
 
-_Черновик. Реализация завершена (21 из 22 пунктов), остался P22 — фаза «Проверка» и закрытие._
+Все 22 пункта плана завершены, фаза «Проверка» пройдена полным набором обязательных гейтов.
 
 Owner-флоу реализован в `apps/client` по UISpec-киту: все 11 экранов, навигация
 `SetupCheck → OnboardingStack → OwnerTabs`, owner-модель и 7 admin-операций через generated SDK.
@@ -10,19 +10,17 @@ Backend, контракт и generated-пакеты не менялись (API i
 реального `back/001` выполнены на web (P20) и Android (P21); оба нашли по одному дефекту, оба
 исправлены и покрыты тестами.
 
-**Работа ведётся в worktree `../minical-front-owner-001` на ветке
-`task/front-owner-001-owner-screens`; ветка не запушена.** В основном дереве на `main` этих
-коммитов нет, поэтому `npm run task -- status` оттуда показывает прогресс `0 из 22` — актуальное
-состояние задачи видно только из worktree.
+Итог по diff `main..task/front-owner-001-owner-screens`: 118 файлов в `apps/client`
+(+10 470 / −47), из них 37 файлов тестов; вне клиента изменены только `package-lock.json`,
+корневой `README.md` (режимы запуска) и документы самой задачи.
 
-Осталось по P22: полный набор обязательных проверок, дозаполнение этого документа (разделы
-«Что изменено» по фактическому diff и «Описание для MR»), режимы запуска в корневом `README.md`,
-`task registry`, push ветки и MR.
+Работа велась в worktree `../minical-front-owner-001` на ветке
+`task/front-owner-001-owner-screens`. Пока ветка не влита в `main`, `npm run task -- status`
+из основного дерева показывает прогресс `0 из 22` — актуальное состояние видно из worktree.
 
 ## Что изменено
 
-_Заполняется по мере завершения пунктов; финальная сводка — по фактическому diff ветки
-`task/front-owner-001-owner-screens`._
+Сводка по фактическому diff ветки `task/front-owner-001-owner-screens`.
 
 - **P01** — `@react-navigation/bottom-tabs` в `apps/client` (`npx expo install`, версия подобрана
   под Expo SDK 57); правка `transformIgnorePatterns` не потребовалась.
@@ -46,6 +44,29 @@ _Заполняется по мере завершения пунктов; фи�
 - **P12** — `SettingsRow`, `MeetingCard`, `EventTypeCard`, `ScheduleCard`.
 - **P13** — `features/owner/model` (types, mappers, словарь ошибок в каноне `$error`) и
   `features/owner/usecases` (все 7 admin-операций через `runOperation`).
+- **P14** — owner-навигация: `OwnerRoot` (`SetupCheck → OnboardingStack → OwnerTabs`),
+  `OwnerTabs` с кастомным `tabBar`, стеки `OnboardingStack`, `OwnerMeetingsStack`,
+  `OwnerSettingsStack`, ручные param lists и их тест типов; ветвление корня по режиму в `App.tsx`.
+- **P15** — экран 01 `SetupCheck`: контейнер + редьюсер + view, роутинг по `onboardingCompleted`,
+  состояния `checking` / `error`.
+- **P16** — экраны 02–04: `OnboardingProfile`, `OnboardingWorkingHours` и общий
+  `AddWorkingHoursSheet` (создание и правка с префиллом, замена интервала, `ConfirmationDialog`
+  перезаписи); submit — `completeAdminSetup`.
+- **P17** — экраны 05 и 11: `OwnerMeetings` (две операции, группировка по датам владельца,
+  refresh с `preserveContent`, empty со share `publicUrl`) и `BookingDetailsSheet` на пропсах.
+- **P18** — экраны 06 и 10: `EventTypes` и `CreateEventType` (`DurationSelector`, автогенерация
+  публичного id, `InlineAlert`, `DUPLICATE_EVENT_TYPE_ID → fieldErrors['public-id']`); поддержка
+  `prefix` в `AppTextField`.
+- **P19** — экраны 07–09: `OwnerSettings`, `OwnerProfileSettings`, `OwnerWorkingHoursSettings` —
+  read-modify-write полным `SetupRequest`, dirty-гейт кнопок, sheet 04 из настроек.
+- **P20** — исправление по итогам web-прогона: таб-бар искал вкладки по именам экранов вместо
+  имён вкладок навигатора (`tabRoute` / `screenRoute` в дескрипторе), переход —
+  `navigate(tabRoute, { screen: screenRoute })`; мок теста приведён к именам реального навигатора.
+- **P21** — исправление по итогам Android-прогона: таб-бар больше не рендерится на экране 10
+  (смотрит на сфокусированный route вложенного стека, список исключений `CreateEventType`).
+- **P22** — фаза «Проверка»: полный набор гейтов, этот документ, режимы запуска клиента
+  (`EXPO_PUBLIC_APP_MODE`, `EXPO_PUBLIC_API_BASE_URL`) в разделе «Запуск» корневого `README.md`,
+  перегенерация `tasks/REGISTRY.md`.
 
 ## Контракт и generated-артефакты
 
@@ -69,15 +90,25 @@ UISpec-каркасы экранов (`features/owner/screens/generated/**`) —
 
 ## Выполненные проверки
 
-_Полный набор — в фазе «Проверка» (P22). По ходу реализации после каждого пункта прогонялись гейты
-затронутой области; на момент завершения фазы 2:_
+Полный набор обязательных гейтов корневого `AGENTS.md`, прогон 2026-08-18 в worktree
+`../minical-front-owner-001` на `task/front-owner-001-owner-screens`:
 
 ```text
-npm run typecheck            — 0 ошибок (4 workspace)
-npm test -w @minical/client  — 59 suites / 452 tests passed
-npm run uispec:validate      — Validated 40 files; errors=0
-npm test                     — контрактный gate + task:check зелёные
+npm run contracts:format:check  — ✔ 9 formatted
+npm run generate:check          — перегенерация без diff в generated
+npm run typecheck               — 0 ошибок (4 workspace)
+npm test                        — контрактный gate: all contract validation checks passed
+npm run uispec:validate         — Validated 40 files; errors=0
+                                  (V10: approved=29, draft=11; V9 open: GAP-003, GAP-004)
+npm run task:check              — 20 задач, 0 ошибок, 0 предупреждений
+npm test -w @minical/api        — 71 / 71 pass, 0 fail
+npm test -w @minical/client     — 59 suites / 453 tests passed
 ```
+
+`GAP-003` и `GAP-004` остаются `open` штатно: это известные расхождения кита с контрактом,
+зафиксированные в `contract-gaps.xml` и учтённые ADR (read-modify-write настроек), — валидатор
+их не считает ошибкой. По ходу реализации после каждого пункта прогонялись гейты затронутой
+области.
 
 ### P20 — сквозной прогон в браузере против реального `back/001`
 
@@ -238,8 +269,59 @@ Backend — тот же `apps/api` на 3001, клиент — `EXPO_PUBLIC_APP_
 
 ### Summary
 
+Owner-флоу клиента: все 11 экранов владельца по UISpec-киту, навигация
+`SetupCheck → OnboardingStack → OwnerTabs`, owner-модель и 7 admin-операций через generated SDK
+(`@minical/api-client`). Backend, TypeSpec-контракт и generated-пакеты не менялись — API impact
+`NONE`, `npm run generate` не запускался.
+
+Флоу выбирается переменной `EXPO_PUBLIC_APP_MODE` (`guest` по умолчанию, `owner` — новый корень).
+Без переменной поведение гостевого клиента прежнее; auth в MVP нет, owner-режим — локальный
+способ открыть экраны владельца, а не защищённая роль.
+
 ### Changes
+
+- **Навигация** — `OwnerRoot`, `OwnerTabs` с кастомным таб-баром, стеки онбординга, встреч и
+  настроек, ручные param lists; ветвление корня по режиму в `App.tsx`.
+- **Экраны (11)** — 01 SetupCheck; 02–04 онбординг (профиль, рабочее время, sheet интервала);
+  05 и 11 встречи и детали; 06 и 10 типы событий и создание; 07–09 настройки. Каждый экран —
+  контейнер + чистый редьюсер + view + тесты состояний и действий с моком usecases.
+- **Дизайн-система** — `AppBottomSheet`, `ConfirmationDialog`, `AppSelectField` с поиском,
+  `TimeField`, `WeekdaySelector`, `DurationSelector`, `ProgressHeader`,
+  `AnimatedSetupIllustration`, `SettingsRow`, `MeetingCard`, `EventTypeCard`, `ScheduleCard`,
+  `OwnerBottomNavigation`; `rightActions` в `AppHeader`, `prefix` в `AppTextField`, новые глифы
+  в `AppIcon`. Токены синхронизированы с китом (dark `action.primary` `#246BFD`).
+- **Инфраструктура** — `@react-navigation/bottom-tabs`; режимы запуска клиента в корневом
+  `README.md`.
+- Объём: 118 файлов в `apps/client` (+10 470 / −47), из них 37 файлов тестов.
 
 ### Verification
 
+Полный набор обязательных гейтов зелёный: `contracts:format:check`, `generate:check`,
+`typecheck`, `npm test` (контрактный gate), `uispec:validate` (40 файлов, 0 ошибок),
+`task:check`, `npm test -w @minical/api` (71/71), `npm test -w @minical/client`
+(59 suites / 453 tests).
+
+Сквозные прогоны против реального backend `back/001` — сценарии A–D из brief:
+
+- **web** (`expo start --web`, `EXPO_PUBLIC_API_BASE_URL=http://localhost:3001`) — все четыре
+  сценария пройдены, гостевой режим без регрессий, `expo export --platform web` успешен;
+- **Android** (Pixel_Android_15, Expo Go, `http://10.0.2.2:3001`) — все четыре сценария,
+  безопасные зоны, системная «назад» у обоих sheets, тёмная тема.
+
+Каждый прогон нашёл по одному дефекту таб-бара (переключение вкладок; бар на экране 10) — оба
+исправлены и закреплены тестами.
+
 ### Known limitations
+
+- `AnimatedSetupIllustration` — placeholder `TODO-ASSET`: ассетов `$asset.setup-check` и
+  `$asset.network-error` в ките нет.
+- Пробелы дизайн-системы под маркером `TODO-COMPONENT`: `IconButton` / `ProgressBar` инлайнятся,
+  `ProgressIndicator` заменён `ActivityIndicator`, `AppButton` без `icon`, `AppTextField` без
+  `disabled`. Сценарии не блокируют.
+- Список timezone — `Intl.supportedValuesOf('timeZone')` с зашитым фолбэком (~32 зоны) при
+  усечённом ICU.
+- Read-modify-write настроек (GAP-003) оставляет гонку «последняя запись побеждает» — принято
+  ADR: владелец один, среда учебная.
+- Список встреч без пагинации — non-goal задачи.
+- Расхождения со спеками кита (11 пунктов раздела «Отклонения») задокументированы; кандидаты на
+  правку спек решаются отдельно.
