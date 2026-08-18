@@ -14,7 +14,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 
-// Область проверки: файлы этих имён в любом каталоге плюс `docs/*.md` (FR17).
+// Область проверки: файлы этих имён в любом каталоге плюс всё Markdown внутри `docs/` (FR17).
 const WATCHED_NAMES = new Set(['AGENTS.md', 'architecture.md', 'README.md']);
 
 // Каталоги, в которые не заходим вовсе.
@@ -51,41 +51,32 @@ const RAW_CALLS = [
 const MARKER = /<!--\s*lint-docs:\s*allow-raw\s*(.*?)-->/;
 const MAKE_MENTION = /\bmake\s+(?:-C\s+([^\s`'"]+)\s+)?([a-z][a-z0-9._-]*)/g;
 
-function walk(dir, files) {
+// Сравнение по сегментам пути, а не по префиксу строки: иначе будущий каталог `tasks-archive/`
+// молча выпал бы из области вместе с настоящим `tasks/`.
+function isExcluded(rel) {
+  return EXCLUDED.some((entry) => {
+    const base = entry.endsWith('/') ? entry.slice(0, -1) : entry;
+    return rel === base || rel.startsWith(`${base}${path.sep}`);
+  });
+}
+
+function walk(dir, files, makefiles) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     const rel = path.relative(ROOT, full);
     if (entry.isDirectory()) {
       if (SKIPPED_DIRS.has(entry.name)) continue;
-      if (EXCLUDED.some((prefix) => prefix.endsWith('/') && rel.startsWith(prefix.slice(0, -1)))) continue;
-      walk(full, files);
+      walk(full, files, makefiles);
       continue;
     }
     if (!entry.isFile()) continue;
-    if (EXCLUDED.includes(rel)) continue;
-    const inDocsRoot = path.dirname(rel) === 'docs' && entry.name.endsWith('.md');
-    if (WATCHED_NAMES.has(entry.name) || inDocsRoot) files.push(rel);
+    // Makefile ищется по всему дереву — второго перечня зон в проверке быть не должно.
+    if (entry.name === 'Makefile' || entry.name.endsWith('.mk')) makefiles.push(rel);
+    if (isExcluded(rel)) continue;
+    const inDocs = rel.startsWith(`docs${path.sep}`) && entry.name.endsWith('.md');
+    if (WATCHED_NAMES.has(entry.name) || inDocs) files.push(rel);
   }
   return files;
-}
-
-function makefiles() {
-  const found = [];
-  const add = (rel) => {
-    if (fs.existsSync(path.join(ROOT, rel))) found.push(rel);
-  };
-  add('Makefile');
-  add('make/common.mk');
-  for (const parent of ['apps', 'packages']) {
-    const dir = path.join(ROOT, parent);
-    if (!fs.existsSync(dir)) continue;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (entry.isDirectory()) add(path.join(parent, entry.name, 'Makefile'));
-    }
-  }
-  add('infra/Makefile');
-  add('tasks/Makefile');
-  return found;
 }
 
 function targetsOf(relMakefile) {
@@ -126,8 +117,9 @@ function suppressedLines(lines, markers) {
 }
 
 function main() {
-  const files = walk(ROOT, []).sort();
-  const makeFiles = makefiles();
+  const makeFiles = [];
+  const files = walk(ROOT, [], makeFiles).sort();
+  makeFiles.sort();
   const targetsByZone = new Map();
   const allTargets = new Set();
   for (const rel of makeFiles) {

@@ -27,20 +27,21 @@ jobs:
 
   # Ловит дрейф compose.yml и init-скрипта. Идёт параллельно checks: критический путь проверок
   # не удлиняется. Docker на GitHub-hosted Linux-раннерах предустановлен, ставить нечего;
-  # npm здесь не нужен — команды вызываются напрямую.
+  # npm здесь не нужен — жизненный цикл контура ведут цели зоны infra, а два запроса psql
+  # ниже — утверждения самой проверки, а не проектные команды.
   compose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - name: Валидация конфигурации без .env
-        run: docker compose -f infra/compose.yml config -q
+        run: make -C infra config
       - name: Поднять контур и дождаться healthy
-        run: docker compose -f infra/compose.yml up -d --wait
+        run: make -C infra up
       - name: Проверить базу разработки
         run: docker compose -f infra/compose.yml exec -T postgres psql -U minical -d minical -c 'select 1;'
       - name: Проверить тестовую базу
         run: docker compose -f infra/compose.yml exec -T postgres psql -U minical -d minical_test -c 'select 1;'
       - name: Остановить контур и удалить volume
         if: always()
-        run: docker compose -f infra/compose.yml down -v
+        run: make -C infra reset

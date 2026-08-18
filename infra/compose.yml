@@ -1,6 +1,6 @@
 # Локальный учебный runtime-контур MiniCal.
 # Наружу не публикуется: пароль по умолчанию слабый, auth в MVP нет.
-# Запуск — npm run db:up (см. README, раздел «Запуск»).
+# Запуск — цель `make db-up` из корня или `make up` в этом каталоге (см. README зоны).
 name: minical
 
 services:

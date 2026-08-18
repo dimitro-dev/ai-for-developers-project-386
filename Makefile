@@ -1,7 +1,8 @@
 include make/common.mk
 
 # Зоны фан-аута вычисляются, а не перечисляются: зона с Makefile включается сама.
-ZONES := $(patsubst %/Makefile,%,$(wildcard apps/*/Makefile packages/*/Makefile infra/Makefile tasks/Makefile))
+ZONES := $(patsubst %/Makefile,%,$(wildcard apps/*/Makefile packages/*/Makefile \
+                                            infra/Makefile tests/Makefile tasks/Makefile))
 
 GENERATED := packages/contracts/generated \
              packages/api-client/src/generated \
