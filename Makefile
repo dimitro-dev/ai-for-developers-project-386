@@ -33,6 +33,9 @@ task-check: ## Проверить целостность дерева задач
 uispec-validate: ## Проверить UISpec owner-flow и guest-flow
 	python3 docs/ui-spec-kit/tools/uispec/validate_uispec.py --config docs/ui-spec-kit/uispec.config.json
 
+lint-docs: ## Контракт размещения: сырые вызовы и существование целей make
+	scripts/lint-docs
+
 gates: ## Полный набор фазы «Проверка»: репозиторий и все зоны
 	$(MAKE) generate-check
 	$(MAKE) test
@@ -57,4 +60,4 @@ db-reset: ## Остановить PostgreSQL и удалить volume с дан�
 	$(MAKE) -C infra reset
 
 .PHONY: setup generate generate-check typecheck test contract-test task-check uispec-validate \
-        gates zones mock db-up db-down db-logs db-reset
+        lint-docs gates zones mock db-up db-down db-logs db-reset
