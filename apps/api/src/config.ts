@@ -5,6 +5,8 @@ export interface AppConfig {
   port: number;
   /** Канонический публичный адрес гостевого web-клиента → `publicUrl` в ответах настроек. */
   publicWebUrl: string;
+  /** Наполнять ли пустое хранилище демо-календарём на старте (`SEED_DEMO`), по умолчанию нет. */
+  seedDemo: boolean;
 }
 
 const DEFAULT_PORT = 3001;
@@ -19,6 +21,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     port: parsePort(env.PORT),
     publicWebUrl: parsePublicWebUrl(env.PUBLIC_WEB_URL),
+    seedDemo: parseSeedDemo(env.SEED_DEMO),
   };
 }
 
@@ -43,4 +46,15 @@ function parsePublicWebUrl(raw: string | undefined): string {
     throw new Error(`PUBLIC_WEB_URL must use http or https, got "${raw}"`);
   }
   return raw;
+}
+
+/**
+ * Список принимаемых написаний закрыт намеренно: `yes`, `on` или `True` — не
+ * синонимы, а признак того, что окружение задано наугад, и молча стартовать без
+ * сида (или с ним) хуже, чем отказать с перечислением допустимых значений.
+ */
+function parseSeedDemo(raw: string | undefined): boolean {
+  if (raw === undefined || raw === '' || raw === '0' || raw === 'false') return false;
+  if (raw === '1' || raw === 'true') return true;
+  throw new Error(`SEED_DEMO must be one of "1", "true", "0", "false", got "${raw}"`);
 }

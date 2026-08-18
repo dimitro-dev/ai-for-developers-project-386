@@ -66,7 +66,12 @@ async function withServer(
   options: { store?: Store; config?: Partial<AppConfig> } = {},
 ): Promise<void> {
   const store = options.store ?? createMemoryStore();
-  const config: AppConfig = { port: 0, publicWebUrl: PUBLIC_WEB_URL, ...options.config };
+  const config: AppConfig = {
+    port: 0,
+    publicWebUrl: PUBLIC_WEB_URL,
+    seedDemo: false,
+    ...options.config,
+  };
   const server = createApp({ config, store }).listen(0);
   await once(server, 'listening');
 

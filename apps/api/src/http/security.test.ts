@@ -15,7 +15,7 @@ type Send = (method: string, path: string, init?: RequestInit) => Promise<Respon
 
 async function withServer(run: (send: Send) => Promise<void>): Promise<void> {
   const server = createApp({
-    config: { port: 0, publicWebUrl: 'http://localhost:8081' },
+    config: { port: 0, publicWebUrl: 'http://localhost:8081', seedDemo: false },
     store: createMemoryStore(),
   }).listen(0);
   await once(server, 'listening');
