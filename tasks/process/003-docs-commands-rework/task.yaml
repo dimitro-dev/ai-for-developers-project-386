@@ -1,0 +1,24 @@
+id: process/003
+slug: docs-commands-rework
+title: Единый вход команд и контракт размещения документации
+track: full
+gates:
+  brief:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: 8adbf24d380de45d3b84fbd0383eb5232d3d8c2c26eb8e6de13adbb822e0a348
+  adr:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: d778e92205a0d591541b97432e129971e1e09779a7b338b7d67011936e4e232c
+  plan:
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: a9133107c61c7befb529e4a7a4875db24113c65d2e0cf4f7a53af2abbbf33c12
+  result:
+    status: черновик
+workspace:
+  branch: task/process-003-docs-commands-rework
+meta:
+  rev: 8
+  selfHash: 4d7bd6f9c39808af438816db4393347a13b0945a781ed0c8f7b7a714bd20db05
