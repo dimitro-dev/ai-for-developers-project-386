@@ -6,7 +6,9 @@ queue:
   rationale: "Внешнее требование учебной платформы: Dockerfile, старт по PORT, публичная ссылка. Раньше back/002 — решение владельца 2026-08-18: с базой задача про образ растёт, а переезд на неё потом образ не переписывает"
 gates:
   brief:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-18
+    sha256: d22548947d749ae535199a8b7041aa4a5c3497c04f5155c0affcc4cfbb13da39
   adr:
     status: черновик
   plan:
@@ -14,5 +16,5 @@ gates:
   result:
     status: черновик
 meta:
-  rev: 3
-  selfHash: 41b54b4a93fe6a42d28da3382cc72c77a19c77920fa11c4ec79a1a7c7bfb1ae4
+  rev: 4
+  selfHash: 69861d6c8a1611755373d06f812ab34fb81b6c51603086ee707037f37eda98bc
