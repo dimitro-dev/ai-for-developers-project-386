@@ -23,6 +23,8 @@ Dockerfile*
 compose*.yml
 корневой Makefile и make/common.mk — цели generate/generate-check совместно
                                      с зоной packages/contracts/
+корневой Makefile — делегаты целей зоны (db-*, image-*) принадлежат ей целиком:
+                    строка команды живёт в infra/Makefile, в корне только вызов
 CI configuration — кроме .github/workflows/hexlet-check.yml
 environment examples
 состояние своего пункта в plan.md
