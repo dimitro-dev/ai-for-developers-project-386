@@ -33,6 +33,9 @@
   плюс свои глаголы (`start`, `dev`, `web`, `android`, `ios`, `build`, `format`, `format-check`,
   `build`, `up`, `down`, `logs`, `reset`, `config`).
 - `scripts/task` — passthrough к `tasks/tools/task.ts`; `scripts/lint-docs` — гейт контракта размещения.
+- `apps/client/Makefile` принимает переменную `EXPO_ARGS` (штатный механизм GNU Make): без неё
+  требование перезапускать dev-сервер с `--clear` после смены `EXPO_PUBLIC_*` нечем было выполнить,
+  а сырой вызов `expo` в документации стал бы вторым определением команды.
 - `package.json` × 6: секции `scripts` пусты, кроме корневого `"test": "make test"`; причина — в ключе
   `"//"` того же манифеста.
 - `.github/workflows/ci.yml`: job `checks` — `npm ci` плюс один шаг `make gates` вместо семи шагов.

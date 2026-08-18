@@ -16,6 +16,9 @@
 | `make ios` | нативный iOS-клиент; только macOS с установленным Xcode-toolchain |
 | `make build` | production-экспорт web-бандла в `apps/client/dist` |
 
+Дополнительные флаги Expo CLI передаются переменной `EXPO_ARGS` — её принимают `start`, `web`,
+`android` и `ios`: `make web EXPO_ARGS=--clear` сбрасывает кеш Metro.
+
 Проверки зоны — `make typecheck`, `make test` и `make gates`.
 
 Backend клиент себе не поднимает: адрес API задаёт переменная окружения (ниже), по умолчанию это
@@ -26,7 +29,8 @@ mock-сервер контракта — `make mock` в корне репози�
 Единая сборка клиента содержит оба флоу; какой из них монтируется и куда он ходит за данными, задают
 две переменные окружения. Обе читаются статически (`process.env.EXPO_PUBLIC_APP_MODE`), поэтому Expo
 инлайнит их в бандл на старте — **после смены значения dev-сервер нужно перезапустить с `--clear`**,
-иначе применится закешированное.
+иначе применится закешированное. Флаг передаётся целям запуска переменной `EXPO_ARGS`:
+`make web EXPO_ARGS=--clear`.
 
 - **`EXPO_PUBLIC_APP_MODE`** — `guest` (по умолчанию) или `owner`. Любое другое значение, пустая
   строка и отсутствие переменной дают гостевой флоу; owner-корень
@@ -38,11 +42,11 @@ mock-сервер контракта — `make mock` в корне репози�
 Переменные передаются префиксом перед целью:
 
 ```bash
-# owner-флоу в браузере против реального backend
-EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://localhost:3001 make web
+# owner-флоу в браузере против реального backend, со сбросом кеша Metro
+EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://localhost:3001 make web EXPO_ARGS=--clear
 
 # owner-флоу на Android-эмуляторе
-EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:3001 make android
+EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:3001 make android EXPO_ARGS=--clear
 
 # гостевой флоу — как раньше, переменные не нужны
 make web
