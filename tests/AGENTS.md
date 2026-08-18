@@ -1,10 +1,8 @@
 # tests — проверки контракта и интеграции
 
-Зона QA Agent: проверять контракт, доменное поведение и интеграцию частей MiniCal.
-
-Здесь живут кросс-компонентные проверки; тесты приложений лежат рядом с кодом
-(`apps/api/src/**/*.test.ts`, `apps/client/src/**/*.test.ts(x)`) и принадлежат своим зонам.
-`tests/contract-validation.test.ts` запускается корневым `npm test`.
+Зона `tests/` отвечает за кросс-компонентные проверки контракта, доменного поведения и интеграции;
+тесты приложений лежат рядом с кодом (`apps/api/src/**/*.test.ts`, `apps/client/src/**/*.test.ts(x)`)
+и принадлежат своим зонам. `tests/contract-validation.test.ts` запускается целью `make contract-test`.
 
 ## Читать
 
@@ -27,7 +25,7 @@ contract tests
 integration tests
 E2E tests
 test fixtures и test utilities
-CI test scripts — совместно с зоной infra/
+цели проверок в Makefile и CI — совместно с зоной infra/
 состояние QA-пункта в plan.md
 раздел проверок активного result.md
 ```
@@ -59,13 +57,13 @@ CI test scripts — совместно с зоной infra/
 - считать generated typecheck достаточным доказательством runtime validation;
 - добавлять новое бизнес-правило только в тест;
 - ставить `согласовано` самовольно: правило 11 корневого [`AGENTS.md`](../AGENTS.md), фиксация —
-  только `task approve` после явного подтверждения владельца.
+  только `scripts/task approve` после явного подтверждения владельца.
 
 ## При недостающем решении
 
 Если ожидаемое поведение не зафиксировано в согласованных документах активной задачи, не закрепляй
 свою трактовку тестом. Зафиксируй вопрос в `plan.md` и верни соответствующий гейт в `черновик`:
-`task draft <id> <гейт>`, правила каскада — в [`tasks/flows/full.md`](../tasks/flows/full.md).
+`scripts/task draft <id> <гейт>`, правила каскада — в [`tasks/flows/full.md`](../tasks/flows/full.md).
 
 ## Definition of Done
 
