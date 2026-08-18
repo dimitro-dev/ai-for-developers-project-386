@@ -19,6 +19,7 @@ gates:
     status: черновик
 workspace:
   branch: task/process-003-docs-commands-rework
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/14
 meta:
-  rev: 8
-  selfHash: 4d7bd6f9c39808af438816db4393347a13b0945a781ed0c8f7b7a714bd20db05
+  rev: 9
+  selfHash: fb491625af47ef1b410c5f9afffa5a5af32de0a36ba4074289f312edd4005293
