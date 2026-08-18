@@ -86,6 +86,21 @@ test('ассеты бандлов не смешиваются: /_expo — гос
   );
 });
 
+test('ассеты кешируются иммутабельно, index.html — нет', async () => {
+  await withServer(
+    async (send) => {
+      const immutable = 'public, max-age=31536000, immutable';
+      assert.equal((await send('/_expo/bundle.js')).headers.get('cache-control'), immutable);
+      assert.equal((await send('/admin/_expo/bundle.js')).headers.get('cache-control'), immutable);
+
+      // Мутабельный файл: браузер обязан каждый раз узнавать про новую сборку.
+      assert.match((await send('/')).headers.get('cache-control') ?? '', /max-age=0/);
+      assert.match((await send('/admin/')).headers.get('cache-control') ?? '', /max-age=0/);
+    },
+    { bundles: true },
+  );
+});
+
 test('GET /admin без завершающего слэша — штатный 301 serve-static на /admin/', async () => {
   await withServer(
     async (send) => {

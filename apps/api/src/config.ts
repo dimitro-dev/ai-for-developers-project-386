@@ -29,7 +29,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 
 function parsePort(raw: string | undefined): number {
   if (raw === undefined || raw === '') return DEFAULT_PORT;
-  const port = Number(raw);
+  // Форма проверяется до `Number()`: тот принимает `0x10`, `1e3` и `+3001` и молча
+  // отдаёт другое число вместо отказа — порт слушают не тот, который задавали.
+  // Обрамляющие пробелы прощаются: платформы и `.env`-файлы их добавляют сами.
+  const value = raw.trim();
+  const port = /^\d+$/.test(value) ? Number(value) : Number.NaN;
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be an integer in 1..65535, got "${raw}"`);
   }

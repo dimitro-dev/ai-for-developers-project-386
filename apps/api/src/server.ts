@@ -1,6 +1,7 @@
 // Точка входа: запускается прямо из исходников (`node src/server.ts`), сборки нет (Р11).
 
 import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createApp } from './app.ts';
@@ -31,18 +32,44 @@ try {
 const store = createMemoryStore();
 // Без флага хранилище остаётся пустым — поведение по умолчанию не меняется (AC10).
 if (config.seedDemo) {
-  await seedDemoCalendar(store);
+  try {
+    await seedDemoCalendar(store);
+  } catch (error) {
+    // Тот же порядок, что у ошибки конфигурации: отказ виден строкой, а не сырым
+    // unhandled rejection, и процесс не остаётся с полунаполненным хранилищем.
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error(`MiniCal API: demo seed failed — ${reason}`);
+    process.exit(1);
+  }
   console.log('MiniCal API: демо-календарь загружен (SEED_DEMO)');
 }
 
-// Бандлы собирает образ; в рабочей копии их обычно нет — тогда параметр не передаётся
-// и приложение остаётся API-only, как до задачи.
-const bundlesPresent = existsSync(WEB_BUNDLES.guestDir) && existsSync(WEB_BUNDLES.ownerDir);
+// Признак раздачи — сам `index.html`, а не каталог: пустой `dist/guest` остался бы от
+// прерванной сборки и включил бы «раздачу», в которой нечего отдавать.
+const bundlesPresent =
+  existsSync(join(WEB_BUNDLES.guestDir, 'index.html')) &&
+  existsSync(join(WEB_BUNDLES.ownerDir, 'index.html'));
 const app = createApp({ config, store }, bundlesPresent ? WEB_BUNDLES : undefined);
-if (bundlesPresent) {
-  console.log('MiniCal API: web-бандлы раздаются с / (гость) и /admin (владелец)');
-}
+console.log(
+  bundlesPresent
+    ? 'MiniCal API: web-бандлы раздаются с / (гость) и /admin (владелец)'
+    : `MiniCal API: web-бандлы не найдены (${dirname(WEB_BUNDLES.guestDir)}) — режим API-only`,
+);
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log(`MiniCal API: http://localhost:${config.port}/health`);
 });
+
+// В контейнере процесс запускается первым и получает PID 1: без собственного
+// обработчика сигнал остановки игнорируется, и `docker stop` выжидает весь таймаут,
+// прежде чем добить процесс SIGKILL. `closeAllConnections` нужен рядом с `close`:
+// keep-alive соединения клиентов иначе держат сервер открытым до своего таймаута.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(signal, () => {
+    console.log(`MiniCal API: ${signal} — остановка`);
+    server.close(() => {
+      process.exit(0);
+    });
+    server.closeAllConnections();
+  });
+}

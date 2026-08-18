@@ -1,3 +1,5 @@
+import type { ServerResponse } from 'node:http';
+
 import express from 'express';
 import type { Express } from 'express';
 
@@ -13,6 +15,19 @@ export interface WebBundlePaths {
   guestDir: string;
   /** Владельческий бандл, раздаётся с `/admin`. */
   ownerDir: string;
+}
+
+/**
+ * Ассеты экспорта несут контент-хеш в имени, поэтому по своему адресу неизменяемы —
+ * годовой иммутабельный кеш убирает condition-GET на каждом визите. `index.html`
+ * исключён намеренно: он единственный мутабельный файл бандла и именно из него браузер
+ * узнаёт имена ассетов новой сборки, так что закешированный он законсервировал бы
+ * старую версию приложения. Ему остаётся дефолт `serve-static` — `max-age=0`.
+ */
+function cacheStaticAsset(res: ServerResponse, filePath: string): void {
+  if (!filePath.endsWith('.html')) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  }
 }
 
 /**
@@ -58,8 +73,8 @@ export function createApp(deps: Deps, webBundles?: WebBundlePaths): Express {
   // JSON-404 — SPA-fallback не вводится (навигация клиента адресную строку не
   // использует). Security-заголовки и CORS стоят выше и накрывают статические ответы.
   if (webBundles !== undefined) {
-    app.use(express.static(webBundles.guestDir));
-    app.use('/admin', express.static(webBundles.ownerDir));
+    app.use(express.static(webBundles.guestDir, { setHeaders: cacheStaticAsset }));
+    app.use('/admin', express.static(webBundles.ownerDir, { setHeaders: cacheStaticAsset }));
   }
 
   app.use(notFoundHandler);
