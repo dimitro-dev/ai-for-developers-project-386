@@ -29,6 +29,7 @@ gates:
 workspace:
   branch: task/front-owner-001-owner-screens
   worktree: ../minical-front-owner-001
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/13
 meta:
-  rev: 11
-  selfHash: 0f3bd3d3cfd90aa967ae198eb081da79d3eb402d3c544ab42bd70b0e497613e1
+  rev: 12
+  selfHash: a87a565fe672542576a7520c7f3b6a75e6eeea507b68a2304bb49344cd76e67d
