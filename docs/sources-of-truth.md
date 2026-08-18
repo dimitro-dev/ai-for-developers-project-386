@@ -76,22 +76,8 @@ OpenAPI — производное представление TypeSpec, а не 
 
 ## Разделение моделей
 
-Не отождествляй:
-
-```text
-HTTP DTO
-Domain model
-Persistence model
-```
-
-Пример:
-
-```text
-CreateBookingRequest  — transport input
-BookingCommand        — application command
-Booking               — domain entity
-bookings row          — persistence record
-BookingResponse       — transport output
-```
+HTTP DTO, domain model и persistence model — разные модели с разными владельцами; цепочка
+представлений одной сущности описана один раз в [`architecture.md`](architecture.md), раздел
+«Contract packages».
 
 Если нужного решения нет, не подменяй его догадкой: верни соответствующий гейт в `черновик` (`scripts/task draft`) и зафиксируй решение в документе.

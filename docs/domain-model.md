@@ -184,6 +184,9 @@
   ```
   endAtUtc = startAtUtc + EventType.durationMinutes
   ```
+- **I15. `eventTypeName` — snapshot названия типа** — фиксируется в момент создания брони:
+  переименование или удаление EventType существующие брони не меняет. Обе booking-операции
+  отдают сохранённое значение записи, а не join с текущими типами.
 - **id** генерируется сервером (UUID) либо передаётся клиентом (идемпотентность).
 
 ### Жизненный цикл
@@ -269,6 +272,7 @@ CalendarOwner (1) ──── CalendarSettings (1)
 | I12 | guestName, guestEmail обязательны | Application + DB (not null) | §8 |
 | I13 | GuestDetails — snapshot, не отдельный аккаунт | Domain model | §8 |
 | I14 | Существование Booking = подтверждена (нет статусов) | Domain model | §7 |
+| I15 | `Booking.eventTypeName` — snapshot названия типа, не join | Application + DB (not null) | §7 |
 
 ---
 

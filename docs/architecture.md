@@ -60,7 +60,19 @@ packages/api-client         generated frontend SDK
 packages/backend-contract   generated transport types и runtime schemas
 ```
 
-API DTO, domain model и database schema не должны быть одной и той же моделью.
+API DTO, domain model и database schema — три разные модели, отождествлять их нельзя. Одна сущность
+проходит цепочку представлений:
+
+```text
+CreateBookingRequest  — transport input
+BookingCommand        — application command
+Booking               — domain entity
+bookings row          — persistence record
+BookingResponse       — transport output
+```
+
+Слои зоны `apps/api/`, разводящие эти представления по каталогам, — в
+[`apps/api/architecture.md`](../apps/api/architecture.md).
 
 ## Локальный runtime
 
