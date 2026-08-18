@@ -37,6 +37,7 @@ lint-docs: ## Контракт размещения: сырые вызовы и 
 	scripts/lint-docs
 
 gates: ## Полный набор фазы «Проверка»: репозиторий и все зоны
+	$(MAKE) lint-docs
 	$(MAKE) generate-check
 	$(MAKE) test
 	@for zone in $(ZONES); do $(MAKE) -C $$zone gates || exit 1; done
