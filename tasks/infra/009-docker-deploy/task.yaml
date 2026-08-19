@@ -22,6 +22,7 @@ gates:
 workspace:
   branch: task/infra-009-docker-deploy
   worktree: ../minical-infra-009
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/15
 meta:
-  rev: 8
-  selfHash: 64c20653852e5a40425dc19d2767abb61596d6a3f3f74881e4405d1ab8c184eb
+  rev: 9
+  selfHash: 710d5d49d8ff9e07cfa7c738bbf8aa7dc70d5dd74862d61898968dbe6d0cdb66
