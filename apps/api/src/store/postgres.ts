@@ -4,6 +4,7 @@
 // занятость первым и отвечает понятной ошибкой, но при гонке двух запросов решает exclusion
 // constraint — его отказ этот файл переводит обратно в доменный код, а не отдаёт наружу как 500.
 
+import { BOOKINGS_NO_OVERLAP_CONSTRAINT } from '@minical/database';
 import type { Pool } from 'pg';
 
 import { DomainError } from '../domain/errors.ts';
@@ -13,6 +14,7 @@ import type { Store } from './repositories.ts';
 // SQLSTATE, которые для домена значат не сбой, а отказ по правилу.
 const UNIQUE_VIOLATION = '23505';
 const EXCLUSION_VIOLATION = '23P01';
+const DEADLOCK_DETECTED = '40P01';
 
 const EVENT_TYPE_COLUMNS = 'id, name, description, duration_minutes';
 const BOOKING_COLUMNS = `id, event_type_id, event_type_name, start_at_utc, end_at_utc,
@@ -103,7 +105,14 @@ function isPgFailure(error: unknown): error is { code: string; constraint?: stri
 // в выдуманный доменный код.
 function bookingFailure(error: unknown, booking: Booking): unknown {
   if (!isPgFailure(error)) return error;
-  if (error.code === EXCLUSION_VIOLATION && error.constraint === 'bookings_no_overlap') {
+  if (error.code === EXCLUSION_VIOLATION && error.constraint === BOOKINGS_NO_OVERLAP_CONSTRAINT) {
+    return new DomainError('SLOT_UNAVAILABLE', 'Requested slot conflicts with an existing booking');
+  }
+  // Дедлок здесь — тот же исход гонки, а не сбой: exclusion-проверка идёт после вставки индексной
+  // записи, поэтому два конкурентных INSERT успевают дождаться друг друга, и детектор прерывает
+  // одного из них. Для гостя это «слот только что заняли», а не 500. Имени констрейнта у такого
+  // отказа нет, поэтому решает один SQLSTATE — вставок в этом методе ровно одна.
+  if (error.code === DEADLOCK_DETECTED) {
     return new DomainError('SLOT_UNAVAILABLE', 'Requested slot conflicts with an existing booking');
   }
   if (error.code === UNIQUE_VIOLATION) {

@@ -78,17 +78,21 @@ function parseSeedDemo(raw: string | undefined): boolean {
  * рабочей: опечатка в схеме или обрезанное значение иначе увели бы процесс в память с
  * настроенной персистентностью. Проверяется только форма — доступность базы выясняет
  * первое подключение на старте, и её отказ тоже завершает процесс (Р2).
+ * Значение в сообщение об ошибке не попадает, в отличие от остальных переменных: строка
+ * подключения содержит пароль, а сообщение уходит в лог старта.
+ * Обрамляющие пробелы прощаются и обрезаются: платформы и `.env`-файлы их добавляют сами.
  */
 function parseDatabaseUrl(raw: string | undefined): string | null {
   if (raw === undefined || raw === '') return null;
+  const value = raw.trim();
   let url: URL;
   try {
-    url = new URL(raw);
+    url = new URL(value);
   } catch {
-    throw new Error(`DATABASE_URL must be a postgres:// or postgresql:// URL, got "${raw}"`);
+    throw new Error('DATABASE_URL must be an absolute postgres:// or postgresql:// URL');
   }
   if (url.protocol !== 'postgres:' && url.protocol !== 'postgresql:') {
-    throw new Error(`DATABASE_URL must be a postgres:// or postgresql:// URL, got "${raw}"`);
+    throw new Error('DATABASE_URL must be an absolute postgres:// or postgresql:// URL');
   }
-  return raw;
+  return value;
 }

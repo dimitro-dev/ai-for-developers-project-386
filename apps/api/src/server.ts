@@ -41,7 +41,15 @@ try {
 // миграция упала означает отказ старта, а не молчаливую потерю персистентности.
 let store: Store;
 if (config.databaseUrl !== null) {
-  const pool = new pg.Pool({ connectionString: config.databaseUrl });
+  // Таймаут подключения: недостижимый хост обязан дать быстрый отказ старта, иначе процесс
+  // висел бы в ожидании молча, а платформа считала бы его запускающимся.
+  const pool = new pg.Pool({ connectionString: config.databaseUrl, connectionTimeoutMillis: 10_000 });
+  // Сбой простаивающего соединения (рестарт базы, обрыв сети) приходит событием пула, и без
+  // обработчика unhandled-событие убило бы процесс. Выхода здесь нет намеренно: сломанного
+  // клиента pg-pool заменит сам, а работающий процесс переживёт рестарт базы.
+  pool.on('error', (error) => {
+    console.error(`MiniCal API: postgres pool error — ${error.message}`);
+  });
   let applied: string[];
   try {
     ({ applied } = await runMigrations(pool));

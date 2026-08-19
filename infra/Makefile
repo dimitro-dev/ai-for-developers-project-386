@@ -1,5 +1,10 @@
 include ../make/common.mk
 
+# Тот же файл переопределений, что читает compose (`-` — его может не быть): без него цели
+# db-* собирали бы строку подключения из своих дефолтов и стучались бы в чужую базу, тогда как
+# контур поднят с другими POSTGRES_*. Для db-test это не мелочь — набор начинается с DROP TABLE.
+-include .env
+
 COMPOSE := docker compose -f compose.yml
 
 # Образ приложения. Порт совпадает с дефолтом config.ts: внутри контейнера и на хосте он один
@@ -14,10 +19,18 @@ CONTAINER ?= $(IMAGE)-$(PORT)
 # гостевую половину раздаёт тот же процесс, и живёт она на том же порту, что и API.
 PUBLIC_WEB_URL ?= http://localhost:$(PORT)
 
-# Строки подключения к локальному контуру: пользователь, пароль и порт — из compose.yml.
-# Рабочая база и база тестов разные: прогон тестов чистит схему целиком.
-DATABASE_URL ?= postgres://minical:minical@localhost:5432/minical
-TEST_DATABASE_URL ?= postgres://minical:minical@localhost:5432/minical_test
+# Параметры контура: дефолты те же, что подставляет compose.yml, но заданные в .env выше
+# побеждают — цель обязана смотреть в ту базу, которая реально поднята.
+POSTGRES_USER ?= minical
+POSTGRES_PASSWORD ?= minical
+POSTGRES_DB ?= minical
+POSTGRES_TEST_DB ?= minical_test
+POSTGRES_PORT ?= 5432
+
+# Строки подключения собираются из тех же параметров. Рабочая база и база тестов разные:
+# прогон тестов чистит схему целиком.
+DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)
+TEST_DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_TEST_DB)
 
 typecheck: ## Проверять нечего: зона не содержит TypeScript
 	@:

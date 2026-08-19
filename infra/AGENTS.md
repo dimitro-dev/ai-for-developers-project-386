@@ -41,10 +41,10 @@ infrastructure-раздел активного result.md
 Ниже — целевое состояние зоны целиком; закрывается по частям, отдельными задачами (статус — в
 Definition of Done).
 
-- поднимать web, API и PostgreSQL через Docker Compose (PostgreSQL — `infra/001`; `api` и `web` —
-  задача вместе с `back/002`);
+- поднимать web, API и PostgreSQL через Docker Compose (PostgreSQL — `infra/001`; `api` — сделано
+  `back/002`, за профилем `app`; отдельного сервиса `web` нет — оба бандла раздаёт тот же процесс);
 - использовать multi-stage builds там, где уместно;
-- добавить healthchecks и dependency readiness (для `postgres` — сделано);
+- добавить healthchecks и dependency readiness (для `postgres` и `api` — сделано);
 - хранить config/secrets в environment, не в images;
 - обеспечить воспроизводимый TypeSpec/codegen build;
 - поддержать Android builder как build-time image (`infra/002`);
@@ -70,23 +70,24 @@ Definition of Done).
 в `plan.md` и верни соответствующий гейт в `черновик` — `scripts/task draft <id> <гейт>`, правила
 каскада — в [`tasks/flows/full.md`](../tasks/flows/full.md).
 
-Решения задач, которые расширяют контур, зона не принимает за них: форму строки подключения
-(`DATABASE_URL` целиком или набор переменных) и момент применения миграций выбирает `back/002` —
-контур их не предопределяет, он лишь предоставляет параметры `POSTGRES_*`, порт и имя базы. Что
-именно добавляется в контур дальше и какой задачей — в [`README.md`](README.md), раздел «Расширение
-контура».
+Решения задач, которые расширяют контур, зона не принимает за них. Форму строки подключения
+и момент применения миграций выбрала своим ADR `back/002`: `DATABASE_URL` целиком, миграции
+применяет сам процесс API на старте — контур их не предопределял, он лишь предоставляет параметры
+`POSTGRES_*`, порт и имя базы. Что именно добавляется в контур дальше и какой задачей —
+в [`README.md`](README.md), раздел «Расширение контура».
 
 ## Definition of Done
 
 Целевое состояние зоны целиком, закрывается по частям — ниже отмечено, что уже сделано и чем.
 
-- build воспроизводится из чистого checkout — сборок образов в контуре пока нет: единственный
-  сервис использует официальный образ `postgres:18`;
-- `make -C infra up` поднимает контур до healthy — для `postgres` сделано в `infra/001`; сервисы
-  `api`/`web` (и вместе с ними сборка их образов) — задача вместе с `back/002`;
-- healthchecks проходят — для `postgres` сделано;
-- migrations/startup order документированы — появляются вместе с `back/002`, эта задача их не
-  вводит;
+- build воспроизводится из чистого checkout — в контуре появилась сборка образа `api` из корневого
+  `Dockerfile` (`back/002`); `postgres` использует официальный образ `postgres:18`;
+- `make -C infra up` поднимает контур до healthy — для `postgres` сделано в `infra/001`, сервис
+  `api` со сборкой образа — в `back/002` (`make -C infra up-app`, профиль `app`);
+- healthchecks проходят — для `postgres` и `api` сделано;
+- migrations/startup order документированы — сделано `back/002`: миграции применяет процесс API
+  на старте, порядок описан в [`README.md`](README.md);
 - Android builder создаёт APK artifact — `infra/002`;
-- smoke test и применимые CI checks проходят — для `postgres` сделано (job `compose` в `ci.yml`);
+- smoke test и применимые CI checks проходят — сделано: job `compose` в `ci.yml` поднимает
+  `postgres` и обязательным шагом гоняет против него `make db-test`;
 - пункт плана и infrastructure-раздел `result.md` обновлены.

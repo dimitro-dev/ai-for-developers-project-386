@@ -8,6 +8,7 @@ import { after, before, beforeEach, describe, test } from 'node:test';
 import pg from 'pg';
 import type { Pool as PgPool, PoolClient } from 'pg';
 
+import { BOOKINGS_NO_OVERLAP_CONSTRAINT } from './index.ts';
 import { runMigrations } from './migrations.ts';
 
 const { Pool } = pg;
@@ -103,9 +104,18 @@ function assertExactlyOneOverlapRejected(results: PromiseSettledResult<unknown>[
   const rejected = results.filter((result) => result.status === 'rejected');
   assert.equal(rejected.length, 1, `ожидался ровно один отказ, получено ${rejected.length}`);
 
+  // Исходов у гонки два, и оба означают одно и то же. `23P01` — проигравший дождался вердикта
+  // exclusion constraint. `40P01` — проверка идёт после вставки индексной записи, поэтому оба
+  // INSERT успели встать в ожидание друг друга и одного прервал детектор дедлоков; имени
+  // констрейнта у такого отказа нет.
   const error = rejected[0].reason as PgError;
-  assert.equal(error.code, '23P01');
-  assert.equal(error.constraint, 'bookings_no_overlap');
+  assert.ok(
+    error.code === '23P01' || error.code === '40P01',
+    `ожидался 23P01 или 40P01, получено ${String(error.code)}`,
+  );
+  if (error.code === '23P01') {
+    assert.equal(error.constraint, BOOKINGS_NO_OVERLAP_CONSTRAINT);
+  }
 }
 
 describe('раннер миграций на реальной PostgreSQL', { skip }, () => {

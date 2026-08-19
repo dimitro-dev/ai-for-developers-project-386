@@ -84,6 +84,12 @@ test('DATABASE_URL: обе схемы принимаются и отдаются
   }
 });
 
+test('DATABASE_URL: обрамляющие пробелы принимаются и обрезаются', () => {
+  // Платформы и `.env`-файлы добавляют их сами, а драйвер на такой строке падает разбором.
+  const url = 'postgres://minical:minical@localhost:5432/minical';
+  assert.equal(loadConfig({ DATABASE_URL: ` ${url}\n` }).databaseUrl, url);
+});
+
 test('DATABASE_URL: мусор и чужая схема — отказ старта, а не тихий откат в память', () => {
   for (const raw of ['не-URL', 'localhost:5432/minical', 'mysql://root@localhost:3306/minical']) {
     assert.throws(
@@ -92,4 +98,17 @@ test('DATABASE_URL: мусор и чужая схема — отказ стар�
       `DATABASE_URL="${raw}" обязан отказать`,
     );
   }
+});
+
+test('DATABASE_URL: сообщение об ошибке не содержит саму строку — в ней пароль', () => {
+  // Сообщение печатается в лог старта, поэтому значение туда не попадает даже частями.
+  assert.throws(
+    () => loadConfig({ DATABASE_URL: 'mysql://root:s3cret@localhost:3306/minical' }),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.doesNotMatch(error.message, /s3cret|mysql|localhost/);
+      assert.match(error.message, /DATABASE_URL/);
+      return true;
+    },
+  );
 });
