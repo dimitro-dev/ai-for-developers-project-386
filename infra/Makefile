@@ -31,17 +31,23 @@ gates: ## Проверок зоны нет: валидация compose треб�
 up: ## Поднять контур и дождаться healthy
 	$(COMPOSE) up -d --wait
 
+# Сервис приложения спрятан за профилем `app`, поэтому подъём полного контура — отдельная цель:
+# подъём базы не должен тянуть сборку образа. Остановка, сброс и валидация, наоборот, обязаны
+# видеть оба сервиса — иначе `down` оставил бы приложение работать, а `config` не проверил бы его.
+up-app: ## Поднять полный контур (postgres + api) и дождаться healthy
+	$(COMPOSE) --profile app up -d --build --wait
+
 down: ## Остановить контур, сохранив данные
-	$(COMPOSE) down
+	$(COMPOSE) --profile app down
 
 logs: ## Читать логи PostgreSQL
 	$(COMPOSE) logs -f postgres
 
 reset: ## Остановить контур и удалить volume с данными
-	$(COMPOSE) down -v
+	$(COMPOSE) --profile app down -v
 
 config: ## Проверить конфигурацию compose без запуска
-	$(COMPOSE) config -q
+	$(COMPOSE) --profile app config -q
 
 # Значения в кавычках: в строке подключения легально встречается спецсимвол оболочки.
 db-migrate: ## Применить миграции к базе (DATABASE_URL=postgres://minical:minical@localhost:5432/minical)
@@ -69,4 +75,4 @@ image-run: ## Запустить образ (PORT=3001, PUBLIC_WEB_URL, SEED_DEM
 	  $(if $(SEED_DEMO),-e SEED_DEMO='$(SEED_DEMO)') \
 	  $(IMAGE)
 
-.PHONY: typecheck test gates up down logs reset config db-migrate db-test image-build image-run
+.PHONY: typecheck test gates up up-app down logs reset config db-migrate db-test image-build image-run
