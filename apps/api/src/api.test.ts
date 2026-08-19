@@ -1,9 +1,9 @@
-// HTTP-тесты поверх createApp: listen(0) + глобальный fetch, без supertest (Р9).
-// Тела успешных ответов сверяются generated response-схемами — дешёвая проверка
-// соответствия контракту в момент прогона.
+// HTTP-тесты поверх createApp: харнесс зоны (`http/testServer.ts`) поднимает приложение
+// на listen(0) и ходит глобальным fetch, без supertest (Р9). Тела успешных ответов
+// сверяются generated response-схемами — дешёвая проверка соответствия контракту в
+// момент прогона.
 
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
 import { test } from 'node:test';
 
 import {
@@ -21,15 +21,15 @@ import {
   zUpdateAdminSettingsResponse,
 } from '@minical/backend-contract/zod';
 
-import { createApp } from './app.ts';
-import type { AppConfig } from './config.ts';
 import { DomainError } from './domain/errors.ts';
 import type { Booking } from './domain/model.ts';
+import { expectError, withServer, TEST_PUBLIC_WEB_URL } from './http/testServer.ts';
+import type { JsonClient, JsonResponse } from './http/testServer.ts';
 import { createMemoryStore } from './store/memory.ts';
 import type { Store } from './store/repositories.ts';
 import { createPublicBooking } from './usecases/booking.ts';
 
-const PUBLIC_WEB_URL = 'http://localhost:8081';
+const PUBLIC_WEB_URL = TEST_PUBLIC_WEB_URL;
 
 const SETUP_BODY = {
   displayName: 'Мария Иванова',
@@ -44,70 +44,10 @@ const SETUP_BODY = {
   slotIntervalMinutes: 30,
 };
 
-interface Response {
-  status: number;
-  body: unknown;
-}
-
-interface Client {
-  get(path: string): Promise<Response>;
-  put(path: string, body: unknown): Promise<Response>;
-  post(path: string, body: unknown): Promise<Response>;
-  raw(method: string, path: string, body: string): Promise<Response>;
-}
-
-interface Harness {
-  http: Client;
-  store: Store;
-}
-
-async function withServer(
-  run: (harness: Harness) => Promise<void>,
-  options: { store?: Store; config?: Partial<AppConfig> } = {},
-): Promise<void> {
-  const store = options.store ?? createMemoryStore();
-  const config: AppConfig = { port: 0, publicWebUrl: PUBLIC_WEB_URL, ...options.config };
-  const server = createApp({ config, store }).listen(0);
-  await once(server, 'listening');
-
-  const address = server.address();
-  assert.ok(address !== null && typeof address === 'object', 'server is listening on a TCP port');
-  const baseUrl = `http://127.0.0.1:${address.port}`;
-
-  try {
-    await run({ http: client(baseUrl), store });
-  } finally {
-    server.close();
-    await once(server, 'close');
-  }
-}
-
-function client(baseUrl: string): Client {
-  async function send(method: string, path: string, body?: string): Promise<Response> {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method,
-      ...(body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body }),
-    });
-    const text = await response.text();
-    return { status: response.status, body: text === '' ? undefined : JSON.parse(text) };
-  }
-
-  return {
-    get: (path) => send('GET', path),
-    put: (path, body) => send('PUT', path, JSON.stringify(body)),
-    post: (path, body) => send('POST', path, JSON.stringify(body)),
-    raw: (method, path, body) => send(method, path, body),
-  };
-}
-
-function expectError(response: Response, status: number, code: string): void {
-  assert.equal(response.status, status, `unexpected status, body: ${JSON.stringify(response.body)}`);
-  assert.deepEqual(Object.keys(response.body as object).sort(), ['code', 'message']);
-  assert.equal((response.body as { code: string }).code, code);
-  assert.ok((response.body as { message: string }).message.length > 0);
-}
-
-async function completeSetup(http: Client, overrides: Record<string, unknown> = {}): Promise<Response> {
+async function completeSetup(
+  http: JsonClient,
+  overrides: Record<string, unknown> = {},
+): Promise<JsonResponse> {
   return http.put('/admin/setup', { ...SETUP_BODY, ...overrides });
 }
 
@@ -380,7 +320,7 @@ interface SlotDto {
   eventTypeId: string;
 }
 
-async function readySlots(http: Client): Promise<SlotDto[]> {
+async function readySlots(http: JsonClient): Promise<SlotDto[]> {
   await completeSetup(http);
   assert.equal((await http.post('/admin/event-types', EVENT_TYPE)).status, 201);
   const response = await http.get(`/slots?eventTypeId=${EVENT_TYPE.id}`);

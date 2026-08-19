@@ -43,6 +43,8 @@ const RAW_CALLS = [
   { re: /npm ci\b/, name: 'npm ci' },
   { re: /npx /, name: 'npx' },
   { re: /docker compose/, name: 'docker compose' },
+  { re: /docker build/, name: 'docker build' },
+  { re: /docker run/, name: 'docker run' },
   { re: /node --/, name: 'node --' },
   { re: /tsc --/, name: 'tsc --' },
   { re: /jest /, name: 'jest' },

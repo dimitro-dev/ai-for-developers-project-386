@@ -19,6 +19,10 @@ gates:
     sha256: 3298646b8eb5b2946f9f1e6177715218de77f862218cf14e9f629f348e83686b
   result:
     status: черновик
+workspace:
+  branch: task/infra-009-docker-deploy
+  worktree: ../minical-infra-009
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/15
 meta:
-  rev: 6
-  selfHash: 1b8e82ef49305008fbba550a36822e74db6933c3c5fc4950bc16fbd07ffa4df7
+  rev: 9
+  selfHash: 710d5d49d8ff9e07cfa7c738bbf8aa7dc70d5dd74862d61898968dbe6d0cdb66

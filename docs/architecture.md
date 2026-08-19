@@ -90,6 +90,13 @@ android-builder container → APK artifact
 
 Android Emulator работает на хосте и обращается к gateway через адрес хоста эмулятора. iOS toolchain не запускается в Linux Docker.
 
+Отдельно от этого контура задачей `infra/009` появился **образ приложения**: один образ, в котором
+процесс API отдаёт с одного порта и REST-операции, и оба собранных web-бандла клиента — гостевой
+с `/`, владельческий с `/admin`. Второго веб-сервера в нём нет. Compose-контур это не меняет: он
+остаётся локальным runtime, а образ собирается своей целью (`make image-build`) и запускается
+локально `make image-run`. Переменные окружения, порядок публикации и её ограничения —
+в [`infra/README.md`](../infra/README.md).
+
 ## Security boundary
 
 В MVP нет auth. Поэтому admin API и UI допустимы только для локальной учебной среды. Публикация в интернет требует отдельного решения по доступу и не может считаться безопасной за счёт пути `/admin`.
@@ -137,6 +144,10 @@ minical/
 ├── package.json               npm workspaces: apps/*, packages/*; scripts пуст, кроме test
 ├── tsconfig.base.json         общая TS-база: ES2022, NodeNext, strict
 ├── .nvmrc                     Node 26 (engines: >=24)
+├── Dockerfile                 образ приложения: два web-бандла клиента + API одним процессом;
+│                              в корне, потому что платформа публикации собирает из корня
+│                              контекста (исключение зафиксировано в sources-of-truth.md)
+├── .dockerignore              состав контекста сборки образа
 ├── .github/workflows/         hexlet-check.yml — внешний чек учебной платформы, не
 │                              редактируется; ci.yml — обязательные проверки на PR/push
 │                              в `main`; release-please.yml — release-PR
@@ -162,6 +173,8 @@ minical/
 │       ├── Makefile           typecheck, test, gates, start, web, android, ios, build
 │       ├── CLAUDE.md          @AGENTS.md
 │       ├── package.json       jest-конфиг (preset jest-expo, alias @/*)
+│       ├── app.config.ts      experiments.baseUrl из EXPO_WEB_BASE_URL — базовый префикс
+│       │                       web-экспорта (владельческий бандл раздаётся с /admin)
 │       ├── app.json / App.tsx / index.ts / assets/    App.tsx — bootstrap: configureApiClient →
 │       │                       GuestFlowProvider → NavigationContainer (без linking) → GuestStack
 │       ├── .claude/settings.json    включённый плагин expo
@@ -189,10 +202,11 @@ minical/
 ├── tests/
 │   ├── AGENTS.md              контракт зоны проверок: контрактные, доменные, интеграционные, E2E
 │   └── contract-validation.test.ts   контрактный гейт
-├── infra/                     Docker/Compose локального контура
+├── infra/                     Docker/Compose локального контура; владелец корневого Dockerfile
 │   ├── AGENTS.md              контракт зоны
-│   ├── README.md              установка Docker-провайдера, контур PostgreSQL, Prism-мок
-│   └── Makefile               up, down, logs, reset, config
+│   ├── README.md              установка провайдера, контур PostgreSQL, Prism-мок,
+│   │                          образ приложения и порядок публикации
+│   └── Makefile               up, down, logs, reset, config, image-build, image-run
 ├── tasks/                     процесс задач; в git
 │   ├── AGENTS.md              маршрутизатор каталога: карта, команды CLI, словарь
 │   ├── REGISTRY.md            генерат `task registry`: реестр по типам, очередь работ, legacy-id

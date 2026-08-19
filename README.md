@@ -5,13 +5,15 @@
 
 Учебный сервис бронирования без регистрации и авторизации: владелец календаря настраивает расписание и типы событий, гость бронирует свободный слот. Подробности — в [`AGENTS.md`](AGENTS.md) и [`docs/architecture.md`](docs/architecture.md).
 
+**Приложение опубликовано:** <https://6b1y-3d3v-dk6o.gw-1a.dockhost.net> — гостевая страница на корне, владельческая на `/admin`. Эксплуатация образа и порядок публикации — в [`infra/README.md`](infra/README.md).
+
 ## Требования к машине
 
 - Node.js 26 (файл [`.nvmrc`](.nvmrc); поддерживается `>=24`) и npm 11+
 - GNU Make — 3.81 из поставки macOS достаточно
 - Git
 - Для нативной Android-сборки клиента: Android SDK и JDK 17 на хосте — [`apps/client/README.md`](apps/client/README.md)
-- Docker — только для локального контура PostgreSQL; установка провайдера и проверка — [`infra/README.md`](infra/README.md). Проверки и запуск API и клиента из исходников от Docker не зависят.
+- Docker — для локального контура PostgreSQL и для образа приложения; установка провайдера и проверка — [`infra/README.md`](infra/README.md). Проверки и запуск API и клиента из исходников от Docker не зависят.
 
 ## Установка
 
@@ -42,8 +44,11 @@ Generated-каталоги (`packages/contracts/generated`, `packages/api-client
 | Мок контракта (Prism) | `make mock` | `http://localhost:4010` | [`infra/README.md`](infra/README.md) |
 | Клиент в браузере | `make -C apps/client web` | `http://localhost:8081` | [`apps/client/README.md`](apps/client/README.md) |
 | PostgreSQL | `make db-up` | `localhost:5432` | [`infra/README.md`](infra/README.md) |
+| Приложение из образа | `make image-build`, затем `make image-run` | `http://localhost:3001` | [`infra/README.md`](infra/README.md) |
 
 Backend поднимается без базы и без Docker: хранилище in-memory, состояние теряется при рестарте. Клиент по умолчанию ходит в мок контракта, а не в backend — адрес задаётся переменной окружения (см. README зоны клиента).
+
+Образ приложения — отдельный способ запуска, для которого Docker нужен: в нём один процесс отдаёт с одного порта и API, и оба web-бандла клиента — гость на `/`, владелец на `/admin`. Порт и переменные окружения передаются параметрами цели; эксплуатация образа и порядок публикации — в [`infra/README.md`](infra/README.md).
 
 ## Структура
 

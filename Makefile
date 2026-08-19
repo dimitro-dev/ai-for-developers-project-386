@@ -61,5 +61,11 @@ db-logs: ## Читать логи PostgreSQL
 db-reset: ## Остановить PostgreSQL и удалить volume с данными
 	$(MAKE) -C infra reset
 
+image-build: ## Собрать образ приложения (IMAGE=minical)
+	$(MAKE) -C infra image-build
+
+image-run: ## Запустить приложение из образа (PORT=3001, PUBLIC_WEB_URL, SEED_DEMO)
+	$(MAKE) -C infra image-run
+
 .PHONY: setup generate generate-check typecheck test contract-test task-check uispec-validate \
-        lint-docs gates zones mock db-up db-down db-logs db-reset
+        lint-docs gates zones mock db-up db-down db-logs db-reset image-build image-run
