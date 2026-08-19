@@ -1,8 +1,9 @@
 # apps/api — устройство зоны
 
-REST-backend MiniCal: все 12 операций контракта поверх in-memory хранилища. Реализовано задачей
-`back/001`, middleware-цепочка (CORS, security-заголовки, лимит тела) — `infra/003`; PostgreSQL,
-миграции и exclusion constraint — задача `back/002` в зоне
+REST-backend MiniCal: все 12 операций контракта над хранилищем, у которого два режима — in-memory
+по умолчанию и PostgreSQL при заданной `DATABASE_URL`. Реализовано задачей `back/001`,
+middleware-цепочка (CORS, security-заголовки, лимит тела) — `infra/003`, второй режим — `back/002`.
+Схема, миграции и exclusion constraint живут в зоне
 [`packages/database/`](../../packages/database/AGENTS.md).
 
 Правила зоны — [`AGENTS.md`](AGENTS.md), запуск и переменные окружения — [`README.md`](README.md).
@@ -20,8 +21,10 @@ REST-backend MiniCal: все 12 операций контракта поверх
 
 ```text
 src/
-├── server.ts                 entry: loadConfig() → createMemoryStore() → сид → createApp(deps) → listen
-├── config.ts                 PORT, PUBLIC_WEB_URL, SEED_DEMO; мусорное значение = отказ старта
+├── server.ts                 entry: loadConfig() → store по DATABASE_URL (+ миграции) → сид →
+│                             createApp(deps) → listen
+├── config.ts                 PORT, PUBLIC_WEB_URL, SEED_DEMO, DATABASE_URL; мусорное значение =
+│                             отказ старта
 ├── app.ts                    createApp(deps, webBundles?): middleware → ROUTES → статика → 404 → errors
 ├── bootstrap/
 │   └── seed.ts               демо-календарь через use-cases; включается флагом SEED_DEMO
@@ -41,7 +44,9 @@ src/
 │   └── timezone.ts           Intl-примитивы: localPartsOf, instantOfLocal, isValidTimeZone
 └── store/
     ├── repositories.ts       интерфейсы Owner/EventType/Booking + Store
-    └── memory.ts             in-memory реализация (createMemoryStore)
+    ├── memory.ts             in-memory реализация (createMemoryStore)
+    └── postgres.ts           PostgreSQL-реализация (createPgStore): SQL руками, отказы
+                              констрейнтов → DomainError
 ```
 
 - `domain/**` не импортирует `express`, `@minical/backend-contract` и `store/**` — только `node:*` и
@@ -49,8 +54,14 @@ src/
 - `usecases/**` знают домен и интерфейсы репозиториев, но не знают `express`: ни `req`, ни `res`, ни
   статусов.
 - `http/**` — единственное место, где живёт transport: Zod-схемы, статусы, сериализация.
-- `store/**` реализует интерфейсы и наружу больше ничего не отдаёт. Переход на PostgreSQL меняет
-  `store/memory.ts` → `store/postgres.ts` плюс одну строку сборки `deps` в `server.ts`.
+- `store/**` реализует интерфейсы и наружу больше ничего не отдаёт. Реализаций две, и различить их
+  умеет только `server.ts`: остальные слои видят один и тот же `Store`, поэтому режим хранилища
+  ничего в них не меняет.
+- `server.ts` — единственное место, где режим известен: при заданной `DATABASE_URL` он поднимает
+  пул `pg`, прогоняет миграции `@minical/database` и собирает `createPgStore(pool)`, иначе —
+  `createMemoryStore()`. Порядок обязателен: миграции идут до `listen`, чтобы запросы не пришли
+  на неполную схему, а отказ подключения или миграции завершает процесс, а не переводит его
+  в память (эксплуатационная сторона — [`README.md`](README.md)).
 - `bootstrap/**` наполняет хранилище только через `usecases/**`, а не записью в store: доменные
   проверки выполняются те же, что на HTTP-входе, и демо-данные не разъезжаются с доменом.
   Хранилище предполагается пустым — сид рассчитан на единственный вызов при старте процесса.
@@ -147,12 +158,17 @@ API-only: локальная разработка и тесты зоны от р
 `src/domain/slots.test.ts` (таймзоны, окно, сетка, пересечения), `src/store/memory.test.ts`
 (атомарность `create`, копии записей), `src/api.test.ts` (HTTP-сценарии, тела ответов сверяются
 generated response-схемами), `src/http/security.test.ts` (CORS, preflight, security-заголовки,
-лимит тела), `src/config.test.ts` (дефолты и отказ старта на мусорном окружении),
-`src/bootstrap/seed.test.ts` (состав демо-календаря), `src/static.test.ts` (раздача бандлов на
-временных fixture-каталогах) — 89 тестов в 8 файлах.
+лимит тела), `src/config.test.ts` (дефолты, выбор режима хранилища и отказ старта на мусорном
+окружении), `src/bootstrap/seed.test.ts` (состав демо-календаря и guard сида на настроенном
+хранилище), `src/static.test.ts` (раздача бандлов на временных fixture-каталогах),
+`src/store/postgres.test.ts` (тот же контракт `Store` на реальной PostgreSQL: маппинг колонок,
+отказы констрейнтов, гонка двух пересекающихся броней) — 109 тестов в 9 файлах.
 
 Раннер — встроенный `node:test`; ни `supertest`, ни внешнего раннера в зависимостях нет. Запуск —
-цель `test` зоны (см. [`README.md`](README.md)).
+цель `test` зоны (см. [`README.md`](README.md)). Набору PostgreSQL нужна база: без
+`TEST_DATABASE_URL` он пропускается с причиной и остаётся 94 теста, поэтому цель `test` зелена и на
+машине без Docker. Обязательный прогон обеих зон против поднятого контура — цель `make db-test`
+(см. [`infra/README.md`](../../infra/README.md)), её же выполняет CI.
 
 Поднимает приложение общий харнесс `src/http/testServer.ts` — не тест, а его опора: `withServer`
 (listen(0), сырой `send` и JSON-клиент поверх глобального `fetch`, закрытие сервера и соединений),
