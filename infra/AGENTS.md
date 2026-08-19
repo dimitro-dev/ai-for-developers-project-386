@@ -20,6 +20,7 @@ docs/contract-pipeline.md — если меняется generation build
 ```text
 infra/**
 Dockerfile*
+.dockerignore — парный Dockerfile файл, лежит с ним рядом в корне репозитория
 compose*.yml
 корневой Makefile и make/common.mk — цели generate/generate-check совместно
                                      с зоной packages/contracts/

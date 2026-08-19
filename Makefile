@@ -64,7 +64,7 @@ db-reset: ## Остановить PostgreSQL и удалить volume с дан�
 image-build: ## Собрать образ приложения (IMAGE=minical)
 	$(MAKE) -C infra image-build
 
-image-run: ## Запустить приложение из образа (PORT=3001, SEED_DEMO=, PUBLIC_WEB_URL=)
+image-run: ## Запустить приложение из образа (PORT=3001, PUBLIC_WEB_URL, SEED_DEMO)
 	$(MAKE) -C infra image-run
 
 .PHONY: setup generate generate-check typecheck test contract-test task-check uispec-validate \

@@ -2,10 +2,12 @@
 # Этап build собирает два web-бандла клиента, рантайм-этап несёт только цепочку API.
 #
 # Major-версия Node продублирована из `.nvmrc` (там `26`) и правится вместе с ним: платформа
-# деплоя собирает образ без make, поэтому дефолт обязан стоять прямо в FROM и не может
-# приезжать `--build-arg`.
+# деплоя собирает образ без make, поэтому дефолт обязан стоять прямо в Dockerfile, а не только
+# приезжать `--build-arg`. ARG до первого FROM виден обоим этапам — major записан здесь один
+# раз и разъехаться между этапами не может.
+ARG NODE_VERSION=26
 
-FROM node:26-slim AS build
+FROM node:${NODE_VERSION}-slim AS build
 
 # Expo CLI без TTY: не задавать вопросов и не слать телеметрию.
 ENV CI=1
@@ -39,7 +41,7 @@ RUN EXPO_PUBLIC_APP_MODE=owner \
     /app/node_modules/.bin/expo export --platform web --output-dir dist/owner --clear
 
 
-FROM node:26-slim AS runtime
+FROM node:${NODE_VERSION}-slim AS runtime
 
 ENV NODE_ENV=production
 WORKDIR /app
