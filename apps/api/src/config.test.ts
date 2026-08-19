@@ -6,11 +6,12 @@ import { test } from 'node:test';
 
 import { loadConfig } from './config.ts';
 
-test('дефолты: пустое окружение даёт порт 3001, локальный publicUrl и выключенный сид', () => {
+test('дефолты: пустое окружение даёт порт 3001, локальный publicUrl, выключенный сид и in-memory', () => {
   assert.deepEqual(loadConfig({}), {
     port: 3001,
     publicWebUrl: 'http://localhost:8081',
     seedDemo: false,
+    databaseUrl: null,
   });
 });
 
@@ -64,5 +65,31 @@ test('SEED_DEMO: включается значениями "1" и "true"', () =>
 test('SEED_DEMO: мусорное значение — отказ старта, а не тихое выключение', () => {
   for (const raw of ['yes', 'on', 'True', '2']) {
     assert.throws(() => loadConfig({ SEED_DEMO: raw }), /SEED_DEMO/, `SEED_DEMO="${raw}"`);
+  }
+});
+
+test('DATABASE_URL (Р2): без переменной и на пустой строке режим in-memory', () => {
+  assert.equal(loadConfig({}).databaseUrl, null);
+  assert.equal(loadConfig({ DATABASE_URL: '' }).databaseUrl, null);
+});
+
+test('DATABASE_URL: обе схемы принимаются и отдаются строкой как есть', () => {
+  // Строка уходит в драйвер целиком, вместе с параметрами запроса, — нормализовать её здесь
+  // значило бы решать за `pg`, что в ней значимо.
+  for (const raw of [
+    'postgres://minical:minical@localhost:5432/minical',
+    'postgresql://minical:minical@db:5432/minical?sslmode=require',
+  ]) {
+    assert.equal(loadConfig({ DATABASE_URL: raw }).databaseUrl, raw, `DATABASE_URL="${raw}"`);
+  }
+});
+
+test('DATABASE_URL: мусор и чужая схема — отказ старта, а не тихий откат в память', () => {
+  for (const raw of ['не-URL', 'localhost:5432/minical', 'mysql://root@localhost:3306/minical']) {
+    assert.throws(
+      () => loadConfig({ DATABASE_URL: raw }),
+      /DATABASE_URL/,
+      `DATABASE_URL="${raw}" обязан отказать`,
+    );
   }
 });

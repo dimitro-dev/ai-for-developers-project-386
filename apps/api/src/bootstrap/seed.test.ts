@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { DomainError } from '../domain/errors.ts';
 import { createMemoryStore } from '../store/memory.ts';
 import { getPublicSlots } from '../usecases/booking.ts';
-import { seedDemoCalendar } from './seed.ts';
+import { maybeSeedDemoCalendar, seedDemoCalendar } from './seed.ts';
 
 test('сид завершает онбординг: владелец сохранён с рабочими настройками', async () => {
   const store = createMemoryStore();
@@ -66,4 +66,28 @@ test('повторный сид на настроенном хранилище �
       return true;
     },
   );
+});
+
+test('guard (Р7): на пустом хранилище сид выполняется', async () => {
+  const store = createMemoryStore();
+
+  assert.equal(await maybeSeedDemoCalendar(store), 'seeded');
+  assert.ok((await store.owner.get()) !== null, 'календарь настроен');
+  assert.equal((await store.eventTypes.list()).length, 2);
+});
+
+test('guard (Р7): повторный старт против настроенного хранилища сид пропускает', async () => {
+  // Сценарий рестарта процесса с тем же SEED_DEMO поверх постоянной базы: настройки
+  // владельца остаются его собственными, типы встреч не удваиваются.
+  const store = createMemoryStore();
+  await maybeSeedDemoCalendar(store);
+  const seeded = await store.owner.get();
+  assert.ok(seeded !== null);
+  await store.owner.save({ ...seeded, displayName: 'Настройки владельца' });
+
+  assert.equal(await maybeSeedDemoCalendar(store), 'skipped');
+
+  const owner = await store.owner.get();
+  assert.equal(owner?.displayName, 'Настройки владельца', 'сид не переписал настройки');
+  assert.equal((await store.eventTypes.list()).length, 2, 'типы встреч не задублированы');
 });

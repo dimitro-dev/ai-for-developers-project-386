@@ -4,12 +4,18 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { runMigrations } from '@minical/database';
+// `pg` — CommonJS: именованные импорты из него под strip-only не разбираются, берём default.
+import pg from 'pg';
+
 import { createApp } from './app.ts';
 import type { WebBundlePaths } from './app.ts';
-import { seedDemoCalendar } from './bootstrap/seed.ts';
+import { maybeSeedDemoCalendar } from './bootstrap/seed.ts';
 import { loadConfig } from './config.ts';
 import type { AppConfig } from './config.ts';
 import { createMemoryStore } from './store/memory.ts';
+import { createPgStore } from './store/postgres.ts';
+import type { Store } from './store/repositories.ts';
 
 // Конвенция размещения бандлов — `apps/client/dist/{guest,owner}`. Путь считается от
 // самого файла, а не от `cwd`: локально процесс стартует из `apps/api`, в образе — из
@@ -29,11 +35,33 @@ try {
   process.exit(1);
 }
 
-const store = createMemoryStore();
+// Режим хранилища выбирает только наличие DATABASE_URL (Р2), и выбор печатается строкой:
+// откат в эфемерный режим из-за стёртой на платформе переменной иначе заметен лишь по
+// пропавшим данным. Тихого отката в память при заданной строке нет — база недоступна или
+// миграция упала означает отказ старта, а не молчаливую потерю персистентности.
+let store: Store;
+if (config.databaseUrl !== null) {
+  const pool = new pg.Pool({ connectionString: config.databaseUrl });
+  let applied: string[];
+  try {
+    ({ applied } = await runMigrations(pool));
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error(`MiniCal API: migrations failed — ${reason}`);
+    process.exit(1);
+  }
+  store = createPgStore(pool);
+  console.log(`MiniCal API: хранилище postgres (применено миграций: ${applied.length})`);
+} else {
+  store = createMemoryStore();
+  console.log('MiniCal API: хранилище in-memory — данные не переживут рестарт');
+}
+
 // Без флага хранилище остаётся пустым — поведение по умолчанию не меняется (AC10).
 if (config.seedDemo) {
+  let outcome: 'seeded' | 'skipped';
   try {
-    await seedDemoCalendar(store);
+    outcome = await maybeSeedDemoCalendar(store);
   } catch (error) {
     // Тот же порядок, что у ошибки конфигурации: отказ виден строкой, а не сырым
     // unhandled rejection, и процесс не остаётся с полунаполненным хранилищем.
@@ -41,7 +69,11 @@ if (config.seedDemo) {
     console.error(`MiniCal API: demo seed failed — ${reason}`);
     process.exit(1);
   }
-  console.log('MiniCal API: демо-календарь загружен (SEED_DEMO)');
+  console.log(
+    outcome === 'seeded'
+      ? 'MiniCal API: демо-календарь загружен (SEED_DEMO)'
+      : 'MiniCal API: демо-сид пропущен — хранилище уже настроено',
+  );
 }
 
 // Признак раздачи — сам `index.html`, а не каталог: пустой `dist/guest` остался бы от

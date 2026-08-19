@@ -7,6 +7,13 @@ export interface AppConfig {
   publicWebUrl: string;
   /** Наполнять ли пустое хранилище демо-календарём на старте (`SEED_DEMO`), по умолчанию нет. */
   seedDemo: boolean;
+  /**
+   * Строка подключения к PostgreSQL (`DATABASE_URL`); `null` — режим in-memory (Р2). Мусорное
+   * значение отказывает старт, а не откатывает в память тихо: переменную задают там, где данные
+   * обязаны пережить рестарт, и молчаливый эфемерный режим означал бы их потерю без единой строки
+   * в логах.
+   */
+  databaseUrl: string | null;
 }
 
 const DEFAULT_PORT = 3001;
@@ -24,6 +31,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port: parsePort(env.PORT),
     publicWebUrl: parsePublicWebUrl(env.PUBLIC_WEB_URL),
     seedDemo: parseSeedDemo(env.SEED_DEMO),
+    databaseUrl: parseDatabaseUrl(env.DATABASE_URL),
   };
 }
 
@@ -63,4 +71,24 @@ function parseSeedDemo(raw: string | undefined): boolean {
   if (raw === undefined || raw === '' || raw === '0' || raw === 'false') return false;
   if (raw === '1' || raw === 'true') return true;
   throw new Error(`SEED_DEMO must be one of "1", "true", "0", "false", got "${raw}"`);
+}
+
+/**
+ * Отсутствие переменной — осознанный in-memory режим, а вот заданная строка обязана быть
+ * рабочей: опечатка в схеме или обрезанное значение иначе увели бы процесс в память с
+ * настроенной персистентностью. Проверяется только форма — доступность базы выясняет
+ * первое подключение на старте, и её отказ тоже завершает процесс (Р2).
+ */
+function parseDatabaseUrl(raw: string | undefined): string | null {
+  if (raw === undefined || raw === '') return null;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error(`DATABASE_URL must be a postgres:// or postgresql:// URL, got "${raw}"`);
+  }
+  if (url.protocol !== 'postgres:' && url.protocol !== 'postgresql:') {
+    throw new Error(`DATABASE_URL must be a postgres:// or postgresql:// URL, got "${raw}"`);
+  }
+  return raw;
 }
