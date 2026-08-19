@@ -70,6 +70,9 @@ EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://localhost:3001 make w
 # owner-флоу на Android-эмуляторе
 EXPO_PUBLIC_APP_MODE=owner EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:3001 make android EXPO_ARGS=--clear
 
+# Android-клиент против опубликованного сервера (адрес — в корневом README)
+EXPO_PUBLIC_API_BASE_URL=https://6b1y-3d3v-dk6o.gw-1a.dockhost.net make android EXPO_ARGS=--clear
+
 # гостевой флоу — как раньше, переменные не нужны
 make web
 ```
