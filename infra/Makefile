@@ -14,6 +14,11 @@ CONTAINER ?= $(IMAGE)-$(PORT)
 # гостевую половину раздаёт тот же процесс, и живёт она на том же порту, что и API.
 PUBLIC_WEB_URL ?= http://localhost:$(PORT)
 
+# Строки подключения к локальному контуру: пользователь, пароль и порт — из compose.yml.
+# Рабочая база и база тестов разные: прогон тестов чистит схему целиком.
+DATABASE_URL ?= postgres://minical:minical@localhost:5432/minical
+TEST_DATABASE_URL ?= postgres://minical:minical@localhost:5432/minical_test
+
 typecheck: ## Проверять нечего: зона не содержит TypeScript
 	@:
 
@@ -38,6 +43,16 @@ reset: ## Остановить контур и удалить volume с данн
 config: ## Проверить конфигурацию compose без запуска
 	$(COMPOSE) config -q
 
+# Значения в кавычках: в строке подключения легально встречается спецсимвол оболочки.
+db-migrate: ## Применить миграции к базе (DATABASE_URL=postgres://minical:minical@localhost:5432/minical)
+	$(RUN) DATABASE_URL='$(DATABASE_URL)' node $(REPO_ROOT)/packages/database/src/cli.ts
+
+# Зоны перечислены обе: БД-наборы обеих читают одну переменную, и без неё молча скипаются —
+# запускать их по отдельности значило бы забыть половину проверки.
+db-test: ## Прогнать БД-тесты зон database и api против контура (TEST_DATABASE_URL=...minical_test)
+	$(RUN) TEST_DATABASE_URL='$(TEST_DATABASE_URL)' $(MAKE) -C $(REPO_ROOT)/packages/database test
+	$(RUN) TEST_DATABASE_URL='$(TEST_DATABASE_URL)' $(MAKE) -C $(REPO_ROOT)/apps/api test
+
 image-build: ## Собрать образ приложения (IMAGE=minical)
 	docker build -t $(IMAGE) $(REPO_ROOT)
 
@@ -54,4 +69,4 @@ image-run: ## Запустить образ (PORT=3001, PUBLIC_WEB_URL, SEED_DEM
 	  $(if $(SEED_DEMO),-e SEED_DEMO='$(SEED_DEMO)') \
 	  $(IMAGE)
 
-.PHONY: typecheck test gates up down logs reset config image-build image-run
+.PHONY: typecheck test gates up down logs reset config db-migrate db-test image-build image-run

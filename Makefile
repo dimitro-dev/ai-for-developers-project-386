@@ -61,6 +61,12 @@ db-logs: ## Читать логи PostgreSQL
 db-reset: ## Остановить PostgreSQL и удалить volume с данными
 	$(MAKE) -C infra reset
 
+db-migrate: ## Применить миграции к базе (DATABASE_URL=postgres://minical:minical@localhost:5432/minical)
+	$(MAKE) -C infra db-migrate
+
+db-test: ## Прогнать БД-тесты против контура (TEST_DATABASE_URL=...minical_test)
+	$(MAKE) -C infra db-test
+
 image-build: ## Собрать образ приложения (IMAGE=minical)
 	$(MAKE) -C infra image-build
 
@@ -68,4 +74,5 @@ image-run: ## Запустить приложение из образа (PORT=30
 	$(MAKE) -C infra image-run
 
 .PHONY: setup generate generate-check typecheck test contract-test task-check uispec-validate \
-        lint-docs gates zones mock db-up db-down db-logs db-reset image-build image-run
+        lint-docs gates zones mock db-up db-down db-logs db-reset db-migrate db-test \
+        image-build image-run
