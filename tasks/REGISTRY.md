@@ -29,7 +29,7 @@
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
 | [back/001](back/001-api-skeleton/) | Каркас backend и реализация контракта на in-memory хранилище | [infra/005](infra/005-generated-entrypoints/), [contract/001](contract/001-guest-flow-extensions/) | завершена (17/17) |
-| [back/002](back/002-database-persistence/) | Персистентность: схема БД, миграции и exclusion constraint | [infra/001](infra/001-postgres-compose/) | результат (10/10) |
+| [back/002](back/002-database-persistence/) | Персистентность: схема БД, миграции и exclusion constraint | [infra/001](infra/001-postgres-compose/) | завершена (10/10) |
 | [back/003](back/003-slot-engine-package/) | Вынесение Slot Engine в packages/slot-engine | [back/001](back/001-api-skeleton/) | заявлена |
 
 ### front/ui
@@ -68,7 +68,6 @@
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
 | [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
-| [back/002](back/002-database-persistence/) | результат (10/10) | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [infra/008](infra/008-e2e-web-playwright/) | заявлена | Web e2e дешевле native: testID уже проставлены, react-native-web мапит их в data-testid; эмулятор и APK не нужны. Защищает гостевой сценарий от регрессий во время работы над owner-flow и снимает часть объёма с infra/007 | — |
 | [infra/007](infra/007-e2e-native-framework/) | заявлена | Выбор native e2e-инструмента (Detox / Maestro / Appium) и способа его запуска; нужен работающий APK-контур из infra/002 и эмулятор с аппаратной виртуализацией — на macOS-хосте только вне Docker | — |
@@ -87,6 +86,7 @@
 | [front/guest/001](front/guest/001-client-foundation/) | завершена (11/11) | Клиентский фундамент: дизайн-система по registry, SDK, guest-flow state, тестовая инфраструктура | — |
 | [front/guest/002](front/guest/002-guest-screens/) | завершена (15/15) | Вертикальная задача: четыре гостевых экрана и сквозная проверка против реального API | [front/owner/001](front/owner/001-owner-screens/), [infra/001](infra/001-postgres-compose/) |
 | [infra/001](infra/001-postgres-compose/) | завершена (10/10) | Контейнер PostgreSQL — шаг к персистентности (back/002); Docker Engine — внешняя предпосылка | — |
+| [back/002](back/002-database-persistence/) | завершена (10/10) | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [infra/006](infra/006-ci-release-please/) | завершена (10/10) | CI + release-please; выполнена параллельно front/guest/002, первый релиз v0.2.0 | — |
 | [infra/009](infra/009-docker-deploy/) | завершена (10/10) | Внешнее требование учебной платформы: Dockerfile, старт по PORT, публичная ссылка. Раньше back/002 — решение владельца 2026-08-18: с базой задача про образ растёт, а переезд на неё потом образ не переписывает | — |
 | [process/001](process/001-tasks-rework/) | завершена (23/23) | Переработка процесса: инструмент task, треки full/lite, миграция каталога, растворение ролей; выполнена 2026-08-16 | — |
