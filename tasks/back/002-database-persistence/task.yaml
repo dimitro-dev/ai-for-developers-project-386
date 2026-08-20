@@ -10,13 +10,22 @@ queue:
   rationale: Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory
 gates:
   brief:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-19
+    sha256: 61212dc2acf2e068f8961b88d0f12f2b4280fdb5c9abc818a30e28ba2d732f76
   adr:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-19
+    sha256: a5d7c6a9122e85121cf3ad8f096115179ecc27a4b3acfd6572974b15ef7a6491
   plan:
-    status: черновик
+    status: согласовано
+    approvedAt: 2026-08-19
+    sha256: eef9c7e56de3d9f50de6f8a7690d57421281a19b882e08e9054c83dcedc1d960
   result:
     status: черновик
+workspace:
+  branch: task/back-002-database-persistence
+  worktree: ../minical-back-002
 meta:
-  rev: 1
-  selfHash: 2351d3da9dfdd3e7a93246967b8c7c533af3c94a032a3495ebe73f70ceff5534
+  rev: 6
+  selfHash: 7377221968e7a3d7f0c45aad98f68d38c67260b77e9560b0260569b69bab4b72

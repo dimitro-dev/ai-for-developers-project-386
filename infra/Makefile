@@ -1,5 +1,10 @@
 include ../make/common.mk
 
+# Тот же файл переопределений, что читает compose (`-` — его может не быть): без него цели
+# db-* собирали бы строку подключения из своих дефолтов и стучались бы в чужую базу, тогда как
+# контур поднят с другими POSTGRES_*. Для db-test это не мелочь — набор начинается с DROP TABLE.
+-include .env
+
 COMPOSE := docker compose -f compose.yml
 
 # Образ приложения. Порт совпадает с дефолтом config.ts: внутри контейнера и на хосте он один
@@ -14,6 +19,19 @@ CONTAINER ?= $(IMAGE)-$(PORT)
 # гостевую половину раздаёт тот же процесс, и живёт она на том же порту, что и API.
 PUBLIC_WEB_URL ?= http://localhost:$(PORT)
 
+# Параметры контура: дефолты те же, что подставляет compose.yml, но заданные в .env выше
+# побеждают — цель обязана смотреть в ту базу, которая реально поднята.
+POSTGRES_USER ?= minical
+POSTGRES_PASSWORD ?= minical
+POSTGRES_DB ?= minical
+POSTGRES_TEST_DB ?= minical_test
+POSTGRES_PORT ?= 5432
+
+# Строки подключения собираются из тех же параметров. Рабочая база и база тестов разные:
+# прогон тестов чистит схему целиком.
+DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)
+TEST_DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_TEST_DB)
+
 typecheck: ## Проверять нечего: зона не содержит TypeScript
 	@:
 
@@ -26,17 +44,33 @@ gates: ## Проверок зоны нет: валидация compose треб�
 up: ## Поднять контур и дождаться healthy
 	$(COMPOSE) up -d --wait
 
+# Сервис приложения спрятан за профилем `app`, поэтому подъём полного контура — отдельная цель:
+# подъём базы не должен тянуть сборку образа. Остановка, сброс и валидация, наоборот, обязаны
+# видеть оба сервиса — иначе `down` оставил бы приложение работать, а `config` не проверил бы его.
+up-app: ## Поднять полный контур (postgres + api) и дождаться healthy
+	$(COMPOSE) --profile app up -d --build --wait
+
 down: ## Остановить контур, сохранив данные
-	$(COMPOSE) down
+	$(COMPOSE) --profile app down
 
 logs: ## Читать логи PostgreSQL
 	$(COMPOSE) logs -f postgres
 
 reset: ## Остановить контур и удалить volume с данными
-	$(COMPOSE) down -v
+	$(COMPOSE) --profile app down -v
 
 config: ## Проверить конфигурацию compose без запуска
-	$(COMPOSE) config -q
+	$(COMPOSE) --profile app config -q
+
+# Значения в кавычках: в строке подключения легально встречается спецсимвол оболочки.
+db-migrate: ## Применить миграции к базе (DATABASE_URL=postgres://minical:minical@localhost:5432/minical)
+	$(RUN) DATABASE_URL='$(DATABASE_URL)' node $(REPO_ROOT)/packages/database/src/cli.ts
+
+# Зоны перечислены обе: БД-наборы обеих читают одну переменную, и без неё молча скипаются —
+# запускать их по отдельности значило бы забыть половину проверки.
+db-test: ## Прогнать БД-тесты зон database и api против контура (TEST_DATABASE_URL=...minical_test)
+	$(RUN) TEST_DATABASE_URL='$(TEST_DATABASE_URL)' $(MAKE) -C $(REPO_ROOT)/packages/database test
+	$(RUN) TEST_DATABASE_URL='$(TEST_DATABASE_URL)' $(MAKE) -C $(REPO_ROOT)/apps/api test
 
 image-build: ## Собрать образ приложения (IMAGE=minical)
 	docker build -t $(IMAGE) $(REPO_ROOT)
@@ -54,4 +88,4 @@ image-run: ## Запустить образ (PORT=3001, PUBLIC_WEB_URL, SEED_DEM
 	  $(if $(SEED_DEMO),-e SEED_DEMO='$(SEED_DEMO)') \
 	  $(IMAGE)
 
-.PHONY: typecheck test gates up down logs reset config image-build image-run
+.PHONY: typecheck test gates up up-app down logs reset config db-migrate db-test image-build image-run

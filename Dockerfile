@@ -20,6 +20,7 @@ COPY apps/client/package.json apps/client/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/backend-contract/package.json packages/backend-contract/
 COPY packages/contracts/package.json packages/contracts/
+COPY packages/database/package.json packages/database/
 RUN npm ci
 
 COPY . .
@@ -51,15 +52,23 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/backend-contract/package.json packages/backend-contract/
+# Манифест @minical/database входит в ту же цепочку: пакет — рантайм-зависимость apps/api, и без
+# его манифеста workspace-фильтр не находит цель симлинка и обрывает установку.
+COPY packages/database/package.json packages/database/
 
-# Workspace-фильтр оставляет express, zod и симлинк @minical/backend-contract. Симлинк
-# обязателен: внутри физического node_modules Node отказывается стриптить типы
-# (ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING).
+# Workspace-фильтр оставляет express, zod, pg и симлинки @minical/backend-contract и
+# @minical/database. Симлинки обязательны: внутри физического node_modules Node отказывается
+# стриптить типы (ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING).
 RUN npm ci --omit=dev -w apps/api
 
 # Сборки у API нет — в образ едут исходники, как и при локальном запуске.
 COPY apps/api/src apps/api/src
 COPY packages/backend-contract/src packages/backend-contract/src
+COPY packages/database/src packages/database/src
+
+# SQL-миграции — не исходники, а данные раннера: он читает каталог на старте, поэтому тот едет
+# в образ рядом с кодом пакета.
+COPY packages/database/migrations packages/database/migrations
 
 # Каталоги конвенции, по которым server.ts находит бандлы и включает их раздачу.
 COPY --from=build /app/apps/client/dist/guest apps/client/dist/guest

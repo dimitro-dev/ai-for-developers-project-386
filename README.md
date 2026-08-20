@@ -46,7 +46,7 @@ Generated-каталоги (`packages/contracts/generated`, `packages/api-client
 | PostgreSQL | `make db-up` | `localhost:5432` | [`infra/README.md`](infra/README.md) |
 | Приложение из образа | `make image-build`, затем `make image-run` | `http://localhost:3001` | [`infra/README.md`](infra/README.md) |
 
-Backend поднимается без базы и без Docker: хранилище in-memory, состояние теряется при рестарте. Клиент по умолчанию ходит в мок контракта, а не в backend — адрес задаётся переменной окружения (см. README зоны клиента).
+Хранилище выбирает переменная `DATABASE_URL`: без неё backend поднимается без базы и без Docker, состояние теряется при рестарте; с ней данные живут в PostgreSQL, а миграции применяются на старте процесса — режимы и переменные описаны в [`apps/api/README.md`](apps/api/README.md), контур базы — в [`infra/README.md`](infra/README.md). Клиент по умолчанию ходит в мок контракта, а не в backend — адрес задаётся переменной окружения (см. README зоны клиента).
 
 Образ приложения — отдельный способ запуска, для которого Docker нужен: в нём один процесс отдаёт с одного порта и API, и оба web-бандла клиента — гость на `/`, владелец на `/admin`. Порт и переменные окружения передаются параметрами цели; эксплуатация образа и порядок публикации — в [`infra/README.md`](infra/README.md).
 
@@ -54,12 +54,12 @@ Backend поднимается без базы и без Docker: хранили�
 
 ```text
 apps/client               React Native / React Web клиент (Expo)
-apps/api                  REST API: 12 операций контракта на Express 5, in-memory хранилище
+apps/api                  REST API: 12 операций контракта на Express 5, хранилище in-memory или PostgreSQL
 packages/contracts        Ручной TypeSpec-контракт + generated OpenAPI
 packages/api-client       Generated frontend SDK
 packages/backend-contract Generated backend types + Zod schemas
 packages/slot-engine      Slot Engine (появится в implementation task)
-packages/database         PostgreSQL schema и миграции (появятся в implementation task)
+packages/database         PostgreSQL schema, SQL-миграции и раннер их применения
 infra                     Docker/Compose: compose.yml, .env.example, postgres/initdb/
 make, scripts             слой команд: общая часть Makefile, вход к CLI задач, гейт документации
 ```

@@ -52,6 +52,11 @@ Backend отвечает за:
 - snapshot данных гостя;
 - глобальный запрет пересечения активных бронирований.
 
+Схема, миграции и constraints живут в зоне
+[`packages/database/`](../packages/database/AGENTS.md); backend подключается к базе только при
+заданной `DATABASE_URL` и иначе работает на in-memory хранилище — режимы описаны
+в [`apps/api/README.md`](../apps/api/README.md).
+
 ### Contract packages
 
 ```text
@@ -76,11 +81,15 @@ BookingResponse       — transport output
 
 ## Локальный runtime
 
+Compose-контур зоны `infra/` — два сервиса:
+
 ```text
-web container
-api container
-postgres container
+api container       API и оба web-бандла одним процессом; за профилем `app`
+postgres container  поднимается всегда
 ```
+
+Отдельного `web`-контейнера нет: бандлы раздаёт тот же процесс. Профиль держит приложение вне
+жизненного цикла базы — подъём PostgreSQL не тянет сборку образа.
 
 Build-time:
 
@@ -90,12 +99,11 @@ android-builder container → APK artifact
 
 Android Emulator работает на хосте и обращается к gateway через адрес хоста эмулятора. iOS toolchain не запускается в Linux Docker.
 
-Отдельно от этого контура задачей `infra/009` появился **образ приложения**: один образ, в котором
-процесс API отдаёт с одного порта и REST-операции, и оба собранных web-бандла клиента — гостевой
-с `/`, владельческий с `/admin`. Второго веб-сервера в нём нет. Compose-контур это не меняет: он
-остаётся локальным runtime, а образ собирается своей целью (`make image-build`) и запускается
-локально `make image-run`. Переменные окружения, порядок публикации и её ограничения —
-в [`infra/README.md`](../infra/README.md).
+Сервис `api` — **образ приложения** задачи `infra/009`: один образ, в котором процесс API отдаёт
+с одного порта и REST-операции, и оба собранных web-бандла клиента — гостевой с `/`, владельческий
+с `/admin`. Второго веб-сервера в нём нет. Помимо контура образ собирается своей целью
+(`make image-build`) и запускается локально `make image-run`. Переменные окружения, порядок
+публикации и её ограничения — в [`infra/README.md`](../infra/README.md).
 
 ## Security boundary
 
@@ -114,8 +122,8 @@ Makefile           операции уровня репозитория и фа�
 Список зон фан-аута не перечисляется руками: корневой `Makefile` собирает его из фактически
 существующих `Makefile` в `apps/*`, `packages/*`, `infra/`, `tests/` и `tasks/`. Зона, получившая
 `Makefile`, попадает в фан-аут сама; каталог верхнего уровня за пределами этого шаблона нужно
-добавить в него явно. `Makefile` есть только у зон с запускаемой работой — у `tests/`,
-`packages/database/` и `packages/slot-engine/` его нет, и в фан-ауте они не участвуют.
+добавить в него явно. `Makefile` есть только у зон с запускаемой работой — у `tests/`
+и `packages/slot-engine/` его нет, и в фан-ауте они не участвуют.
 
 Каждая зона **с `Makefile`** обязана определять `typecheck`, `test` и `gates` — даже пустыми:
 у `make` нет аналога `--if-present`, и отсутствие цели в такой зоне должно быть видимой ошибкой
@@ -152,8 +160,9 @@ minical/
 │                              редактируется; ci.yml — обязательные проверки на PR/push
 │                              в `main`; release-please.yml — release-PR
 ├── apps/
-│   ├── api/                   @minical/api — REST API: 12 операций контракта на Express 5
-│   │   │                       поверх in-memory хранилища, порт 3001; запускается из
+│   ├── api/                   @minical/api — REST API: 12 операций контракта на Express 5,
+│   │   │                       порт 3001; хранилище двухрежимное — in-memory по умолчанию,
+│   │   │                       PostgreSQL при заданной DATABASE_URL; запускается из
 │   │   │                       исходников, сборки в dist нет
 │   │   ├── AGENTS.md           контракт зоны
 │   │   ├── architecture.md     слои, точка валидации, таблица статусов, middleware
@@ -164,7 +173,7 @@ minical/
 │   │                           http/ (routes, handlers, parse, present, errors, security),
 │   │                           usecases/ (owner, booking),
 │   │                           domain/ (model, errors, slots, timezone),
-│   │                           store/ (repositories, memory),
+│   │                           store/ (repositories, memory, postgres),
 │   │                           тесты рядом с кодом: *.test.ts
 │   └── client/                @minical/client — Expo 57, React Native 0.86, react-native-web;
 │       │                       гостевой фундамент: дизайн-система, generated SDK, навигация
@@ -198,7 +207,9 @@ minical/
 │   ├── api-client/            @minical/api-client — generated frontend SDK (@hey-api/client-fetch)
 │   ├── backend-contract/      @minical/backend-contract — generated types + Zod schemas
 │   ├── slot-engine/           .gitkeep — появится в отдельной задаче
-│   └── database/              AGENTS.md + .gitkeep — schema и миграции, отдельная задача
+│   └── database/              @minical/database — SQL-миграции, forward-only раннер
+│                              (advisory lock, таблица schema_migrations) и integration-тесты
+│                              схемы против реальной PostgreSQL
 ├── tests/
 │   ├── AGENTS.md              контракт зоны проверок: контрактные, доменные, интеграционные, E2E
 │   └── contract-validation.test.ts   контрактный гейт
@@ -228,9 +239,10 @@ minical/
 Каждая задача — `<номер>-<слаг>/` с `task.yaml` (канон состояния) и документами своего трека.
 Канонический id — путь без слага: `front/guest/002`, `infra/006`.
 
-`packages/slot-engine` и `packages/database` кода пока не содержат — только `AGENTS.md` зоны
-и `.gitkeep`. Не наполняй их кодом без задачи, которая это предусматривает. `infra/` наполнена
-задачей `infra/001`: compose-контур, init-скрипт и переменные окружения.
+`packages/slot-engine` кода пока не содержит — только `AGENTS.md` зоны и `.gitkeep`. Не наполняй
+его кодом без задачи, которая это предусматривает. `packages/database` активирован задачей
+`back/002`, `infra/` наполнена `infra/001` (compose-контур, init-скрипт, переменные окружения)
+и `infra/009` (образ приложения).
 
 ### Пакеты и границы
 
@@ -310,6 +322,9 @@ docs/
 7. Exclusion constraint является последней защитой от гонки.
 8. API возвращает Booking либо документированную ошибку.
 ```
+
+Шаги 6–7 описывают режим PostgreSQL; в режиме in-memory занятость держится только проверкой
+шага 5, и защиты от гонки на уровне хранилища нет.
 
 ## Когда менять task ADR
 

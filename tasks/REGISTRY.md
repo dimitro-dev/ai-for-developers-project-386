@@ -29,7 +29,7 @@
 | id | Задача | Зависимости | Стадия |
 |---|---|---|---|
 | [back/001](back/001-api-skeleton/) | Каркас backend и реализация контракта на in-memory хранилище | [infra/005](infra/005-generated-entrypoints/), [contract/001](contract/001-guest-flow-extensions/) | завершена (17/17) |
-| [back/002](back/002-database-persistence/) | Персистентность: схема БД, миграции и exclusion constraint | [infra/001](infra/001-postgres-compose/) | заявлена |
+| [back/002](back/002-database-persistence/) | Персистентность: схема БД, миграции и exclusion constraint | [infra/001](infra/001-postgres-compose/) | реализация (9/10) |
 | [back/003](back/003-slot-engine-package/) | Вынесение Slot Engine в packages/slot-engine | [back/001](back/001-api-skeleton/) | заявлена |
 
 ### front/ui
@@ -68,7 +68,7 @@
 | id | Стадия | Обоснование | Параллельно с |
 |---|---|---|---|
 | [infra/002](infra/002-android-builder/) | постановка | Сборка APK в Docker; приоритет низкий — Android проверяется expo run:android на хосте; начинать со спайка QEMU | — |
-| [back/002](back/002-database-persistence/) | заявлена | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
+| [back/002](back/002-database-persistence/) | реализация (9/10) | Схема БД, миграции и exclusion constraint — последняя линия защиты от пересечения Booking, недостижимая на in-memory | — |
 | [back/003](back/003-slot-engine-package/) | заявлена | Вынесение Slot Engine в packages/slot-engine с полным набором доменных тестов | — |
 | [infra/008](infra/008-e2e-web-playwright/) | заявлена | Web e2e дешевле native: testID уже проставлены, react-native-web мапит их в data-testid; эмулятор и APK не нужны. Защищает гостевой сценарий от регрессий во время работы над owner-flow и снимает часть объёма с infra/007 | — |
 | [infra/007](infra/007-e2e-native-framework/) | заявлена | Выбор native e2e-инструмента (Detox / Maestro / Appium) и способа его запуска; нужен работающий APK-контур из infra/002 и эмулятор с аппаратной виртуализацией — на macOS-хосте только вне Docker | — |

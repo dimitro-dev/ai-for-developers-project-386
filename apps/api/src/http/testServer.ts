@@ -15,7 +15,14 @@ import type { Store } from '../store/repositories.ts';
 export const TEST_PUBLIC_WEB_URL = 'http://localhost:8081';
 
 export function testConfig(overrides: Partial<AppConfig> = {}): AppConfig {
-  return { port: 0, publicWebUrl: TEST_PUBLIC_WEB_URL, seedDemo: false, ...overrides };
+  // `databaseUrl: null` — HTTP-тесты идут против переданного store, режим им безразличен.
+  return {
+    port: 0,
+    publicWebUrl: TEST_PUBLIC_WEB_URL,
+    seedDemo: false,
+    databaseUrl: null,
+    ...overrides,
+  };
 }
 
 /** Разобранный ответ: тесты операций сверяют статус и тело, заголовки им не нужны. */
