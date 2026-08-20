@@ -26,6 +26,7 @@ gates:
 workspace:
   branch: task/back-002-database-persistence
   worktree: ../minical-back-002
+  mr: https://github.com/dimitro-dev/ai-for-developers-project-386/pull/16
 meta:
-  rev: 6
-  selfHash: 7377221968e7a3d7f0c45aad98f68d38c67260b77e9560b0260569b69bab4b72
+  rev: 7
+  selfHash: e677383b638bf7a0117a1269e7143f3c74fa640aa927bccff1f0e9b120452f0a
